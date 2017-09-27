@@ -1,0 +1,2 @@
+# lab
+GitLabからcloneしてきたリポジトリのissueやMerge Requestをブラウジングするだけのcliツールにする予定

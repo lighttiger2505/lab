@@ -31,10 +31,16 @@ func (c *BrowseCommand) Help() string {
 }
 
 func (c *BrowseCommand) Run(args []string) int {
-	var debug bool
+	var verbose bool
 
+	// Set subcommand flags
 	flags := flag.NewFlagSet("add", flag.ContinueOnError)
-	flags.BoolVar(&debug, "debug", false, "Run as DEBUG mode")
+	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
+	flags.Usage = func() {}
+	err := flags.Parse(args)
+	if err != nil {
+		return ExitCodeError
+	}
 
 	// Get remote repositorys
 	remotes := gitOutputs("git", []string{"remote"})
@@ -48,6 +54,8 @@ func (c *BrowseCommand) Run(args []string) int {
 	var gitlabUrls []string
 	for _, remote := range remotes {
 		url := gitOutput("git", []string{"remote", "get-url", remote})
+		if verbose {
+			fmt.Println(url)
 		}
 
 		remoteUrl, err := NewRemoteUrl(url)

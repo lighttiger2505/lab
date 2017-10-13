@@ -60,7 +60,7 @@ func (c *BrowseCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func GitRemotes() ([]RemoteUrl, error) {
+func GitRemotes() ([]GitRemote, error) {
 	// Get remote repositorys
 	remotes := gitOutputs("git", []string{"remote"})
 
@@ -69,7 +69,7 @@ func GitRemotes() ([]RemoteUrl, error) {
 		return nil, errors.New("No remote setting in this repository")
 	}
 
-	gitRemotes := make([]RemoteUrl, 1)
+	var gitRemotes []GitRemote
 	for _, remote := range remotes {
 		url := gitOutput("git", []string{"remote", "get-url", remote})
 
@@ -84,15 +84,15 @@ func GitRemotes() ([]RemoteUrl, error) {
 	return gitRemotes, nil
 }
 
-func FilterGitlabRemote(gitRemotes []RemoteUrl) (*RemoteUrl, error) {
-	var gitlabRemotes []RemoteUrl
+func FilterGitlabRemote(gitRemotes []GitRemote) (*GitRemote, error) {
+	var gitlabRemotes []GitRemote
 	for _, gitRemote := range gitRemotes {
 		if strings.HasPrefix(gitRemote.Domain, "gitlab") {
 			gitlabRemotes = append(gitlabRemotes, gitRemote)
 		}
 	}
 
-	var gitLabRemote RemoteUrl
+	var gitLabRemote GitRemote
 	if len(gitlabRemotes) > 0 {
 		gitLabRemote = gitlabRemotes[0]
 	} else {
@@ -105,19 +105,19 @@ func FilterGitlabRemote(gitRemotes []RemoteUrl) (*RemoteUrl, error) {
 	return ExitCodeOK
 }
 
-type RemoteUrl struct {
+type GitRemote struct {
 	Url        string
 	Domain     string
 	User       string
 	Repository string
 }
 
-func (r *RemoteUrl) ConcatUrl() string {
+func (r *GitRemote) ConcatUrl() string {
 	params := strings.Join([]string{r.Domain, r.User, r.Repository}, "/")
 	return "https://" + params
 }
 
-func NewRemoteUrl(url string) (*RemoteUrl, error) {
+func NewRemoteUrl(url string) (*GitRemote, error) {
 	var (
 		otherScheme string
 		domain      string
@@ -141,7 +141,7 @@ func NewRemoteUrl(url string) (*RemoteUrl, error) {
 	user = splitUrl[1]
 	repository = splitUrl[2]
 
-	return &RemoteUrl{
+	return &GitRemote{
 		Url:        url,
 		Domain:     domain,
 		User:       user,

@@ -45,35 +45,32 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	remote := ""
-	for _, tmp_remote := range remotes {
-		if "origin" == tmp_remote {
-			remote = tmp_remote
+	var gitlabUrls []string
+	for _, remote := range remotes {
+		url := gitOutput("git", []string{"remote", "get-url", remote})
+		}
+
+		remoteUrl, err := NewRemoteUrl(url)
+		if err != nil {
+			fmt.Println("No remote setting in this repository.")
+			return ExitCodeError
+		}
+
+		if strings.HasPrefix(remoteUrl.Domain, "gitlab") {
+			gitlabUrls = append(gitlabUrls, remoteUrl.ConcatUrl())
 		}
 	}
 
-	var url string
-	if remote != "" {
-		url = gitOutput("git", []string{"remote", "get-url", remotes[0]})
+	var gitlabUrl string
+	if len(gitlabUrls) > 0 {
+		gitlabUrl = gitlabUrls[0]
 	} else {
-		fmt.Println("Failed getting remote setting.")
-		return ExitCodeError
-	}
-
-	remoteUrl, err := NewRemoteUrl(url)
-	if err != nil {
-		fmt.Println("No remote setting in this repository.")
-		return ExitCodeError
-	}
-
-	// gitlabじゃない場合
-	if !strings.HasPrefix(remoteUrl.Domain, "gitlab") {
-		fmt.Println("Not a cloned repository from gitlab. ", remoteUrl.Domain)
+		fmt.Println("Not a cloned repository from gitlab.")
 		return ExitCodeError
 	}
 
 	browser := searchBrowserLauncher(runtime.GOOS)
-	cmdOutput(browser, []string{remoteUrl.ConcatUrl()})
+	cmdOutput(browser, []string{gitlabUrl})
 
 	return ExitCodeOK
 }

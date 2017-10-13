@@ -42,43 +42,65 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	gitRemotes, err := GitRemotes()
+	if err != nil {
+		fmt.Println(err.Error())
+		return ExitCodeError
+	}
+
+	gitlabRemote, err := FilterGitlabRemote(gitRemotes)
+	if err != nil {
+		fmt.Println(err.Error())
+		return ExitCodeError
+	}
+
+	browser := searchBrowserLauncher(runtime.GOOS)
+	cmdOutput(browser, []string{gitlabRemote.ConcatUrl()})
+
+	return ExitCodeOK
+}
+
+func GitRemotes() ([]RemoteUrl, error) {
 	// Get remote repositorys
 	remotes := gitOutputs("git", []string{"remote"})
 
 	// Remote repository is not registered
 	if len(remotes) == 0 {
-		fmt.Println("No remote setting in this repository")
-		return ExitCodeError
+		return nil, errors.New("No remote setting in this repository")
 	}
 
-	var gitlabUrls []string
+	gitRemotes := make([]RemoteUrl, 1)
 	for _, remote := range remotes {
 		url := gitOutput("git", []string{"remote", "get-url", remote})
-		if verbose {
-			fmt.Println(url)
-		}
 
-		remoteUrl, err := NewRemoteUrl(url)
+		gitRemote, err := NewRemoteUrl(url)
 		if err != nil {
-			fmt.Println("No remote setting in this repository.")
-			return ExitCodeError
+			return nil, errors.New(fmt.Sprintf("Failed serialize remote url. %s", url))
 		}
 
-		if strings.HasPrefix(remoteUrl.Domain, "gitlab") {
-			gitlabUrls = append(gitlabUrls, remoteUrl.ConcatUrl())
+		gitRemotes = append(gitRemotes, *gitRemote)
+	}
+
+	return gitRemotes, nil
+}
+
+func FilterGitlabRemote(gitRemotes []RemoteUrl) (*RemoteUrl, error) {
+	var gitlabRemotes []RemoteUrl
+	for _, gitRemote := range gitRemotes {
+		if strings.HasPrefix(gitRemote.Domain, "gitlab") {
+			gitlabRemotes = append(gitlabRemotes, gitRemote)
 		}
 	}
 
-	var gitlabUrl string
-	if len(gitlabUrls) > 0 {
-		gitlabUrl = gitlabUrls[0]
+	var gitLabRemote RemoteUrl
+	if len(gitlabRemotes) > 0 {
+		gitLabRemote = gitlabRemotes[0]
 	} else {
-		fmt.Println("Not a cloned repository from gitlab.")
-		return ExitCodeError
+		return nil, errors.New("Not a cloned repository from gitlab.")
 	}
+	return &gitLabRemote, nil
+}
 
-	browser := searchBrowserLauncher(runtime.GOOS)
-	cmdOutput(browser, []string{gitlabUrl})
 
 	return ExitCodeOK
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/mitchellh/cli"
@@ -34,11 +35,10 @@ func (c *BrowseCommand) Run(args []string) int {
 	var verbose bool
 
 	// Set subcommand flags
-	flags := flag.NewFlagSet("add", flag.ContinueOnError)
+	flags := flag.NewFlagSet("browse", flag.ContinueOnError)
 	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
 	flags.Usage = func() {}
-	err := flags.Parse(args)
-	if err != nil {
+	if err := flags.Parse(args); err != nil {
 		return ExitCodeError
 	}
 
@@ -55,9 +55,40 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	browser := searchBrowserLauncher(runtime.GOOS)
-	cmdOutput(browser, []string{gitlabRemote.ConcatUrl()})
+	prefixArgs := flags.Args()
+	if len(prefixArgs) > 0 {
+		browseArg, err := NewBrowseArg(prefixArgs[0])
+		if err != nil {
+			return ExitCodeError
+		}
+		cmdOutput(browser, []string{gitlabRemote.IssueUrl(browseArg.No)})
+	} else {
+		cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
+	}
 
 	return ExitCodeOK
+}
+
+type BrowseArg struct {
+	Type string
+	No   int
+}
+
+func NewBrowseArg(arg string) (*BrowseArg, error) {
+	var browseArg BrowseArg
+	if strings.HasPrefix(arg, "#") {
+		number, err := strconv.Atoi(strings.TrimPrefix(arg, "#"))
+		if err != nil {
+			return nil, errors.New("Invalid number")
+		}
+		browseArg = BrowseArg{
+			Type: "MergeRequest",
+			No:   number,
+		}
+	} else {
+		return nil, errors.New("Invalid args")
+	}
+	return &browseArg, nil
 }
 
 func GitRemotes() ([]GitRemote, error) {
@@ -112,9 +143,17 @@ type GitRemote struct {
 	Repository string
 }
 
-func (r *GitRemote) ConcatUrl() string {
+func (r *GitRemote) RepositoryUrl() string {
 	params := strings.Join([]string{r.Domain, r.User, r.Repository}, "/")
 	return "https://" + params
+}
+
+func (r *GitRemote) IssueUrl(issueNo int) string {
+	return strings.Join([]string{r.RepositoryUrl(), "issues", fmt.Sprintf("%d", issueNo)}, "/")
+}
+
+func (r *GitRemote) BaseUrl() string {
+	return "https://" + r.Domain + "/"
 }
 
 func NewRemoteUrl(url string) (*GitRemote, error) {

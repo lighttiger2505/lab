@@ -101,10 +101,6 @@ func FilterGitlabRemote(gitRemotes []GitRemote) (*GitRemote, error) {
 	return &gitLabRemote, nil
 }
 
-
-	return ExitCodeOK
-}
-
 type GitRemote struct {
 	Url        string
 	Domain     string

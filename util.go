@@ -2,33 +2,36 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"os/exec"
 	"strconv"
 	"strings"
 )
 
-func GitRemotes() ([]GitRemote, error) {
-	// Get remote repositorys
-	remotes := gitOutputs("git", []string{"remote"})
-
-	// Remote repository is not registered
-	if len(remotes) == 0 {
-		return nil, errors.New("No remote setting in this repository")
-	}
-
-	var gitRemotes []GitRemote
-	for _, remote := range remotes {
-		url := gitOutput("git", []string{"remote", "get-url", remote})
-
-		gitRemote, err := NewRemoteUrl(url)
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Failed serialize remote url. %s", url))
+func SearchBrowserLauncher(goos string) (browser string) {
+	switch goos {
+	case "darwin":
+		browser = "open"
+	case "windows":
+		browser = "cmd /c start"
+	default:
+		candidates := []string{
+			"xdg-open",
+			"cygstart",
+			"x-www-browser",
+			"firefox",
+			"opera",
+			"mozilla",
+			"netscape",
 		}
-
-		gitRemotes = append(gitRemotes, *gitRemote)
+		for _, b := range candidates {
+			path, err := exec.LookPath(b)
+			if err == nil {
+				browser = path
+				break
+			}
+		}
 	}
-
-	return gitRemotes, nil
+	return browser
 }
 
 type BrowseArg struct {

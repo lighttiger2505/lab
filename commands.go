@@ -95,3 +95,52 @@ func (c *IssueCommand) Run(args []string) int {
 
 	return ExitCodeOK
 }
+
+type MergeRequestCommand struct {
+}
+
+func (c *MergeRequestCommand) Synopsis() string {
+	return "Browse merge request"
+}
+
+func (c *MergeRequestCommand) Help() string {
+	return "Usage: lab merge-request [option]"
+}
+
+func (c *MergeRequestCommand) Run(args []string) int {
+	var verbose bool
+
+	// Set subcommand flags
+	flags := flag.NewFlagSet("browse", flag.ContinueOnError)
+	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
+	flags.Usage = func() {}
+	if err := flags.Parse(args); err != nil {
+		return ExitCodeError
+	}
+
+	gitRemotes, err := GitRemotes()
+	if err != nil {
+		fmt.Println(err.Error())
+		return ExitCodeError
+	}
+
+	gitlabRemote, err := FilterGitlabRemote(gitRemotes)
+	if err != nil {
+		fmt.Println(err.Error())
+		return ExitCodeError
+	}
+
+	browser := SearchBrowserLauncher(runtime.GOOS)
+
+	if len(flags.Args()) > 0 {
+		issueNo, err := strconv.Atoi(flags.Args()[0])
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		cmdOutput(browser, []string{gitlabRemote.MergeRequestDetailUrl(issueNo)})
+	} else {
+		cmdOutput(browser, []string{gitlabRemote.MergeRequestUrl()})
+	}
+
+	return ExitCodeOK
+}

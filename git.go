@@ -28,6 +28,14 @@ func (r *GitRemote) IssueDetailUrl(issueNo int) string {
 	return strings.Join([]string{r.RepositoryUrl(), "issues", fmt.Sprintf("%d", issueNo)}, "/")
 }
 
+func (r *GitRemote) MergeRequestUrl() string {
+	return strings.Join([]string{r.RepositoryUrl(), "merge_requests"}, "/")
+}
+
+func (r *GitRemote) MergeRequestDetailUrl(mergeRequestNo int) string {
+	return strings.Join([]string{r.RepositoryUrl(), "merge_requests", fmt.Sprintf("%d", mergeRequestNo)}, "/")
+}
+
 func (r *GitRemote) BaseUrl() string {
 	return "https://" + r.Domain + "/"
 }

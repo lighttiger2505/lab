@@ -24,6 +24,9 @@ func main() {
 		"issue": func() (cli.Command, error) {
 			return &IssueCommand{}, nil
 		},
+		"merge-request": func() (cli.Command, error) {
+			return &MergeRequestCommand{}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

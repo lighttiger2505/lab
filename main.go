@@ -55,16 +55,7 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	browser := searchBrowserLauncher(runtime.GOOS)
-	prefixArgs := flags.Args()
-	if len(prefixArgs) > 0 {
-		browseArg, err := NewBrowseArg(prefixArgs[0])
-		if err != nil {
-			return ExitCodeError
-		}
-		cmdOutput(browser, []string{gitlabRemote.IssueUrl(browseArg.No)})
-	} else {
-		cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
-	}
+	cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
 
 	return ExitCodeOK
 }

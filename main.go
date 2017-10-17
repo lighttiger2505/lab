@@ -20,22 +20,22 @@ const (
 	ExitCodeFileError int = iota //2
 )
 
-type BrowseCommand struct {
+type ProjectCommand struct {
 }
 
-func (c *BrowseCommand) Synopsis() string {
-	return "Browse repository"
+func (c *ProjectCommand) Synopsis() string {
+	return "Browse project"
 }
 
-func (c *BrowseCommand) Help() string {
-	return "Usage: lab brewse [option]"
+func (c *ProjectCommand) Help() string {
+	return "Usage: lab project [option]"
 }
 
-func (c *BrowseCommand) Run(args []string) int {
+func (c *ProjectCommand) Run(args []string) int {
 	var verbose bool
 
 	// Set subcommand flags
-	flags := flag.NewFlagSet("browse", flag.ContinueOnError)
+	flags := flag.NewFlagSet("project", flag.ContinueOnError)
 	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
 	flags.Usage = func() {}
 	if err := flags.Parse(args); err != nil {
@@ -283,8 +283,8 @@ func main() {
 	c.Args = os.Args[1:]
 
 	c.Commands = map[string]cli.CommandFactory{
-		"browse": func() (cli.Command, error) {
-			return &BrowseCommand{}, nil
+		"project": func() (cli.Command, error) {
+			return &ProjectCommand{}, nil
 		},
 		"issue": func() (cli.Command, error) {
 			return &IssueCommand{}, nil

@@ -205,20 +205,38 @@ func NewRemoteUrl(url string) (*GitRemote, error) {
 	)
 
 	if strings.HasPrefix(url, "ssh") {
-		// ssh://git@gitlab.com/lighttiger2505/lab.git
+		// Case of ssh://git@gitlab.com/lighttiger2505/lab.git
 		otherScheme = strings.Split(url, "@")[1]
 		otherScheme = strings.TrimSuffix(otherScheme, ".git")
+
+		splitUrl := strings.Split(otherScheme, "/")
+
+		domain = splitUrl[0]
+		user = splitUrl[1]
+		repository = splitUrl[2]
+	} else if strings.HasPrefix(url, "git") {
+		// Case of git@gitlab.com/lighttiger2505/lab.git
+		otherScheme = strings.Split(url, "@")[1]
+		otherScheme = strings.TrimSuffix(otherScheme, ".git")
+
+		splitUrl := strings.Split(otherScheme, ":")
+		userRepository := strings.Split(splitUrl[1], "/")
+
+		domain = splitUrl[0]
+		user = userRepository[0]
+		repository = userRepository[1]
 	} else if strings.HasPrefix(url, "https") {
-		// https://github.com/lighttiger2505/lab
+		// Case of https://github.com/lighttiger2505/lab
 		otherScheme = strings.Split(url, "//")[1]
+
+		splitUrl := strings.Split(otherScheme, "/")
+
+		domain = splitUrl[0]
+		user = splitUrl[1]
+		repository = splitUrl[2]
 	} else {
 		return nil, errors.New(fmt.Sprintf("Invalid remote url: %s", url))
 	}
-
-	splitUrl := strings.Split(otherScheme, "/")
-	domain = splitUrl[0]
-	user = splitUrl[1]
-	repository = splitUrl[2]
 
 	return &GitRemote{
 		Url:        url,

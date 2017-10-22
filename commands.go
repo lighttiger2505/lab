@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"runtime"
 	"strconv"
+	"strings"
+
+	"github.com/ryanuber/columnize"
+	"github.com/spf13/viper"
+	"github.com/xanzy/go-gitlab"
 )
 
 type ProjectCommand struct {
@@ -62,7 +67,7 @@ func (c *IssueCommand) Run(args []string) int {
 	var verbose bool
 
 	// Set subcommand flags
-	flags := flag.NewFlagSet("browse", flag.ContinueOnError)
+	flags := flag.NewFlagSet("project", flag.ContinueOnError)
 	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
 	flags.Usage = func() {}
 	if err := flags.Parse(args); err != nil {
@@ -81,18 +86,62 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	browser := SearchBrowserLauncher(runtime.GOOS)
+	// Read config file
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("$HOME/.lab")
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println(err)
+		return ExitCodeError
+	}
+	privateToken := viper.GetString("private_token")
 
-	if len(flags.Args()) > 0 {
-		issueNo, err := strconv.Atoi(flags.Args()[0])
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		cmdOutput(browser, []string{gitlabRemote.IssueDetailUrl(issueNo)})
-	} else {
-		cmdOutput(browser, []string{gitlabRemote.IssueUrl()})
+	// Create client
+	client := gitlab.NewClient(nil, privateToken)
+	client.SetBaseURL(gitlabRemote.ApiUrl())
+
+	listProjectOptions := &gitlab.ListProjectsOptions{Search: gitlab.String(gitlabRemote.Repository)}
+	projects, _, err := client.Projects.ListProjects(listProjectOptions)
+
+	if err != nil {
+		fmt.Println(err)
+		return ExitCodeError
 	}
 
+	// Get project id
+	var projectId int
+	for _, project := range projects {
+		fullName := strings.Replace(project.NameWithNamespace, " ", "", -1)
+		if fullName == gitlabRemote.FullName() {
+			projectId = project.ID
+		}
+	}
+
+	listOption := &gitlab.ListOptions{
+		Page:    1,
+		PerPage: 20,
+	}
+	listProjectIssuesOptions := &gitlab.ListProjectIssuesOptions{
+		Scope:       gitlab.String("assigned-to-me"),
+		OrderBy:     gitlab.String("updated_at"),
+		Sort:        gitlab.String("desc"),
+		ListOptions: *listOption,
+	}
+	issues, _, err := client.Issues.ListProjectIssues(projectId, listProjectIssuesOptions)
+
+	if err != nil {
+		fmt.Println(err)
+		return ExitCodeError
+	}
+
+	var datas []string
+	for _, issue := range issues {
+		data := fmt.Sprint(issue.IID) + "|" + issue.Title
+		datas = append(datas, data)
+	}
+
+	result := columnize.SimpleFormat(datas)
+	fmt.Println(result)
 	return ExitCodeOK
 }
 

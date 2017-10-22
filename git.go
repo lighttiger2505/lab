@@ -40,6 +40,19 @@ func (r *GitRemote) BaseUrl() string {
 	return "https://" + r.Domain + "/"
 }
 
+func (r *GitRemote) ApiUrl() string {
+	params := strings.Join([]string{r.Domain, "api", "v4"}, "/")
+	return "https://" + params
+}
+
+func (r *GitRemote) FullName() string {
+	return fmt.Sprintf("%s/%s", r.User, r.Repository)
+}
+
+func (r *GitRemote) NamespacedPassEncoding() string {
+	return fmt.Sprintf("%s%%2F%s", r.User, r.Repository)
+}
+
 func NewRemoteUrl(url string) (*GitRemote, error) {
 	var (
 		otherScheme string

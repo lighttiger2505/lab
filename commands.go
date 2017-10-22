@@ -74,15 +74,9 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitRemotes, err := GitRemotes()
+	gitlabRemote, err := GitlabRemote()
 	if err != nil {
-		fmt.Println(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := FilterGitlabRemote(gitRemotes)
-	if err != nil {
-		fmt.Println(err.Error())
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
@@ -143,6 +137,20 @@ func (c *IssueCommand) Run(args []string) int {
 	result := columnize.SimpleFormat(datas)
 	fmt.Println(result)
 	return ExitCodeOK
+}
+
+func GitlabRemote() (*GitRemote, error) {
+	// Get remote urls
+	gitRemotes, err := GitRemotes()
+	if err != nil {
+		return nil, err
+	}
+	// Filter gitlab remote url only
+	gitlabRemote, err := FilterGitlabRemote(gitRemotes)
+	if err != nil {
+		return nil, err
+	}
+	return gitlabRemote, nil
 }
 
 type MergeRequestCommand struct {

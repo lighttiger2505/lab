@@ -123,7 +123,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 	var datas []string
 	for _, issue := range issues {
-		data := fmt.Sprint(issue.IID) + "|" + issue.Title
+		data := fmt.Sprintf("#%d", issue.IID) + "|" + issue.Title
 		datas = append(datas, data)
 	}
 

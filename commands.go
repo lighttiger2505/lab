@@ -91,19 +91,11 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Read config file
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("$HOME/.lab")
-	if err := viper.ReadInConfig(); err != nil {
+	client, err := GitlabClient(gitlabRemote)
+	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-	privateToken := viper.GetString("private_token")
-
-	// Create client
-	client := gitlab.NewClient(nil, privateToken)
-	client.SetBaseURL(gitlabRemote.ApiUrl())
 
 	projectId, err := ProjectId(client, gitlabRemote)
 	if err != nil {

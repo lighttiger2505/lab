@@ -18,8 +18,8 @@ func main() {
 	c.Args = os.Args[1:]
 
 	c.Commands = map[string]cli.CommandFactory{
-		"project": func() (cli.Command, error) {
-			return &ProjectCommand{}, nil
+		"browse": func() (cli.Command, error) {
+			return &BrowseCommand{}, nil
 		},
 		"issue": func() (cli.Command, error) {
 			return &IssueCommand{Ui: &cli.BasicUi{Writer: os.Stdout}}, nil

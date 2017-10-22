@@ -14,18 +14,18 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-type ProjectCommand struct {
+type BrowseCommand struct {
 }
 
-func (c *ProjectCommand) Synopsis() string {
+func (c *BrowseCommand) Synopsis() string {
 	return "Browse project"
 }
 
-func (c *ProjectCommand) Help() string {
+func (c *BrowseCommand) Help() string {
 	return "Usage: lab project [option]"
 }
 
-func (c *ProjectCommand) Run(args []string) int {
+func (c *BrowseCommand) Run(args []string) int {
 	var verbose bool
 
 	// Set subcommand flags
@@ -49,8 +49,16 @@ func (c *ProjectCommand) Run(args []string) int {
 	}
 
 	browser := SearchBrowserLauncher(runtime.GOOS)
-	cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
-
+	prefixArgs := flags.Args()
+	if len(prefixArgs) > 0 {
+		browseArg, err := NewBrowseArg(prefixArgs[0])
+		if err != nil {
+			return ExitCodeError
+		}
+		cmdOutput(browser, []string{gitlabRemote.IssueDetailUrl(browseArg.No)})
+	} else {
+		cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
+	}
 	return ExitCodeOK
 }
 

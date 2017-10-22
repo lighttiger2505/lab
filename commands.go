@@ -109,8 +109,8 @@ func (c *IssueCommand) Run(args []string) int {
 		PerPage: 20,
 	}
 	listProjectIssuesOptions := &gitlab.ListProjectIssuesOptions{
-		Scope:       gitlab.String("assigned-to-me"),
-		OrderBy:     gitlab.String("updated_at"),
+		Scope:       gitlab.String("all"),
+		OrderBy:     gitlab.String("created_at"),
 		Sort:        gitlab.String("desc"),
 		ListOptions: *listOption,
 	}

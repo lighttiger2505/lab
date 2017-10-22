@@ -94,21 +94,10 @@ func (c *IssueCommand) Run(args []string) int {
 	client := gitlab.NewClient(nil, privateToken)
 	client.SetBaseURL(gitlabRemote.ApiUrl())
 
-	listProjectOptions := &gitlab.ListProjectsOptions{Search: gitlab.String(gitlabRemote.Repository)}
-	projects, _, err := client.Projects.ListProjects(listProjectOptions)
-
+	projectId, err := ProjectId(client, gitlabRemote)
 	if err != nil {
-		fmt.Println(err)
+		c.Ui.Error(err.Error())
 		return ExitCodeError
-	}
-
-	// Get project id
-	var projectId int
-	for _, project := range projects {
-		fullName := strings.Replace(project.NameWithNamespace, " ", "", -1)
-		if fullName == gitlabRemote.FullName() {
-			projectId = project.ID
-		}
 	}
 
 	listOption := &gitlab.ListOptions{
@@ -151,6 +140,28 @@ func GitlabRemote() (*GitRemote, error) {
 		return nil, err
 	}
 	return gitlabRemote, nil
+}
+
+func ProjectId(client *gitlab.Client, gitlabRemote *GitRemote) (int, error) {
+	// Search projects
+	listProjectOptions := &gitlab.ListProjectsOptions{Search: gitlab.String(gitlabRemote.Repository)}
+	projects, _, err := client.Projects.ListProjects(listProjectOptions)
+	if err != nil {
+		return -1, err
+	}
+
+	// Get project id
+	projectId := -1
+	for _, project := range projects {
+		fullName := strings.Replace(project.NameWithNamespace, " ", "", -1)
+		if fullName == gitlabRemote.FullName() {
+			projectId = project.ID
+		}
+	}
+	if projectId == -1 {
+		return -1, errors.New("Failed getting project id")
+	}
+	return projectId, nil
 }
 
 type MergeRequestCommand struct {

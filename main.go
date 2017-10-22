@@ -25,7 +25,7 @@ func main() {
 			return &IssueCommand{Ui: &cli.BasicUi{Writer: os.Stdout}}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
-			return &MergeRequestCommand{}, nil
+			return &MergeRequestCommand{Ui: &cli.BasicUi{Writer: os.Stdout}}, nil
 		},
 	}
 

@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/mitchellh/cli"
@@ -176,7 +175,25 @@ func ProjectId(client *gitlab.Client, gitlabRemote *GitRemote) (int, error) {
 	return projectId, nil
 }
 
+func GitlabClient(gitlabRemote *GitRemote) (*gitlab.Client, error) {
+	// Read config file
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("$HOME/.lab")
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, errors.New(fmt.Sprintf("Failed read config file: %s", err.Error()))
+	}
+	privateToken := viper.GetString("private_token")
+
+	// Create client
+	client := gitlab.NewClient(nil, privateToken)
+	client.SetBaseURL(gitlabRemote.ApiUrl())
+
+	return client, nil
+}
+
 type MergeRequestCommand struct {
+	Ui cli.Ui
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
@@ -198,29 +215,48 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitRemotes, err := GitRemotes()
+	gitlabRemote, err := GitlabRemote()
 	if err != nil {
-		fmt.Println(err.Error())
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := FilterGitlabRemote(gitRemotes)
+	client, err := GitlabClient(gitlabRemote)
 	if err != nil {
-		fmt.Println(err.Error())
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	browser := SearchBrowserLauncher(runtime.GOOS)
-
-	if len(flags.Args()) > 0 {
-		issueNo, err := strconv.Atoi(flags.Args()[0])
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		cmdOutput(browser, []string{gitlabRemote.MergeRequestDetailUrl(issueNo)})
-	} else {
-		cmdOutput(browser, []string{gitlabRemote.MergeRequestUrl()})
+	projectId, err := ProjectId(client, gitlabRemote)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
 	}
+
+	listOption := &gitlab.ListOptions{
+		Page:    1,
+		PerPage: 20,
+	}
+	listMergeRequestsOptions := &gitlab.ListProjectMergeRequestsOptions{
+		Scope:       gitlab.String("all"),
+		OrderBy:     gitlab.String("created_at"),
+		Sort:        gitlab.String("desc"),
+		ListOptions: *listOption,
+	}
+	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(projectId, listMergeRequestsOptions)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	var datas []string
+	for _, mergeRequest := range mergeRequests {
+		data := fmt.Sprintf("!%d", mergeRequest.IID) + "|" + mergeRequest.Title
+		datas = append(datas, data)
+	}
+
+	result := columnize.SimpleFormat(datas)
+	c.Ui.Info(result)
 
 	return ExitCodeOK
 }

@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"runtime"
 	"strconv"
 	"strings"
 
+	"github.com/mitchellh/cli"
 	"github.com/ryanuber/columnize"
 	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
@@ -53,6 +55,7 @@ func (c *ProjectCommand) Run(args []string) int {
 }
 
 type IssueCommand struct {
+	Ui cli.Ui
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -71,6 +74,7 @@ func (c *IssueCommand) Run(args []string) int {
 	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
 	flags.Usage = func() {}
 	if err := flags.Parse(args); err != nil {
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
@@ -85,7 +89,7 @@ func (c *IssueCommand) Run(args []string) int {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("$HOME/.lab")
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println(err)
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 	privateToken := viper.GetString("private_token")
@@ -113,7 +117,7 @@ func (c *IssueCommand) Run(args []string) int {
 	issues, _, err := client.Issues.ListProjectIssues(projectId, listProjectIssuesOptions)
 
 	if err != nil {
-		fmt.Println(err)
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
@@ -124,7 +128,7 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	result := columnize.SimpleFormat(datas)
-	fmt.Println(result)
+	c.Ui.Info(result)
 	return ExitCodeOK
 }
 

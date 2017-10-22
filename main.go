@@ -22,7 +22,7 @@ func main() {
 			return &ProjectCommand{}, nil
 		},
 		"issue": func() (cli.Command, error) {
-			return &IssueCommand{}, nil
+			return &IssueCommand{Ui: &cli.BasicUi{Writer: os.Stdout}}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &MergeRequestCommand{}, nil

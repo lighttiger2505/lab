@@ -47,6 +47,15 @@ func NewBrowseArg(arg string) (*BrowseArg, error) {
 			return nil, errors.New("Invalid number")
 		}
 		browseArg = BrowseArg{
+			Type: "Issue",
+			No:   number,
+		}
+	} else if strings.HasPrefix(arg, "!") {
+		number, err := strconv.Atoi(strings.TrimPrefix(arg, "!"))
+		if err != nil {
+			return nil, errors.New("Invalid number")
+		}
+		browseArg = BrowseArg{
 			Type: "MergeRequest",
 			No:   number,
 		}

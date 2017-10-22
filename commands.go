@@ -52,9 +52,14 @@ func (c *BrowseCommand) Run(args []string) int {
 	if len(prefixArgs) > 0 {
 		browseArg, err := NewBrowseArg(prefixArgs[0])
 		if err != nil {
+			fmt.Println(err.Error())
 			return ExitCodeError
 		}
-		cmdOutput(browser, []string{gitlabRemote.IssueDetailUrl(browseArg.No)})
+		if browseArg.Type == "Issue" {
+			cmdOutput(browser, []string{gitlabRemote.IssueDetailUrl(browseArg.No)})
+		} else if browseArg.Type == "MergeRequest" {
+			cmdOutput(browser, []string{gitlabRemote.MergeRequestDetailUrl(browseArg.No)})
+		}
 	} else {
 		cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
 	}

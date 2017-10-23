@@ -46,7 +46,7 @@ func (r *GitRemote) ApiUrl() string {
 }
 
 func (r *GitRemote) FullName() string {
-	return fmt.Sprintf("%s/%s", r.User, r.Repository)
+	return strings.ToLower(fmt.Sprintf("%s/%s", r.User, r.Repository))
 }
 
 func (r *GitRemote) NamespacedPassEncoding() string {

@@ -164,13 +164,13 @@ func ProjectId(client *gitlab.Client, gitlabRemote *GitRemote) (int, error) {
 	// Get project id
 	projectId := -1
 	for _, project := range projects {
-		fullName := strings.Replace(project.NameWithNamespace, " ", "", -1)
+		fullName := strings.ToLower(strings.Replace(project.NameWithNamespace, " ", "", -1))
 		if fullName == gitlabRemote.FullName() {
 			projectId = project.ID
 		}
 	}
 	if projectId == -1 {
-		return -1, errors.New("Failed getting project id")
+		return -1, errors.New(fmt.Sprintf("Failed match Namespace/Project: %s", gitlabRemote.FullName()))
 	}
 	return projectId, nil
 }

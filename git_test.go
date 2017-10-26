@@ -39,7 +39,7 @@ var newRemoteTests = []newGitRemoteTest{
 
 func TestNewGitRemote(t *testing.T) {
 	for i, test := range newRemoteTests {
-		got, _ := NewRemoteUrl(test.url)
+		got := NewRemoteUrl(test.url)
 		if !reflect.DeepEqual(test.gitRemote, got) {
 			t.Errorf("#%d: bad return value want %#v got %#v", i, test.gitRemote, got)
 		}

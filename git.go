@@ -3,8 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
-	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -60,29 +58,6 @@ func NewRemoteUrl(url string) *GitRemote {
 		User:       splitUrl[len(splitUrl)-2],
 		Domain:     splitUrl[len(splitUrl)-3],
 	}
-}
-
-func gitOutput(name string, args []string) string {
-	return gitOutputs(name, args)[0]
-}
-
-func gitOutputs(name string, args []string) []string {
-	var out = cmdOutput(name, args)
-	var outs []string
-	for _, line := range strings.Split(string(out), "\n") {
-		if strings.TrimSpace(line) != "" {
-			outs = append(outs, string(line))
-		}
-	}
-	return outs
-}
-
-func cmdOutput(name string, args []string) string {
-	out, err := exec.Command(name, args...).CombinedOutput()
-	if err != nil {
-		log.Println(err)
-	}
-	return string(out)
 }
 
 func GitRemotes() ([]GitRemote, error) {

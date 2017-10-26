@@ -52,15 +52,24 @@ func (c *BrowseCommand) Run(args []string) int {
 			fmt.Println(err.Error())
 			return ExitCodeError
 		}
-		if browseType == Issue {
-			cmdOutput(browser, []string{gitlabRemote.IssueDetailUrl(number)})
-		} else if browseType == MergeRequest {
-			cmdOutput(browser, []string{gitlabRemote.MergeRequestDetailUrl(number)})
-		}
+		cmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
 	} else {
 		cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
 	}
 	return ExitCodeOK
+}
+
+func browseUrl(gitlabRemote *GitRemote, browseType BrowseType, number int) string {
+	var url string
+	switch browseType {
+	case Issue:
+		url = gitlabRemote.IssueDetailUrl(number)
+	case MergeRequest:
+		url = gitlabRemote.MergeRequestDetailUrl(number)
+	default:
+		url = ""
+	}
+	return url
 }
 
 type IssueCommand struct {

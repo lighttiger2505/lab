@@ -107,19 +107,3 @@ func TestApiUrl(t *testing.T) {
 		t.Errorf("bad return value want %#v got %#v", want, got)
 	}
 }
-
-func TestLowerRepositoryFullName(t *testing.T) {
-	got := testRemoteInfo.LowerRepositoryFullName()
-	want := "namespace/repository"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestNamespacedPassEncoding(t *testing.T) {
-	got := testRemoteInfo.NamespacedPassEncoding()
-	want := "Namespace%2FRepository"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}

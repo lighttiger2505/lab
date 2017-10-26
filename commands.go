@@ -108,11 +108,11 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	projectId, err := ProjectId(client, gitlabRemote)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
+	// projectId, err := ProjectId(client, gitlabRemote)
+	// if err != nil {
+	// 	c.Ui.Error(err.Error())
+	// 	return ExitCodeError
+	// }
 
 	listOption := &gitlab.ListOptions{
 		Page:    1,
@@ -124,7 +124,8 @@ func (c *IssueCommand) Run(args []string) int {
 		Sort:        gitlab.String("desc"),
 		ListOptions: *listOption,
 	}
-	issues, _, err := client.Issues.ListProjectIssues(projectId, listProjectIssuesOptions)
+	// issues, _, err := client.Issues.ListProjectIssues(projectId, listProjectIssuesOptions)
+	issues, _, err := client.Issues.ListProjectIssues(gitlabRemote.RepositoryFullName(), listProjectIssuesOptions)
 
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -177,12 +178,6 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	projectId, err := ProjectId(client, gitlabRemote)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
 	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: 20,
@@ -193,7 +188,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		Sort:        gitlab.String("desc"),
 		ListOptions: *listOption,
 	}
-	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(projectId, listMergeRequestsOptions)
+	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(gitlabRemote.RepositoryFullName(), listMergeRequestsOptions)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

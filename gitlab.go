@@ -39,28 +39,6 @@ func GitlabRemote() (*RemoteInfo, error) {
 	return gitlabRemote, nil
 }
 
-func ProjectId(client *gitlab.Client, gitlabRemote *RemoteInfo) (int, error) {
-	// Search projects
-	listProjectOptions := &gitlab.ListProjectsOptions{Search: gitlab.String(gitlabRemote.Repository)}
-	projects, _, err := client.Projects.ListProjects(listProjectOptions)
-	if err != nil {
-		return -1, err
-	}
-
-	// Get project id
-	projectId := -1
-	for _, project := range projects {
-		fullName := strings.ToLower(strings.Replace(project.NameWithNamespace, " ", "", -1))
-		if fullName == gitlabRemote.LowerRepositoryFullName() {
-			projectId = project.ID
-		}
-	}
-	if projectId == -1 {
-		return -1, errors.New(fmt.Sprintf("Failed match Namespace/Project: %s", gitlabRemote.LowerRepositoryFullName()))
-	}
-	return projectId, nil
-}
-
 func GitlabClient(gitlabRemote *RemoteInfo) (*gitlab.Client, error) {
 	// Read config file
 	if err := ReadConfig(); err != nil {

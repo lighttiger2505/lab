@@ -26,14 +26,6 @@ func (r *RemoteInfo) RepositoryFullName() string {
 	return fmt.Sprintf("%s/%s", r.NameSpace, r.Repository)
 }
 
-func (r *RemoteInfo) LowerRepositoryFullName() string {
-	return strings.ToLower(r.RepositoryFullName())
-}
-
-func (r *RemoteInfo) NamespacedPassEncoding() string {
-	return fmt.Sprintf("%s%%2F%s", r.NameSpace, r.Repository)
-}
-
 func (r *RemoteInfo) BaseUrl() string {
 	return "https://" + r.Domain
 }

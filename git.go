@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"regexp"
 	"strings"
 )
 
 type GitRemote struct {
-	Url        string
 	Domain     string
 	User       string
 	Repository string
@@ -54,52 +54,11 @@ func (r *GitRemote) NamespacedPassEncoding() string {
 }
 
 func NewRemoteUrl(url string) (*GitRemote, error) {
-	var (
-		otherScheme string
-		domain      string
-		user        string
-		repository  string
-	)
-
-	if strings.HasPrefix(url, "ssh") {
-		// Case of ssh://git@gitlab.com/lighttiger2505/lab.git
-		otherScheme = strings.Split(url, "@")[1]
-		otherScheme = strings.TrimSuffix(otherScheme, ".git")
-
-		splitUrl := strings.Split(otherScheme, "/")
-
-		domain = splitUrl[0]
-		user = splitUrl[1]
-		repository = splitUrl[2]
-	} else if strings.HasPrefix(url, "git") {
-		// Case of git@gitlab.com/lighttiger2505/lab.git
-		otherScheme = strings.Split(url, "@")[1]
-		otherScheme = strings.TrimSuffix(otherScheme, ".git")
-
-		splitUrl := strings.Split(otherScheme, ":")
-		userRepository := strings.Split(splitUrl[1], "/")
-
-		domain = splitUrl[0]
-		user = userRepository[0]
-		repository = userRepository[1]
-	} else if strings.HasPrefix(url, "https") {
-		// Case of https://github.com/lighttiger2505/lab
-		otherScheme = strings.Split(url, "//")[1]
-
-		splitUrl := strings.Split(otherScheme, "/")
-
-		domain = splitUrl[0]
-		user = splitUrl[1]
-		repository = splitUrl[2]
-	} else {
-		return nil, errors.New(fmt.Sprintf("Invalid remote url: %s", url))
-	}
-
+	splitUrl := regexp.MustCompile("/|:|@").Split(url, -1)
 	return &GitRemote{
-		Url:        url,
-		Domain:     domain,
-		User:       user,
-		Repository: repository,
+		Repository: strings.TrimSuffix(splitUrl[len(splitUrl)-1], ".git"),
+		User:       splitUrl[len(splitUrl)-2],
+		Domain:     splitUrl[len(splitUrl)-3],
 	}, nil
 }
 

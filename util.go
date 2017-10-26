@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -34,33 +35,32 @@ func SearchBrowserLauncher(goos string) (browser string) {
 	return browser
 }
 
-type BrowseArg struct {
-	Type string
-	No   int
+type BrowseType int
+
+const (
+	Issue BrowseType = iota
+	MergeRequest
+)
+
+var BrowseTypePrefix = map[string]BrowseType{
+	"#": Issue,
+	"i": Issue,
+	"I": Issue,
+	"!": MergeRequest,
+	"m": MergeRequest,
+	"M": MergeRequest,
 }
 
-func NewBrowseArg(arg string) (*BrowseArg, error) {
-	var browseArg BrowseArg
-	if strings.HasPrefix(arg, "#") {
-		number, err := strconv.Atoi(strings.TrimPrefix(arg, "#"))
-		if err != nil {
-			return nil, errors.New("Invalid number")
+func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
+	for k, v := range BrowseTypePrefix {
+		if strings.HasPrefix(arg, k) {
+			numberStr := strings.TrimPrefix(arg, k)
+			number, err := strconv.Atoi(numberStr)
+			if err != nil {
+				return 0, 0, errors.New(fmt.Sprintf("Invalid browsing number: %s", arg))
+			}
+			return v, number, nil
 		}
-		browseArg = BrowseArg{
-			Type: "Issue",
-			No:   number,
-		}
-	} else if strings.HasPrefix(arg, "!") {
-		number, err := strconv.Atoi(strings.TrimPrefix(arg, "!"))
-		if err != nil {
-			return nil, errors.New("Invalid number")
-		}
-		browseArg = BrowseArg{
-			Type: "MergeRequest",
-			No:   number,
-		}
-	} else {
-		return nil, errors.New("Invalid args")
 	}
-	return &browseArg, nil
+	return 0, 0, errors.New(fmt.Sprintf("Invalid arg: %s", arg))
 }

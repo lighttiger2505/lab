@@ -47,15 +47,15 @@ func (c *BrowseCommand) Run(args []string) int {
 	browser := SearchBrowserLauncher(runtime.GOOS)
 	prefixArgs := flags.Args()
 	if len(prefixArgs) > 0 {
-		browseArg, err := NewBrowseArg(prefixArgs[0])
+		browseType, number, err := splitPrefixAndNumber(prefixArgs[0])
 		if err != nil {
 			fmt.Println(err.Error())
 			return ExitCodeError
 		}
-		if browseArg.Type == "Issue" {
-			cmdOutput(browser, []string{gitlabRemote.IssueDetailUrl(browseArg.No)})
-		} else if browseArg.Type == "MergeRequest" {
-			cmdOutput(browser, []string{gitlabRemote.MergeRequestDetailUrl(browseArg.No)})
+		if browseType == Issue {
+			cmdOutput(browser, []string{gitlabRemote.IssueDetailUrl(number)})
+		} else if browseType == MergeRequest {
+			cmdOutput(browser, []string{gitlabRemote.MergeRequestDetailUrl(number)})
 		}
 	} else {
 		cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})

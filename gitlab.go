@@ -8,15 +8,15 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-func FilterGitlabRemote(gitRemotes []GitRemote) (*GitRemote, error) {
-	var gitlabRemotes []GitRemote
-	for _, gitRemote := range gitRemotes {
-		if strings.HasPrefix(gitRemote.Domain, "gitlab") {
-			gitlabRemotes = append(gitlabRemotes, gitRemote)
+func FilterGitlabRemote(remoteInfos []RemoteInfo) (*RemoteInfo, error) {
+	var gitlabRemotes []RemoteInfo
+	for _, remoteInfo := range remoteInfos {
+		if strings.HasPrefix(remoteInfo.Domain, "gitlab") {
+			gitlabRemotes = append(gitlabRemotes, remoteInfo)
 		}
 	}
 
-	var gitLabRemote GitRemote
+	var gitLabRemote RemoteInfo
 	if len(gitlabRemotes) > 0 {
 		gitLabRemote = gitlabRemotes[0]
 	} else {
@@ -25,7 +25,7 @@ func FilterGitlabRemote(gitRemotes []GitRemote) (*GitRemote, error) {
 	return &gitLabRemote, nil
 }
 
-func GitlabRemote() (*GitRemote, error) {
+func GitlabRemote() (*RemoteInfo, error) {
 	// Get remote urls
 	gitRemotes, err := GitRemotes()
 	if err != nil {
@@ -39,7 +39,7 @@ func GitlabRemote() (*GitRemote, error) {
 	return gitlabRemote, nil
 }
 
-func ProjectId(client *gitlab.Client, gitlabRemote *GitRemote) (int, error) {
+func ProjectId(client *gitlab.Client, gitlabRemote *RemoteInfo) (int, error) {
 	// Search projects
 	listProjectOptions := &gitlab.ListProjectsOptions{Search: gitlab.String(gitlabRemote.Repository)}
 	projects, _, err := client.Projects.ListProjects(listProjectOptions)
@@ -61,7 +61,7 @@ func ProjectId(client *gitlab.Client, gitlabRemote *GitRemote) (int, error) {
 	return projectId, nil
 }
 
-func GitlabClient(gitlabRemote *GitRemote) (*gitlab.Client, error) {
+func GitlabClient(gitlabRemote *RemoteInfo) (*gitlab.Client, error) {
 	// Read config file
 	if err := ReadConfig(); err != nil {
 		return nil, errors.New(fmt.Sprintf("Failed read config: %s", err.Error()))

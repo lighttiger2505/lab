@@ -6,32 +6,32 @@ import (
 )
 
 type newGitRemoteTest struct {
-	url       string
-	gitRemote *GitRemote
+	url        string
+	remoteInfo *RemoteInfo
 }
 
 var newRemoteTests = []newGitRemoteTest{
 	{
 		url: "ssh://git@gitlab.ssl.domain.jp/namespace/repository.git",
-		gitRemote: &GitRemote{
+		remoteInfo: &RemoteInfo{
 			Domain:     "gitlab.ssl.domain.jp",
-			User:       "namespace",
+			NameSpace:  "namespace",
 			Repository: "repository",
 		},
 	},
 	{
 		url: "git@gitlab.ssl.domain.jp:namespace/repository.git",
-		gitRemote: &GitRemote{
+		remoteInfo: &RemoteInfo{
 			Domain:     "gitlab.ssl.domain.jp",
-			User:       "namespace",
+			NameSpace:  "namespace",
 			Repository: "repository",
 		},
 	},
 	{
 		url: "https://gitlab.ssl.domain.jp/namespace/repository",
-		gitRemote: &GitRemote{
+		remoteInfo: &RemoteInfo{
 			Domain:     "gitlab.ssl.domain.jp",
-			User:       "namespace",
+			NameSpace:  "namespace",
 			Repository: "repository",
 		},
 	},
@@ -39,9 +39,9 @@ var newRemoteTests = []newGitRemoteTest{
 
 func TestNewGitRemote(t *testing.T) {
 	for i, test := range newRemoteTests {
-		got := NewRemoteUrl(test.url)
-		if !reflect.DeepEqual(test.gitRemote, got) {
-			t.Errorf("#%d: bad return value want %#v got %#v", i, test.gitRemote, got)
+		got := NewRemoteInfo(test.url)
+		if !reflect.DeepEqual(test.remoteInfo, got) {
+			t.Errorf("#%d: bad return value want %#v got %#v", i, test.remoteInfo, got)
 		}
 	}
 }

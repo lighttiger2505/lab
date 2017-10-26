@@ -32,13 +32,13 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitRemotes, err := GitRemotes()
+	remoteInfos, err := GitRemotes()
 	if err != nil {
 		fmt.Println(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := FilterGitlabRemote(gitRemotes)
+	gitlabRemoteInfo, err := FilterGitlabRemote(remoteInfos)
 	if err != nil {
 		fmt.Println(err.Error())
 		return ExitCodeError
@@ -52,14 +52,14 @@ func (c *BrowseCommand) Run(args []string) int {
 			fmt.Println(err.Error())
 			return ExitCodeError
 		}
-		cmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
+		cmdOutput(browser, []string{browseUrl(gitlabRemoteInfo, browseType, number)})
 	} else {
-		cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
+		cmdOutput(browser, []string{gitlabRemoteInfo.RepositoryUrl()})
 	}
 	return ExitCodeOK
 }
 
-func browseUrl(gitlabRemote *GitRemote, browseType BrowseType, number int) string {
+func browseUrl(gitlabRemote *RemoteInfo, browseType BrowseType, number int) string {
 	var url string
 	switch browseType {
 	case Issue:

@@ -7,71 +7,71 @@ import (
 	"strings"
 )
 
-type GitRemote struct {
+type RemoteInfo struct {
 	Domain     string
-	User       string
+	NameSpace  string
 	Repository string
 }
 
-func (r *GitRemote) RepositoryUrl() string {
-	params := strings.Join([]string{r.Domain, r.User, r.Repository}, "/")
+func (r *RemoteInfo) RepositoryUrl() string {
+	params := strings.Join([]string{r.Domain, r.NameSpace, r.Repository}, "/")
 	return "https://" + params
 }
 
-func (r *GitRemote) IssueUrl() string {
+func (r *RemoteInfo) IssueUrl() string {
 	return strings.Join([]string{r.RepositoryUrl(), "issues"}, "/")
 }
 
-func (r *GitRemote) IssueDetailUrl(issueNo int) string {
+func (r *RemoteInfo) IssueDetailUrl(issueNo int) string {
 	return strings.Join([]string{r.RepositoryUrl(), "issues", fmt.Sprintf("%d", issueNo)}, "/")
 }
 
-func (r *GitRemote) MergeRequestUrl() string {
+func (r *RemoteInfo) MergeRequestUrl() string {
 	return strings.Join([]string{r.RepositoryUrl(), "merge_requests"}, "/")
 }
 
-func (r *GitRemote) MergeRequestDetailUrl(mergeRequestNo int) string {
+func (r *RemoteInfo) MergeRequestDetailUrl(mergeRequestNo int) string {
 	return strings.Join([]string{r.RepositoryUrl(), "merge_requests", fmt.Sprintf("%d", mergeRequestNo)}, "/")
 }
 
-func (r *GitRemote) BaseUrl() string {
+func (r *RemoteInfo) BaseUrl() string {
 	return "https://" + r.Domain + "/"
 }
 
-func (r *GitRemote) ApiUrl() string {
+func (r *RemoteInfo) ApiUrl() string {
 	params := strings.Join([]string{r.Domain, "api", "v4"}, "/")
 	return "https://" + params
 }
 
-func (r *GitRemote) FullName() string {
-	return strings.ToLower(fmt.Sprintf("%s/%s", r.User, r.Repository))
+func (r *RemoteInfo) FullName() string {
+	return strings.ToLower(fmt.Sprintf("%s/%s", r.NameSpace, r.Repository))
 }
 
-func (r *GitRemote) NamespacedPassEncoding() string {
-	return fmt.Sprintf("%s%%2F%s", r.User, r.Repository)
+func (r *RemoteInfo) NamespacedPassEncoding() string {
+	return fmt.Sprintf("%s%%2F%s", r.NameSpace, r.Repository)
 }
 
-func NewRemoteUrl(url string) *GitRemote {
+func NewRemoteInfo(url string) *RemoteInfo {
 	splitUrl := regexp.MustCompile("/|:|@").Split(url, -1)
-	return &GitRemote{
+	return &RemoteInfo{
 		Repository: strings.TrimSuffix(splitUrl[len(splitUrl)-1], ".git"),
-		User:       splitUrl[len(splitUrl)-2],
+		NameSpace:  splitUrl[len(splitUrl)-2],
 		Domain:     splitUrl[len(splitUrl)-3],
 	}
 }
 
-func GitRemotes() ([]GitRemote, error) {
+func GitRemotes() ([]RemoteInfo, error) {
 	// Get remote repositorys
 	remotes := gitOutputs("git", []string{"remote"})
 	if len(remotes) == 0 {
 		return nil, errors.New("No remote setting in this repository")
 	}
 	// Extract domain, namespace, repository name from git remote url
-	var gitRemotes []GitRemote
+	var remoteInfos []RemoteInfo
 	for _, remote := range remotes {
 		url := gitOutput("git", []string{"remote", "get-url", remote})
-		gitRemote := NewRemoteUrl(url)
-		gitRemotes = append(gitRemotes, *gitRemote)
+		remoteInfo := NewRemoteInfo(url)
+		remoteInfos = append(remoteInfos, *remoteInfo)
 	}
-	return gitRemotes, nil
+	return remoteInfos, nil
 }

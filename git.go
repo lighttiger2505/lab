@@ -13,44 +13,6 @@ type RemoteInfo struct {
 	Repository string
 }
 
-func (r *RemoteInfo) RepositoryUrl() string {
-	params := strings.Join([]string{r.Domain, r.NameSpace, r.Repository}, "/")
-	return "https://" + params
-}
-
-func (r *RemoteInfo) IssueUrl() string {
-	return strings.Join([]string{r.RepositoryUrl(), "issues"}, "/")
-}
-
-func (r *RemoteInfo) IssueDetailUrl(issueNo int) string {
-	return strings.Join([]string{r.RepositoryUrl(), "issues", fmt.Sprintf("%d", issueNo)}, "/")
-}
-
-func (r *RemoteInfo) MergeRequestUrl() string {
-	return strings.Join([]string{r.RepositoryUrl(), "merge_requests"}, "/")
-}
-
-func (r *RemoteInfo) MergeRequestDetailUrl(mergeRequestNo int) string {
-	return strings.Join([]string{r.RepositoryUrl(), "merge_requests", fmt.Sprintf("%d", mergeRequestNo)}, "/")
-}
-
-func (r *RemoteInfo) BaseUrl() string {
-	return "https://" + r.Domain + "/"
-}
-
-func (r *RemoteInfo) ApiUrl() string {
-	params := strings.Join([]string{r.Domain, "api", "v4"}, "/")
-	return "https://" + params
-}
-
-func (r *RemoteInfo) FullName() string {
-	return strings.ToLower(fmt.Sprintf("%s/%s", r.NameSpace, r.Repository))
-}
-
-func (r *RemoteInfo) NamespacedPassEncoding() string {
-	return fmt.Sprintf("%s%%2F%s", r.NameSpace, r.Repository)
-}
-
 func NewRemoteInfo(url string) *RemoteInfo {
 	splitUrl := regexp.MustCompile("/|:|@").Split(url, -1)
 	return &RemoteInfo{
@@ -58,6 +20,46 @@ func NewRemoteInfo(url string) *RemoteInfo {
 		NameSpace:  splitUrl[len(splitUrl)-2],
 		Domain:     splitUrl[len(splitUrl)-3],
 	}
+}
+
+func (r *RemoteInfo) RepositoryFullName() string {
+	return fmt.Sprintf("%s/%s", r.NameSpace, r.Repository)
+}
+
+func (r *RemoteInfo) LowerRepositoryFullName() string {
+	return strings.ToLower(r.RepositoryFullName())
+}
+
+func (r *RemoteInfo) NamespacedPassEncoding() string {
+	return fmt.Sprintf("%s%%2F%s", r.NameSpace, r.Repository)
+}
+
+func (r *RemoteInfo) BaseUrl() string {
+	return "https://" + r.Domain
+}
+
+func (r *RemoteInfo) RepositoryUrl() string {
+	return strings.Join([]string{r.BaseUrl(), r.RepositoryFullName()}, "/")
+}
+
+func (r *RemoteInfo) IssueUrl() string {
+	return strings.Join([]string{r.RepositoryUrl(), "issues"}, "/")
+}
+
+func (r *RemoteInfo) IssueDetailUrl(issueNo int) string {
+	return strings.Join([]string{r.IssueUrl(), fmt.Sprintf("%d", issueNo)}, "/")
+}
+
+func (r *RemoteInfo) MergeRequestUrl() string {
+	return strings.Join([]string{r.RepositoryUrl(), "merge_requests"}, "/")
+}
+
+func (r *RemoteInfo) MergeRequestDetailUrl(mergeRequestNo int) string {
+	return strings.Join([]string{r.MergeRequestUrl(), fmt.Sprintf("%d", mergeRequestNo)}, "/")
+}
+
+func (r *RemoteInfo) ApiUrl() string {
+	return strings.Join([]string{r.BaseUrl(), "api", "v4"}, "/")
 }
 
 func GitRemotes() ([]RemoteInfo, error) {

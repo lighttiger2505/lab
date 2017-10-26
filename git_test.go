@@ -45,3 +45,81 @@ func TestNewGitRemote(t *testing.T) {
 		}
 	}
 }
+
+var testRemoteInfo = &RemoteInfo{
+	Domain:     "gitlab.ssl.domain.jp",
+	NameSpace:  "Namespace",
+	Repository: "Repository",
+}
+
+func TestRepositoryUrl(t *testing.T) {
+	got := testRemoteInfo.RepositoryUrl()
+	want := "https://gitlab.ssl.domain.jp/Namespace/Repository"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
+func TestIssueUrl(t *testing.T) {
+	got := testRemoteInfo.IssueUrl()
+	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/issues"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
+func TestIssueDetailUrl(t *testing.T) {
+	got := testRemoteInfo.IssueDetailUrl(12)
+	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/issues/12"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
+func TestMergeRequestUrl(t *testing.T) {
+	got := testRemoteInfo.MergeRequestUrl()
+	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/merge_requests"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
+func TestMergeRequestDetailUrl(t *testing.T) {
+	got := testRemoteInfo.MergeRequestDetailUrl(12)
+	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/merge_requests/12"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
+func TestBaseUrl(t *testing.T) {
+	got := testRemoteInfo.BaseUrl()
+	want := "https://gitlab.ssl.domain.jp"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
+func TestApiUrl(t *testing.T) {
+	got := testRemoteInfo.ApiUrl()
+	want := "https://gitlab.ssl.domain.jp/api/v4"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
+func TestLowerRepositoryFullName(t *testing.T) {
+	got := testRemoteInfo.LowerRepositoryFullName()
+	want := "namespace/repository"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
+func TestNamespacedPassEncoding(t *testing.T) {
+	got := testRemoteInfo.NamespacedPassEncoding()
+	want := "Namespace%2FRepository"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}

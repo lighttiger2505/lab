@@ -53,13 +53,13 @@ func (r *GitRemote) NamespacedPassEncoding() string {
 	return fmt.Sprintf("%s%%2F%s", r.User, r.Repository)
 }
 
-func NewRemoteUrl(url string) (*GitRemote, error) {
+func NewRemoteUrl(url string) *GitRemote {
 	splitUrl := regexp.MustCompile("/|:|@").Split(url, -1)
 	return &GitRemote{
 		Repository: strings.TrimSuffix(splitUrl[len(splitUrl)-1], ".git"),
 		User:       splitUrl[len(splitUrl)-2],
 		Domain:     splitUrl[len(splitUrl)-3],
-	}, nil
+	}
 }
 
 func gitOutput(name string, args []string) string {
@@ -88,23 +88,15 @@ func cmdOutput(name string, args []string) string {
 func GitRemotes() ([]GitRemote, error) {
 	// Get remote repositorys
 	remotes := gitOutputs("git", []string{"remote"})
-
-	// Remote repository is not registered
 	if len(remotes) == 0 {
 		return nil, errors.New("No remote setting in this repository")
 	}
-
+	// Extract domain, namespace, repository name from git remote url
 	var gitRemotes []GitRemote
 	for _, remote := range remotes {
 		url := gitOutput("git", []string{"remote", "get-url", remote})
-
-		gitRemote, err := NewRemoteUrl(url)
-		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Failed serialize remote url. %s", url))
-		}
-
+		gitRemote := NewRemoteUrl(url)
 		gitRemotes = append(gitRemotes, *gitRemote)
 	}
-
 	return gitRemotes, nil
 }

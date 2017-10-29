@@ -85,11 +85,25 @@ func (c *IssueCommand) Help() string {
 }
 
 func (c *IssueCommand) Run(args []string) int {
-	var verbose bool
+	var (
+		line    int
+		state   string
+		scope   string
+		orderBy string
+		sort    string
+	)
 
 	// Set subcommand flags
-	flags := flag.NewFlagSet("project", flag.ContinueOnError)
-	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
+	flags := flag.NewFlagSet("issue", flag.ContinueOnError)
+
+	lineHelp := "output the NUM lines"
+	lineDefault := 20
+	flags.IntVar(&line, "n", lineDefault, lineHelp)
+	flags.IntVar(&line, "line", lineDefault, lineHelp)
+	flags.StringVar(&state, "state", "all", "just those that are opened or closed")
+	flags.StringVar(&scope, "scope", "all", "given scope: created-by-me, assigned-to-me or all. Defaults to all")
+	flags.StringVar(&orderBy, "orderby", "created_at", "ordered by created_at or updated_at fields. Default is created_at")
+	flags.StringVar(&sort, "sort", "desc", "sorted in asc or desc order. Default is desc")
 	flags.Usage = func() {}
 	if err := flags.Parse(args); err != nil {
 		c.Ui.Error(err.Error())
@@ -108,25 +122,22 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// projectId, err := ProjectId(client, gitlabRemote)
-	// if err != nil {
-	// 	c.Ui.Error(err.Error())
-	// 	return ExitCodeError
-	// }
-
 	listOption := &gitlab.ListOptions{
 		Page:    1,
-		PerPage: 20,
+		PerPage: line,
 	}
 	listProjectIssuesOptions := &gitlab.ListProjectIssuesOptions{
-		Scope:       gitlab.String("all"),
-		OrderBy:     gitlab.String("created_at"),
-		Sort:        gitlab.String("desc"),
+		State:       gitlab.String(state),
+		Scope:       gitlab.String(scope),
+		OrderBy:     gitlab.String(orderBy),
+		Sort:        gitlab.String(sort),
 		ListOptions: *listOption,
 	}
 	// issues, _, err := client.Issues.ListProjectIssues(projectId, listProjectIssuesOptions)
-	issues, _, err := client.Issues.ListProjectIssues(gitlabRemote.RepositoryFullName(), listProjectIssuesOptions)
-
+	issues, _, err := client.Issues.ListProjectIssues(
+		gitlabRemote.RepositoryFullName(),
+		listProjectIssuesOptions,
+	)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -156,11 +167,25 @@ func (c *MergeRequestCommand) Help() string {
 }
 
 func (c *MergeRequestCommand) Run(args []string) int {
-	var verbose bool
+	var (
+		line    int
+		state   string
+		scope   string
+		orderBy string
+		sort    string
+	)
 
 	// Set subcommand flags
-	flags := flag.NewFlagSet("browse", flag.ContinueOnError)
-	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
+	flags := flag.NewFlagSet("merge-request", flag.ContinueOnError)
+
+	lineHelp := "output the NUM lines"
+	lineDefault := 20
+	flags.IntVar(&line, "n", lineDefault, lineHelp)
+	flags.IntVar(&line, "line", lineDefault, lineHelp)
+	flags.StringVar(&state, "state", "all", "just those that are opened or closed")
+	flags.StringVar(&scope, "scope", "all", "given scope: created-by-me, assigned-to-me or all. Defaults to all")
+	flags.StringVar(&orderBy, "orderby", "created_at", "ordered by created_at or updated_at fields. Default is created_at")
+	flags.StringVar(&sort, "sort", "desc", "sorted in asc or desc order. Default is desc")
 	flags.Usage = func() {}
 	if err := flags.Parse(args); err != nil {
 		return ExitCodeError
@@ -180,15 +205,19 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 	listOption := &gitlab.ListOptions{
 		Page:    1,
-		PerPage: 20,
+		PerPage: line,
 	}
 	listMergeRequestsOptions := &gitlab.ListProjectMergeRequestsOptions{
-		Scope:       gitlab.String("all"),
-		OrderBy:     gitlab.String("created_at"),
-		Sort:        gitlab.String("desc"),
+		State:       gitlab.String(state),
+		Scope:       gitlab.String(scope),
+		OrderBy:     gitlab.String(orderBy),
+		Sort:        gitlab.String(sort),
 		ListOptions: *listOption,
 	}
-	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(gitlabRemote.RepositoryFullName(), listMergeRequestsOptions)
+	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(
+		gitlabRemote.RepositoryFullName(),
+		listMergeRequestsOptions,
+	)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

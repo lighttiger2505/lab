@@ -3,7 +3,13 @@ go:
   - 1.9.x
 before_install:
   - go get github.com/golang/dep/...
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/mattn/goveralls
+  - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 install:
   - $GOPATH/bin/dep ensure
 script:
- - go test -v
+  - $HOME/gopath/bin/goveralls -repotoken $COVERALLS_TOKEN
+env:
+  global:
+    - secure: "JOfqfz6A0P108lGSIGDGEhzOpIBCSW3FkQFg9l1XcJOIrvcqH+v0TFhx+Ont1qplfp5QLOqc81Fy7txP6vd2SSKNKUoevm6XPR8ld6zYwE7jAQKAyVdGj+H/pcJI0GSlqDjay0lxd/0zqeZ4Ag9SBAQaTZNsjPPtErhsMhA1zb/vE5E/7YVibVW1VJyXnOMrXgDckmwcKYUkvo+mQchT9gNRvaRKrI4kNVkCTwCnVJlkmlMwtk50qSAz8iN2MWZxNwps9leWtJ0hv99qd+pUpdq39UBZzXQOwvIpoQKwrN34X9yheHVoFLoyYtZEUhz4Ge0tqW/S7QgFFLX+NiFZ3oygQ2zLF+L4Cb4OHwsD7oi4Dqgve42U3TrK426cIq6hmb9erMjFWke8L6mvh5RbgIBSxBPkRGG1lU+WOPD2uboZA49IS/SNO1bnR1KZgmTWsb0F5Wfhnt2r778fvAEiFEixfjrdMtS5zmMsDMl7P6hs9YknniBVNZcZqiTzvpEiekjoMkHg+Pbd963E9N6remWWoqT1KhwJMUrY5uTxfZWnrZJzyZR8QHXW7nKOC7Xgf3DfAVuW/vtLT/IdocwecrXDmhUiXsr2yh6bt2Tp8bUKPdxX9SLRBUrkYIfnywRFpaRnM3v4sgv2X2q51vM5LF0I5E+CPxW8ojrrDAlNFoU="

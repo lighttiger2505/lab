@@ -1,0 +1,9 @@
+language: go
+go:
+  - 1.9.x
+before_install:
+  - go get github.com/golang/dep/...
+install:
+  - $GOPATH/bin/dep ensure
+script:
+ - go test -v

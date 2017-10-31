@@ -122,6 +122,28 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	// Override flag values by config value
+	lineConfig := GetLine()
+	if lineConfig != -1 {
+		line = lineConfig
+	}
+	stateConfig := GetState()
+	if stateConfig != "" {
+		state = stateConfig
+	}
+	scopeConfig := GetScope()
+	if scopeConfig != "" {
+		scope = scopeConfig
+	}
+	orderByConfig := GetOrderBy()
+	if orderByConfig != "" {
+		orderBy = orderByConfig
+	}
+	sortConfig := GetSort()
+	if sortConfig != "" {
+		sort = sortConfig
+	}
+
 	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: line,
@@ -201,6 +223,28 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
+	}
+
+	// Override flag values by config value
+	lineConfig := GetLine()
+	if lineConfig != -1 {
+		line = lineConfig
+	}
+	stateConfig := GetState()
+	if stateConfig != "" {
+		state = stateConfig
+	}
+	scopeConfig := GetScope()
+	if scopeConfig != "" {
+		scope = scopeConfig
+	}
+	orderByConfig := GetOrderBy()
+	if orderByConfig != "" {
+		orderBy = orderByConfig
+	}
+	sortConfig := GetSort()
+	if sortConfig != "" {
+		sort = sortConfig
 	}
 
 	listOption := &gitlab.ListOptions{

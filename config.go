@@ -52,5 +52,41 @@ func CreateConfig() error {
 }
 
 func GetPrivateToken() string {
-	return viper.GetString("private_token")
+	return getString("private_token")
+}
+
+func GetLine() int {
+	return getInt("line")
+}
+
+func GetState() string {
+	return getString("state")
+}
+
+func GetScope() string {
+	return getString("scope")
+}
+
+func GetOrderBy() string {
+	return getString("orderby")
+}
+
+func GetSort() string {
+	return getString("sort")
+}
+
+func getInt(key string) int {
+	if viper.InConfig(key) {
+		return viper.GetInt(key)
+	} else {
+		return -1
+	}
+}
+
+func getString(key string) string {
+	if viper.InConfig(key) {
+		return viper.GetString(key)
+	} else {
+		return ""
+	}
 }

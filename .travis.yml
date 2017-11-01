@@ -1,15 +1,29 @@
 language: go
 go:
   - 1.9.x
+
 before_install:
-  - go get github.com/golang/dep/...
   - go get github.com/axw/gocov/gocov
   - go get github.com/mattn/goveralls
   - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 install:
-  - $GOPATH/bin/dep ensure
+  - make ensure
 script:
   - $HOME/gopath/bin/goveralls -repotoken $COVERALLS_TOKEN
+
+before_deploy:
+  - make cross-build
+  - make dist
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file_glob: true
+  file: 'dist/*.{tar.gz,zip}'
+  skip_cleanup: true
+  on:
+    tags: true
+
 env:
   global:
     - secure: "JOfqfz6A0P108lGSIGDGEhzOpIBCSW3FkQFg9l1XcJOIrvcqH+v0TFhx+Ont1qplfp5QLOqc81Fy7txP6vd2SSKNKUoevm6XPR8ld6zYwE7jAQKAyVdGj+H/pcJI0GSlqDjay0lxd/0zqeZ4Ag9SBAQaTZNsjPPtErhsMhA1zb/vE5E/7YVibVW1VJyXnOMrXgDckmwcKYUkvo+mQchT9gNRvaRKrI4kNVkCTwCnVJlkmlMwtk50qSAz8iN2MWZxNwps9leWtJ0hv99qd+pUpdq39UBZzXQOwvIpoQKwrN34X9yheHVoFLoyYtZEUhz4Ge0tqW/S7QgFFLX+NiFZ3oygQ2zLF+L4Cb4OHwsD7oi4Dqgve42U3TrK426cIq6hmb9erMjFWke8L6mvh5RbgIBSxBPkRGG1lU+WOPD2uboZA49IS/SNO1bnR1KZgmTWsb0F5Wfhnt2r778fvAEiFEixfjrdMtS5zmMsDMl7P6hs9YknniBVNZcZqiTzvpEiekjoMkHg+Pbd963E9N6remWWoqT1KhwJMUrY5uTxfZWnrZJzyZR8QHXW7nKOC7Xgf3DfAVuW/vtLT/IdocwecrXDmhUiXsr2yh6bt2Tp8bUKPdxX9SLRBUrkYIfnywRFpaRnM3v4sgv2X2q51vM5LF0I5E+CPxW8ojrrDAlNFoU="
+    - secure: "d7j5Ss+MY9fyRGS7oJZ5akTbZHUxD3lRe2Qa2bjcgV+YeSXirjFa3mNkbPP1wlId7bpwS8DAYQEQqsfEx3tkGczs8Y3x+F9UkjAHc2iXVZumoxItkkWt5KImTxozFoLb3MowrJnCBcXr1RsbrvwwE6N3jAnUPgSulTFBJuULaEsr6ZvpTvYf4PYa6kPCUNKHU42Y5me3KJAperkfJclC/4GbFBTWWkNNkloyAF5RrXVqOE8nBtklqhg5i5m5ekWp/ubsCaWNmZqbijGzCHmPjQUFmDko1L/5sGfPQuzL45txNX72/rtAYLWcOu2ZIh34Ul6Whql+3rFWlu/7Lhb4QkT5RBP10vbZ4Lqr63ioSI4V6Q7NVHzAHqLhDzeUCfc1MNMSFvVUdPnf+2tyczX7DeSJBBC56PBQp0ZCgrqgzb3UUD8i2AgHBovhpHpHM1U5GUuv2TqQQ5uC+eoqlUQtw5mkyeRYZWxLpoBgC8nF0LEvnow0Rsd1FZcqZGEUUaT2w/vAo4KbMJEtR8LiZYSfDuf9snFiTI3xqgBuMzcBwoTrXqmQYv2GaKGtQGs4wBazHyQ0THansB9pqFGpnVPxehgVDI5Zx+eM5qPHZBkZ6utJfNlJzaAhlafG41RqdvOFi9rnwuDTDperM7yWyvsatBcgN5sFjRwEMo9mZ9lPiTY="

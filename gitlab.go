@@ -40,13 +40,20 @@ func GitlabRemote() (*RemoteInfo, error) {
 }
 
 func GitlabClient(gitlabRemote *RemoteInfo) (*gitlab.Client, error) {
-	// Read config file
-	if err := ReadConfig(); err != nil {
-		return nil, errors.New(fmt.Sprintf("Failed read config: %s", err.Error()))
+	c, err := NewConfig()
+	if err != nil {
+		return nil, fmt.Errorf("Failed read config: %s", err.Error())
+	}
+
+	var token string
+	for _, mapItem := range *c.Tokens {
+		if mapItem.Key.(string) == gitlabRemote.Domain {
+			token = mapItem.Value.(string)
+		}
 	}
 
 	// Create client
-	client := gitlab.NewClient(nil, GetPrivateToken())
+	client := gitlab.NewClient(nil, token)
 	client.SetBaseURL(gitlabRemote.ApiUrl())
 	return client, nil
 }

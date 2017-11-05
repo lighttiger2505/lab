@@ -4,11 +4,74 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"syscall"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
+
+type Config struct {
+	Tokens      *yaml.MapSlice
+	Repositorys []string
+	Line        int
+	Scope       string
+	State       string
+	Orderby     string
+	Sort        string
+}
+
+func NewConfig() (*Config, error) {
+	configData, err := getConfigData()
+	if err != nil {
+		return nil, fmt.Errorf("Failed read config file: %s", err.Error())
+	}
+
+	c := Config{}
+	err1 := yaml.Unmarshal(configData, &c)
+	if err1 != nil {
+		return nil, fmt.Errorf("Failed unmarshal yaml: %s", err1.Error())
+	}
+	return &c, nil
+}
+
+func getConfigData() ([]byte, error) {
+	dir, err := homedir.Dir()
+	if err != nil {
+		return nil, fmt.Errorf("Failed get home dir: %s", err.Error())
+	}
+
+	filePath := fmt.Sprintf("%s/.labconfig.yml", dir)
+	if !fileExists(filePath) {
+		return nil, fmt.Errorf("Not exist config: %s", filePath)
+	}
+
+	configData, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("Failed read config file: %s", err.Error())
+	}
+
+	return configData, nil
+}
+
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+
+	if pathError, ok := err.(*os.PathError); ok {
+		if pathError.Err == syscall.ENOTDIR {
+			return false
+		}
+	}
+
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
 
 func ReadConfig() error {
 	// Read config file

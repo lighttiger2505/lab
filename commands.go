@@ -84,7 +84,15 @@ func (c *IssueCommand) Help() string {
 	return "Usage: lab issue [option]"
 }
 
-func (c *IssueCommand) Run(args []string) int {
+type SearchFlags struct {
+	Line    int
+	State   string
+	Scope   string
+	OrderBy string
+	Sort    string
+}
+
+func NewSearchFlags(config *Config) (*flag.FlagSet, *SearchFlags) {
 	var (
 		line    int
 		state   string
@@ -98,12 +106,56 @@ func (c *IssueCommand) Run(args []string) int {
 
 	lineHelp := "output the NUM lines"
 	lineDefault := 20
+	if config.Line > 0 {
+		lineDefault = config.Line
+	}
 	flags.IntVar(&line, "n", lineDefault, lineHelp)
 	flags.IntVar(&line, "line", lineDefault, lineHelp)
-	flags.StringVar(&state, "state", "all", "just those that are opened or closed")
-	flags.StringVar(&scope, "scope", "all", "given scope: created-by-me, assigned-to-me or all. Defaults to all")
-	flags.StringVar(&orderBy, "orderby", "created_at", "ordered by created_at or updated_at fields. Default is created_at")
-	flags.StringVar(&sort, "sort", "desc", "sorted in asc or desc order. Default is desc")
+
+	stateDefalut := "all"
+	if config.State != "" {
+		stateDefalut = config.State
+	}
+	flags.StringVar(&state, "state", stateDefalut, "just those that are opened or closed")
+
+	scopeDefalut := "all"
+	if config.Scope != "" {
+		scopeDefalut = config.Scope
+	}
+	flags.StringVar(&scope, "scope", scopeDefalut, "given scope: created-by-me, assigned-to-me or all. Defaults to all")
+
+	orderbyDefalut := "created_at"
+	if config.Orderby != "" {
+		orderbyDefalut = config.Orderby
+	}
+	flags.StringVar(&orderBy, "orderby", orderbyDefalut, "ordered by created_at or updated_at fields. Default is created_at")
+
+	sortDefalut := "desc"
+	if config.Sort != "" {
+		sortDefalut = config.Sort
+	}
+	flags.StringVar(&sort, "sort", sortDefalut, "sorted in asc or desc order. Default is desc")
+
+	searchFlags := SearchFlags{
+		Line:    line,
+		State:   state,
+		Scope:   scope,
+		OrderBy: orderBy,
+		Sort:    sort,
+	}
+
+	return flags, &searchFlags
+}
+
+func (c *IssueCommand) Run(args []string) int {
+	config, err := NewConfig()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	flags, option := NewSearchFlags(config)
+
 	flags.Usage = func() {}
 	if err := flags.Parse(args); err != nil {
 		c.Ui.Error(err.Error())
@@ -122,37 +174,15 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Override flag values by config value
-	lineConfig := GetLine()
-	if lineConfig != -1 {
-		line = lineConfig
-	}
-	stateConfig := GetState()
-	if stateConfig != "" {
-		state = stateConfig
-	}
-	scopeConfig := GetScope()
-	if scopeConfig != "" {
-		scope = scopeConfig
-	}
-	orderByConfig := GetOrderBy()
-	if orderByConfig != "" {
-		orderBy = orderByConfig
-	}
-	sortConfig := GetSort()
-	if sortConfig != "" {
-		sort = sortConfig
-	}
-
 	listOption := &gitlab.ListOptions{
 		Page:    1,
-		PerPage: line,
+		PerPage: option.Line,
 	}
 	listProjectIssuesOptions := &gitlab.ListProjectIssuesOptions{
-		State:       gitlab.String(state),
-		Scope:       gitlab.String(scope),
-		OrderBy:     gitlab.String(orderBy),
-		Sort:        gitlab.String(sort),
+		State:       gitlab.String(option.State),
+		Scope:       gitlab.String(option.Scope),
+		OrderBy:     gitlab.String(option.OrderBy),
+		Sort:        gitlab.String(option.Sort),
 		ListOptions: *listOption,
 	}
 	// issues, _, err := client.Issues.ListProjectIssues(projectId, listProjectIssuesOptions)
@@ -189,27 +219,17 @@ func (c *MergeRequestCommand) Help() string {
 }
 
 func (c *MergeRequestCommand) Run(args []string) int {
-	var (
-		line    int
-		state   string
-		scope   string
-		orderBy string
-		sort    string
-	)
+	config, err := NewConfig()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
 
-	// Set subcommand flags
-	flags := flag.NewFlagSet("merge-request", flag.ContinueOnError)
+	flags, option := NewSearchFlags(config)
 
-	lineHelp := "output the NUM lines"
-	lineDefault := 20
-	flags.IntVar(&line, "n", lineDefault, lineHelp)
-	flags.IntVar(&line, "line", lineDefault, lineHelp)
-	flags.StringVar(&state, "state", "all", "just those that are opened or closed")
-	flags.StringVar(&scope, "scope", "all", "given scope: created-by-me, assigned-to-me or all. Defaults to all")
-	flags.StringVar(&orderBy, "orderby", "created_at", "ordered by created_at or updated_at fields. Default is created_at")
-	flags.StringVar(&sort, "sort", "desc", "sorted in asc or desc order. Default is desc")
 	flags.Usage = func() {}
 	if err := flags.Parse(args); err != nil {
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
@@ -225,37 +245,15 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Override flag values by config value
-	lineConfig := GetLine()
-	if lineConfig != -1 {
-		line = lineConfig
-	}
-	stateConfig := GetState()
-	if stateConfig != "" {
-		state = stateConfig
-	}
-	scopeConfig := GetScope()
-	if scopeConfig != "" {
-		scope = scopeConfig
-	}
-	orderByConfig := GetOrderBy()
-	if orderByConfig != "" {
-		orderBy = orderByConfig
-	}
-	sortConfig := GetSort()
-	if sortConfig != "" {
-		sort = sortConfig
-	}
-
 	listOption := &gitlab.ListOptions{
 		Page:    1,
-		PerPage: line,
+		PerPage: option.Line,
 	}
 	listMergeRequestsOptions := &gitlab.ListProjectMergeRequestsOptions{
-		State:       gitlab.String(state),
-		Scope:       gitlab.String(scope),
-		OrderBy:     gitlab.String(orderBy),
-		Sort:        gitlab.String(sort),
+		State:       gitlab.String(option.State),
+		Scope:       gitlab.String(option.Scope),
+		OrderBy:     gitlab.String(option.OrderBy),
+		Sort:        gitlab.String(option.Sort),
 		ListOptions: *listOption,
 	}
 	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(

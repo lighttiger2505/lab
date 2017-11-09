@@ -11,6 +11,8 @@ import (
 )
 
 type BrowseCommand struct {
+	Ui     cli.Ui
+	Config *Config
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -34,13 +36,13 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	remoteInfos, err := GitRemotes()
 	if err != nil {
-		fmt.Println(err.Error())
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
 	gitlabRemoteInfo, err := FilterGitlabRemote(remoteInfos)
 	if err != nil {
-		fmt.Println(err.Error())
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
@@ -49,7 +51,7 @@ func (c *BrowseCommand) Run(args []string) int {
 	if len(prefixArgs) > 0 {
 		browseType, number, err := splitPrefixAndNumber(prefixArgs[0])
 		if err != nil {
-			fmt.Println(err.Error())
+			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
 		cmdOutput(browser, []string{browseUrl(gitlabRemoteInfo, browseType, number)})

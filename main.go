@@ -17,15 +17,17 @@ func main() {
 	c := cli.NewCLI("app", "1.0.0")
 	c.Args = os.Args[1:]
 
+	ui := &cli.BasicUi{Writer: os.Stdout}
+
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {
-			return &BrowseCommand{}, nil
+			return &BrowseCommand{Ui: ui}, nil
 		},
 		"issue": func() (cli.Command, error) {
-			return &IssueCommand{Ui: &cli.BasicUi{Writer: os.Stdout}}, nil
+			return &IssueCommand{Ui: ui}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
-			return &MergeRequestCommand{Ui: &cli.BasicUi{Writer: os.Stdout}}, nil
+			return &MergeRequestCommand{Ui: ui}, nil
 		},
 	}
 

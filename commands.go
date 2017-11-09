@@ -11,8 +11,7 @@ import (
 )
 
 type BrowseCommand struct {
-	Ui     cli.Ui
-	Config *Config
+	Ui cli.Ui
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -209,7 +208,8 @@ func (c *IssueCommand) Run(args []string) int {
 }
 
 type MergeRequestCommand struct {
-	Ui cli.Ui
+	Ui     cli.Ui
+	Config *Config
 }
 
 func (c *MergeRequestCommand) Synopsis() string {

@@ -116,3 +116,7 @@ func (c *Config) Write() error {
 
 	return nil
 }
+
+func (c *Config) AddRepository(repository string) {
+	c.Repositorys = append(c.Repositorys, repository)
+}

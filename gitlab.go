@@ -11,7 +11,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-func FilterGitlabRemote(remoteInfos []RemoteInfo) (*RemoteInfo, error) {
+func FilterGitlabRemote(remoteInfos []RemoteInfo, config *Config) (*RemoteInfo, error) {
 	var gitlabRemotes []RemoteInfo
 	for _, remoteInfo := range remoteInfos {
 		if strings.HasPrefix(remoteInfo.Domain, "gitlab") {
@@ -19,45 +19,75 @@ func FilterGitlabRemote(remoteInfos []RemoteInfo) (*RemoteInfo, error) {
 		}
 	}
 
-	var gitLabRemote RemoteInfo
 	if len(gitlabRemotes) == 1 {
-		gitLabRemote = gitlabRemotes[0]
+		gitLabRemote := gitlabRemotes[0]
+		return &gitLabRemote, nil
 	} else if len(gitlabRemotes) > 1 {
-		fmt.Println("That repository existing multi gitlab remote url.")
-		for i, remoteInfo := range gitlabRemotes {
-			fmt.Println(fmt.Sprintf("%d) %s", i+1, remoteInfo.Domain))
-		}
+		priorityRemote := PriorityRemote(gitlabRemotes, config)
+		if priorityRemote != nil {
+			return priorityRemote, nil
+		} else {
+			gitLabRemote, err := ChoiseGitlabRemote(gitlabRemotes, config)
+			if err != nil {
+				return nil, fmt.Errorf("Failed choise gitlab remote. %v", err.Error())
+			}
+			fmt.Println(fmt.Sprintf("Choised gitlab remote. %s", gitLabRemote.Domain))
 
-		fmt.Print("Please choice target domain :")
-		stdin := bufio.NewScanner(os.Stdin)
-		stdin.Scan()
-		text := stdin.Text()
-
-		choiceNumber, err := strconv.Atoi(text)
-		if err != nil {
-			return nil, fmt.Errorf("Failed parse number. %v", err.Error())
+			config.AddRepository(gitLabRemote.Domain)
+			if err := config.Write(); err != nil {
+				return nil, fmt.Errorf("Failed update config of repository priority. %v", err.Error())
+			}
+			return gitLabRemote, nil
 		}
-		if choiceNumber < 1 {
-			return nil, fmt.Errorf("Invalid numver. %d", choiceNumber)
-		} else if choiceNumber > len(gitlabRemotes) {
-			return nil, fmt.Errorf("Invalid numver. %d", choiceNumber)
-		}
-
-		gitLabRemote = gitlabRemotes[choiceNumber-1]
 	} else {
 		return nil, errors.New("Not a cloned repository from gitlab.")
 	}
+}
+
+func PriorityRemote(remoteInfos []RemoteInfo, config *Config) *RemoteInfo {
+	var priorityRemote RemoteInfo
+	for _, repository := range config.Repositorys {
+		for _, remoteInfo := range remoteInfos {
+			if repository == remoteInfo.Domain {
+				priorityRemote = remoteInfo
+			}
+		}
+	}
+	return &priorityRemote
+}
+
+func ChoiseGitlabRemote(remoteInfos []RemoteInfo, config *Config) (*RemoteInfo, error) {
+	fmt.Println("That repository existing multi gitlab remote url.")
+	for i, remoteInfo := range remoteInfos {
+		fmt.Println(fmt.Sprintf("%d) %s", i+1, remoteInfo.Domain))
+	}
+
+	fmt.Print("Please choice target domain :")
+	stdin := bufio.NewScanner(os.Stdin)
+	stdin.Scan()
+	text := stdin.Text()
+
+	choiceNumber, err := strconv.Atoi(text)
+	if err != nil {
+		return nil, fmt.Errorf("Failed parse number. %v", err.Error())
+	}
+	if choiceNumber < 1 {
+		return nil, fmt.Errorf("Invalid numver. %d", choiceNumber)
+	} else if choiceNumber > len(remoteInfos) {
+		return nil, fmt.Errorf("Invalid numver. %d", choiceNumber)
+	}
+	gitLabRemote := remoteInfos[choiceNumber-1]
 	return &gitLabRemote, nil
 }
 
-func GitlabRemote() (*RemoteInfo, error) {
+func GitlabRemote(config *Config) (*RemoteInfo, error) {
 	// Get remote urls
 	gitRemotes, err := GitRemotes()
 	if err != nil {
 		return nil, err
 	}
 	// Filter gitlab remote url only
-	gitlabRemote, err := FilterGitlabRemote(gitRemotes)
+	gitlabRemote, err := FilterGitlabRemote(gitRemotes, config)
 	if err != nil {
 		return nil, err
 	}

@@ -35,13 +35,19 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	config, err := NewConfig()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
 	remoteInfos, err := GitRemotes()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemoteInfo, err := FilterGitlabRemote(remoteInfos)
+	gitlabRemoteInfo, err := FilterGitlabRemote(remoteInfos, config)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -160,7 +166,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := GitlabRemote()
+	gitlabRemote, err := GitlabRemote(config)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -230,7 +236,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := GitlabRemote()
+	gitlabRemote, err := GitlabRemote(config)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

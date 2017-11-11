@@ -70,7 +70,7 @@ func selectUseRemote(ui cli.Ui, gitlabRemotes []RemoteInfo, config *Config) (*Re
 }
 
 func hasPriorityRemote(remoteInfos []RemoteInfo, config *Config) *RemoteInfo {
-	for _, domain := range config.Repositorys {
+	for _, domain := range config.PreferredDomains {
 		for _, remoteInfo := range remoteInfos {
 			if domain == remoteInfo.Domain {
 				return &remoteInfo

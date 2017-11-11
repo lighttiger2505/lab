@@ -12,8 +12,8 @@ import (
 )
 
 type Config struct {
-	Tokens      yaml.MapSlice
-	Repositorys []string
+	Tokens           yaml.MapSlice
+	PreferredDomains []string
 }
 
 func NewConfig() (*Config, error) {
@@ -121,5 +121,5 @@ func (c *Config) AddToken(domain string, token string) {
 }
 
 func (c *Config) AddRepository(repository string) {
-	c.Repositorys = append(c.Repositorys, repository)
+	c.PreferredDomains = append(c.PreferredDomains, repository)
 }

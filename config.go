@@ -85,7 +85,7 @@ func createConfig(filePath string) error {
 
 	out, err := yaml.Marshal(&config)
 	if err != nil {
-		return fmt.Errorf("Failed mersial config: %v", err.Error())
+		return fmt.Errorf("Failed marshal config: %v", err.Error())
 	}
 
 	_, err = file.Write(out)

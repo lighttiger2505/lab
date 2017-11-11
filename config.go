@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -46,7 +45,10 @@ func getConfigData() ([]byte, error) {
 
 	filePath := fmt.Sprintf("%s/.labconfig.yml", dir)
 	if !fileExists(filePath) {
-		return nil, fmt.Errorf("Not exist config: %s", filePath)
+		err := createConfig(filePath)
+		if err != nil {
+			return nil, fmt.Errorf("Not exist config: %s", filePath)
+		}
 	}
 
 	configData, err := ioutil.ReadFile(filePath)
@@ -71,6 +73,28 @@ func fileExists(filename string) bool {
 	}
 
 	return true
+}
+
+func createConfig(filePath string) error {
+	config := Config{}
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("Failed create config file: %s", err.Error())
+	}
+	defer file.Close()
+
+	out, err := yaml.Marshal(&config)
+	if err != nil {
+		return fmt.Errorf("Failed mersial config: %v", err.Error())
+	}
+
+	_, err = file.Write(out)
+	if err != nil {
+		return fmt.Errorf("Failed write config file: %s", err.Error())
+	}
+
+	return nil
 }
 
 func ReadConfig() error {

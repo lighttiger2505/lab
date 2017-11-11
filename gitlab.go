@@ -117,9 +117,9 @@ func GitlabClient(ui cli.Ui, gitlabRemote *RemoteInfo, config *Config) (*gitlab.
 
 	// Create client
 	client := gitlab.NewClient(nil, token)
-	apiUrl := gitlabRemote.ApiUrl()
+	apiURL := gitlabRemote.ApiUrl()
 	if err := client.SetBaseURL(gitlabRemote.ApiUrl()); err != nil {
-		return nil, fmt.Errorf("Invalid api url. %s, %v", apiUrl, err.Error())
+		return nil, fmt.Errorf("Invalid api url. %s, %v", apiURL, err.Error())
 	}
 	return client, nil
 }

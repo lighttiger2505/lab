@@ -117,6 +117,14 @@ func (c *Config) Write() error {
 	return nil
 }
 
+func (c *Config) AddToken(domain string, token string) {
+	item := yaml.MapItem{
+		Key:   domain,
+		Value: token,
+	}
+	c.Tokens = append(c.Tokens, item)
+}
+
 func (c *Config) AddRepository(repository string) {
 	c.Repositorys = append(c.Repositorys, repository)
 }

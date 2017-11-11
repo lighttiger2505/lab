@@ -172,7 +172,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := GitlabClient(gitlabRemote)
+	client, err := GitlabClient(gitlabRemote, config)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -242,7 +242,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := GitlabClient(gitlabRemote)
+	client, err := GitlabClient(gitlabRemote, config)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

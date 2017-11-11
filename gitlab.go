@@ -94,21 +94,31 @@ func GitlabRemote(config *Config) (*RemoteInfo, error) {
 	return gitlabRemote, nil
 }
 
-func GitlabClient(gitlabRemote *RemoteInfo) (*gitlab.Client, error) {
-	c, err := NewConfig()
-	if err != nil {
-		return nil, fmt.Errorf("Failed read config: %s", err.Error())
-	}
-
-	var token string
-	for _, mapItem := range *c.Tokens {
+func GitlabClient(gitlabRemote *RemoteInfo, config *Config) (*gitlab.Client, error) {
+	token := ""
+	for _, mapItem := range config.Tokens {
 		if mapItem.Key.(string) == gitlabRemote.Domain {
 			token = mapItem.Value.(string)
 		}
 	}
 
+	if token == "" {
+		fmt.Print("Plase input GitLab private token :")
+		stdin := bufio.NewScanner(os.Stdin)
+		stdin.Scan()
+		token = stdin.Text()
+
+		config.AddToken(gitlabRemote.Domain, token)
+		if err := config.Write(); err != nil {
+			return nil, fmt.Errorf("Failed update config of private token. %v", err.Error())
+		}
+	}
+
 	// Create client
 	client := gitlab.NewClient(nil, token)
-	client.SetBaseURL(gitlabRemote.ApiUrl())
+	apiUrl := gitlabRemote.ApiUrl()
+	if err := client.SetBaseURL(gitlabRemote.ApiUrl()); err != nil {
+		return nil, fmt.Errorf("Invalid api url. %s, %v", apiUrl, err.Error())
+	}
 	return client, nil
 }

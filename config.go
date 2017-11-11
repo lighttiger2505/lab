@@ -14,11 +14,6 @@ import (
 type Config struct {
 	Tokens      yaml.MapSlice
 	Repositorys []string
-	Line        int
-	Scope       string
-	State       string
-	Orderby     string
-	Sort        string
 }
 
 func NewConfig() (*Config, error) {

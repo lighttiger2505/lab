@@ -114,7 +114,7 @@ type SearchOpts struct {
 
 func NewSearchOpts(args []string, config *Config) (*SearchOpts, error) {
 
-	var searchOpts *SearchOpts
+	searchOpts := SearchOpts{}
 
 	defaultArgs := []string{
 		fmt.Sprintf("--line=%d", 20),
@@ -144,7 +144,7 @@ func NewSearchOpts(args []string, config *Config) (*SearchOpts, error) {
 		return nil, fmt.Errorf("Failed parse args. %v", args)
 	}
 
-	return searchOpts, nil
+	return &searchOpts, nil
 }
 
 func (c *IssueCommand) Run(args []string) int {

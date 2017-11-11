@@ -52,13 +52,7 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	remoteInfos, err := GitRemotes()
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemoteInfo, err := FilterGitlabRemote(c.Ui, remoteInfos, config)
+	gitlabRemote, err := GitlabRemote(c.Ui, config)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -72,9 +66,9 @@ func (c *BrowseCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		cmdOutput(browser, []string{browseUrl(gitlabRemoteInfo, browseType, number)})
+		cmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
 	} else {
-		cmdOutput(browser, []string{gitlabRemoteInfo.RepositoryUrl()})
+		cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
 	}
 	return ExitCodeOK
 }

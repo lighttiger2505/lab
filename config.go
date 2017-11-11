@@ -12,7 +12,7 @@ import (
 )
 
 type Config struct {
-	Tokens      *yaml.MapSlice
+	Tokens      yaml.MapSlice
 	Repositorys []string
 	Line        int
 	Scope       string
@@ -96,6 +96,23 @@ func createConfig(filePath string) error {
 	return nil
 }
 
-// func (c *Config) Write() error {
-// 	out, err := yaml.Marshal(&config)
-// }
+func (c *Config) Write() error {
+	filePath := getConfigPath()
+	file, err := os.OpenFile(filePath, os.O_WRONLY, 0666)
+	if err != nil {
+		return fmt.Errorf("Failed open config file: %s", err.Error())
+	}
+	defer file.Close()
+
+	out, err := yaml.Marshal(&c)
+	if err != nil {
+		return fmt.Errorf("Failed marshal config: %v", err.Error())
+	}
+
+	_, err = file.Write(out)
+	if err != nil {
+		return fmt.Errorf("Failed write config file: %s", err.Error())
+	}
+
+	return nil
+}

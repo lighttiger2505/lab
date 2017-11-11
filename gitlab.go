@@ -28,7 +28,7 @@ func FilterGitlabRemote(remoteInfos []RemoteInfo) (*RemoteInfo, error) {
 			fmt.Println(fmt.Sprintf("%d) %s", i+1, remoteInfo.Domain))
 		}
 
-		fmt.Print(" Please choice target domain :")
+		fmt.Print("Please choice target domain :")
 		stdin := bufio.NewScanner(os.Stdin)
 		stdin.Scan()
 		text := stdin.Text()

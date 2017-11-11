@@ -51,11 +51,11 @@ func filterHasGitlabDomain(remoteInfos []RemoteInfo) []RemoteInfo {
 func selectUseRemote(ui cli.Ui, gitlabRemotes []RemoteInfo, config *Config) (*RemoteInfo, error) {
 	// Search for remote repositorie whose selection is prioritized in the config
 	var gitlabRemote *RemoteInfo
-	gitlabRemote = hasPriorityRemote(gitlabRemotes, config)
+	gitlabRemote = hasPriorityRemote(gitlabRemotes, config.PreferredDomains)
 	if gitlabRemote == nil {
 		// Get remote repository selected by user input
 		var err error
-		gitlabRemote, err = inputUseRemote(ui, gitlabRemotes, config)
+		gitlabRemote, err = inputUseRemote(ui, gitlabRemotes)
 		if err != nil {
 			return nil, fmt.Errorf("Failed choise gitlab remote. %v", err.Error())
 		}
@@ -69,10 +69,10 @@ func selectUseRemote(ui cli.Ui, gitlabRemotes []RemoteInfo, config *Config) (*Re
 	return gitlabRemote, nil
 }
 
-func hasPriorityRemote(remoteInfos []RemoteInfo, config *Config) *RemoteInfo {
-	for _, domain := range config.PreferredDomains {
+func hasPriorityRemote(remoteInfos []RemoteInfo, preferredDomains []string) *RemoteInfo {
+	for _, preferredDomain := range preferredDomains {
 		for _, remoteInfo := range remoteInfos {
-			if domain == remoteInfo.Domain {
+			if preferredDomain == remoteInfo.Domain {
 				return &remoteInfo
 			}
 		}
@@ -80,7 +80,7 @@ func hasPriorityRemote(remoteInfos []RemoteInfo, config *Config) *RemoteInfo {
 	return nil
 }
 
-func inputUseRemote(ui cli.Ui, remoteInfos []RemoteInfo, config *Config) (*RemoteInfo, error) {
+func inputUseRemote(ui cli.Ui, remoteInfos []RemoteInfo) (*RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	ui.Info("That repository existing multi gitlab remote repository.")
 	for i, remoteInfo := range remoteInfos {

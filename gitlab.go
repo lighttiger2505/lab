@@ -8,10 +8,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mitchellh/cli"
 	"github.com/xanzy/go-gitlab"
 )
 
-func FilterGitlabRemote(remoteInfos []RemoteInfo, config *Config) (*RemoteInfo, error) {
+func FilterGitlabRemote(ui cli.Ui, remoteInfos []RemoteInfo, config *Config) (*RemoteInfo, error) {
 	var gitlabRemotes []RemoteInfo
 	for _, remoteInfo := range remoteInfos {
 		if strings.HasPrefix(remoteInfo.Domain, "gitlab") {
@@ -27,11 +28,11 @@ func FilterGitlabRemote(remoteInfos []RemoteInfo, config *Config) (*RemoteInfo, 
 		if priorityRemote != nil {
 			return priorityRemote, nil
 		} else {
-			gitLabRemote, err := ChoiseGitlabRemote(gitlabRemotes, config)
+			gitLabRemote, err := ChoiseGitlabRemote(ui, gitlabRemotes, config)
 			if err != nil {
 				return nil, fmt.Errorf("Failed choise gitlab remote. %v", err.Error())
 			}
-			fmt.Println(fmt.Sprintf("Choised gitlab remote. %s", gitLabRemote.Domain))
+			ui.Info(fmt.Sprintf("Choised gitlab remote. %s", gitLabRemote.Domain))
 
 			config.AddRepository(gitLabRemote.Domain)
 			if err := config.Write(); err != nil {
@@ -56,13 +57,13 @@ func PriorityRemote(remoteInfos []RemoteInfo, config *Config) *RemoteInfo {
 	return &priorityRemote
 }
 
-func ChoiseGitlabRemote(remoteInfos []RemoteInfo, config *Config) (*RemoteInfo, error) {
+func ChoiseGitlabRemote(ui cli.Ui, remoteInfos []RemoteInfo, config *Config) (*RemoteInfo, error) {
 	fmt.Println("That repository existing multi gitlab remote url.")
 	for i, remoteInfo := range remoteInfos {
-		fmt.Println(fmt.Sprintf("%d) %s", i+1, remoteInfo.Domain))
+		ui.Info(fmt.Sprintf("%d) %s", i+1, remoteInfo.Domain))
 	}
 
-	fmt.Print("Please choice target domain :")
+	ui.Info("Please choice target domain :")
 	stdin := bufio.NewScanner(os.Stdin)
 	stdin.Scan()
 	text := stdin.Text()
@@ -80,21 +81,21 @@ func ChoiseGitlabRemote(remoteInfos []RemoteInfo, config *Config) (*RemoteInfo, 
 	return &gitLabRemote, nil
 }
 
-func GitlabRemote(config *Config) (*RemoteInfo, error) {
+func GitlabRemote(ui cli.Ui, config *Config) (*RemoteInfo, error) {
 	// Get remote urls
 	gitRemotes, err := GitRemotes()
 	if err != nil {
 		return nil, err
 	}
 	// Filter gitlab remote url only
-	gitlabRemote, err := FilterGitlabRemote(gitRemotes, config)
+	gitlabRemote, err := FilterGitlabRemote(ui, gitRemotes, config)
 	if err != nil {
 		return nil, err
 	}
 	return gitlabRemote, nil
 }
 
-func GitlabClient(gitlabRemote *RemoteInfo, config *Config) (*gitlab.Client, error) {
+func GitlabClient(ui cli.Ui, gitlabRemote *RemoteInfo, config *Config) (*gitlab.Client, error) {
 	token := ""
 	for _, mapItem := range config.Tokens {
 		if mapItem.Key.(string) == gitlabRemote.Domain {
@@ -103,7 +104,7 @@ func GitlabClient(gitlabRemote *RemoteInfo, config *Config) (*gitlab.Client, err
 	}
 
 	if token == "" {
-		fmt.Print("Plase input GitLab private token :")
+		fmt.Print("Please input GitLab private token :")
 		stdin := bufio.NewScanner(os.Stdin)
 		stdin.Scan()
 		token = stdin.Text()

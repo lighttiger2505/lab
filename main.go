@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/mitchellh/cli"
@@ -33,7 +32,7 @@ func main() {
 
 	exitStatus, err := c.Run()
 	if err != nil {
-		log.Println(err)
+		ui.Error(err.Error())
 	}
 
 	os.Exit(exitStatus)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/mitchellh/cli"
 	"github.com/xanzy/go-gitlab"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 func GitlabRemote(ui cli.Ui, config *Config) (*RemoteInfo, error) {
@@ -128,9 +129,11 @@ func getPrivateToken(domain string, config *Config) (string, error) {
 
 	if token == "" {
 		fmt.Print("Please input GitLab private token :")
-		stdin := bufio.NewScanner(os.Stdin)
-		stdin.Scan()
-		token = stdin.Text()
+		byteToken, err := terminal.ReadPassword(0)
+		if err != nil {
+			return "", fmt.Errorf("Failed input private token. %s", err.Error())
+		}
+		token = string(byteToken)
 
 		config.AddToken(domain, token)
 		if err := config.Write(); err != nil {

@@ -20,7 +20,7 @@ func GitlabRemote(ui cli.Ui, config *Config) (*RemoteInfo, error) {
 		return nil, err
 	}
 	// Filtering only gitlab remote info
-	gitlabRemotes := filterGitlab(gitRemotes)
+	gitlabRemotes := filterHasGitlabDomain(gitRemotes)
 
 	// Filter gitlab remote url only
 	var gitlabRemote *RemoteInfo
@@ -38,7 +38,7 @@ func GitlabRemote(ui cli.Ui, config *Config) (*RemoteInfo, error) {
 	return gitlabRemote, nil
 }
 
-func filterGitlab(remoteInfos []RemoteInfo) []RemoteInfo {
+func filterHasGitlabDomain(remoteInfos []RemoteInfo) []RemoteInfo {
 	var gitlabRemotes []RemoteInfo
 	for _, remoteInfo := range remoteInfos {
 		if strings.HasPrefix(remoteInfo.Domain, "gitlab") {

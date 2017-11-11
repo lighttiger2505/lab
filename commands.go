@@ -14,10 +14,10 @@ import (
 
 type SearchOptons struct {
 	Line    int    `short:"n" long:"line" default-mask:"20" description:"output the NUM lines"`
-	State   string `short:"t" long:"state" default-mask:"all" description:"just those that are all or opened or closed (default:all)"`
-	Scope   string `short:"c" long:"scope" default-mask:"all" description:"given scope: created-by-me, assigned-to-me or all. Defaults to all (default:all)"`
-	OrderBy string `short:"o" long:"orderby" default-mask:"updated_at" description:"ordered by created_at or updated_at fields. Default is created_at (default:created_at)"`
-	Sort    string `short:"s" long:"sort" default-mask:"desc" description:"sorted in asc or desc order. Default is desc (default:desc)"`
+	State   string `short:"t" long:"state" default-mask:"all" description:"just those that are opened, closed or all"`
+	Scope   string `short:"c" long:"scope" default-mask:"all" description:"given scope: created-by-me, assigned-to-me or all."`
+	OrderBy string `short:"o" long:"orderby" default-mask:"updated_at" description:"ordered by created_at or updated_at fields."`
+	Sort    string `short:"s" long:"sort" default-mask:"desc" description:"sorted in asc or desc order."`
 }
 
 var searchOptions SearchOptons

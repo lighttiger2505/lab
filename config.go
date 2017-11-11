@@ -36,12 +36,7 @@ func NewConfig() (*Config, error) {
 }
 
 func getConfigData() ([]byte, error) {
-	dir, err := homedir.Dir()
-	if err != nil {
-		return nil, fmt.Errorf("Failed get home dir: %s", err.Error())
-	}
-
-	filePath := fmt.Sprintf("%s/.labconfig.yml", dir)
+	filePath := getConfigPath()
 	if !fileExists(filePath) {
 		err := createConfig(filePath)
 		if err != nil {
@@ -55,6 +50,12 @@ func getConfigData() ([]byte, error) {
 	}
 
 	return configData, nil
+}
+
+func getConfigPath() string {
+	dir, _ := homedir.Dir()
+	filePath := fmt.Sprintf("%s/.labconfig.yml", dir)
+	return filePath
 }
 
 func fileExists(filename string) bool {
@@ -94,3 +95,7 @@ func createConfig(filePath string) error {
 
 	return nil
 }
+
+// func (c *Config) Write() error {
+// 	out, err := yaml.Marshal(&config)
+// }

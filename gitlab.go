@@ -41,7 +41,7 @@ func FilterGitlabRemote(ui cli.Ui, remoteInfos []RemoteInfo, config *Config) (*R
 			return gitLabRemote, nil
 		}
 	} else {
-		return nil, errors.New("Not a cloned repository from gitlab.")
+		return nil, errors.New("Not a cloned repository from gitlab")
 	}
 }
 

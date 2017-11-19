@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/mitchellh/cli"
+	"github.com/lighttiger2505/lab/lab"
 	"github.com/ryanuber/columnize"
 	"github.com/xanzy/go-gitlab"
 )
@@ -24,7 +24,7 @@ var searchOptions SearchOptons
 var searchParser = flags.NewParser(&searchOptions, flags.Default)
 
 type BrowseCommand struct {
-	Ui cli.Ui
+	Ui lab.Ui
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -87,7 +87,7 @@ func browseUrl(gitlabRemote *RemoteInfo, browseType BrowseType, number int) stri
 }
 
 type IssueCommand struct {
-	Ui cli.Ui
+	Ui lab.Ui
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -153,12 +153,12 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	result := columnize.SimpleFormat(datas)
-	c.Ui.Info(result)
+	c.Ui.Message(result)
 	return ExitCodeOK
 }
 
 type MergeRequestCommand struct {
-	Ui cli.Ui
+	Ui lab.Ui
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
@@ -223,7 +223,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	}
 
 	result := columnize.SimpleFormat(datas)
-	c.Ui.Info(result)
+	c.Ui.Message(result)
 
 	return ExitCodeOK
 }

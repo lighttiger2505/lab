@@ -1,8 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 
+	"github.com/lighttiger2505/lab/lab"
 	"github.com/mitchellh/cli"
 )
 
@@ -16,7 +20,20 @@ func main() {
 	c := cli.NewCLI("app", "1.0.0")
 	c.Args = os.Args[1:]
 
-	ui := &cli.BasicUi{Writer: os.Stdout}
+	// ui := &cli.BasicUi{Writer: os.Stdout}
+	ui := lab.NewBasicUi()
+
+	// Determine where logs should go in general (requested by the user)
+	logWriter, err := logOutput()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Couldn't setup log output: %s", err)
+	}
+	if logWriter == nil {
+		logWriter = ioutil.Discard
+	}
+
+	// Disable logging here
+	log.SetOutput(ioutil.Discard)
 
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {

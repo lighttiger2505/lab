@@ -9,7 +9,8 @@ before_install:
 install:
   - make ensure
 script:
-  - $HOME/gopath/bin/goveralls -repotoken $COVERALLS_TOKEN
+  - go test -v -covermode=count -coverprofile=coverage.out
+  - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 before_deploy:
   - make cross-build

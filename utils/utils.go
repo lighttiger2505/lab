@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"errors"
@@ -52,7 +52,7 @@ var BrowseTypePrefix = map[string]BrowseType{
 	"M": MergeRequest,
 }
 
-func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
+func SplitPrefixAndNumber(arg string) (BrowseType, int, error) {
 	for k, v := range BrowseTypePrefix {
 		if strings.HasPrefix(arg, k) {
 			numberStr := strings.TrimPrefix(arg, k)
@@ -66,12 +66,12 @@ func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
 	return 0, 0, errors.New(fmt.Sprintf("Invalid arg: %s", arg))
 }
 
-func gitOutput(name string, args []string) string {
-	return gitOutputs(name, args)[0]
+func GitOutput(name string, args []string) string {
+	return GitOutputs(name, args)[0]
 }
 
-func gitOutputs(name string, args []string) []string {
-	var out = cmdOutput(name, args)
+func GitOutputs(name string, args []string) []string {
+	var out = CmdOutput(name, args)
 	var outs []string
 	for _, line := range strings.Split(string(out), "\n") {
 		if strings.TrimSpace(line) != "" {
@@ -81,7 +81,7 @@ func gitOutputs(name string, args []string) []string {
 	return outs
 }
 
-func cmdOutput(name string, args []string) string {
+func CmdOutput(name string, args []string) string {
 	out, err := exec.Command(name, args...).CombinedOutput()
 	if err != nil {
 		log.Println(err)

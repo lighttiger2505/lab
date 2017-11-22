@@ -1,4 +1,4 @@
-package main
+package gitlab
 
 import (
 	"errors"
@@ -6,13 +6,15 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/xanzy/go-gitlab"
 )
 
-func GitlabRemote(ui ui.Ui, config *Config) (*RemoteInfo, error) {
+func GitlabRemote(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
 	// Get remote urls
-	gitRemotes, err := GitRemotes()
+	gitRemotes, err := git.GitRemotes()
 	if err != nil {
 		return nil, err
 	}
@@ -20,12 +22,12 @@ func GitlabRemote(ui ui.Ui, config *Config) (*RemoteInfo, error) {
 	gitlabRemotes := filterHasGitlabDomain(gitRemotes)
 
 	// Filter gitlab remote url only
-	var gitlabRemote *RemoteInfo
+	var gitlabRemote *git.RemoteInfo
 	if len(gitlabRemotes) == 1 {
 		gitlabRemote = &gitlabRemotes[0]
 	} else if len(gitlabRemotes) > 1 {
 		var err error
-		gitlabRemote, err = selectUseRemote(ui, gitlabRemotes, config)
+		gitlabRemote, err = selectUseRemote(ui, gitlabRemotes, conf)
 		if err != nil {
 			return nil, fmt.Errorf("Failed select multi remote repository. %v", err.Error())
 		}
@@ -35,8 +37,8 @@ func GitlabRemote(ui ui.Ui, config *Config) (*RemoteInfo, error) {
 	return gitlabRemote, nil
 }
 
-func filterHasGitlabDomain(remoteInfos []RemoteInfo) []RemoteInfo {
-	var gitlabRemotes []RemoteInfo
+func filterHasGitlabDomain(remoteInfos []git.RemoteInfo) []git.RemoteInfo {
+	var gitlabRemotes []git.RemoteInfo
 	for _, remoteInfo := range remoteInfos {
 		if strings.HasPrefix(remoteInfo.Domain, "gitlab") {
 			gitlabRemotes = append(gitlabRemotes, remoteInfo)
@@ -45,10 +47,10 @@ func filterHasGitlabDomain(remoteInfos []RemoteInfo) []RemoteInfo {
 	return gitlabRemotes
 }
 
-func selectUseRemote(ui ui.Ui, gitlabRemotes []RemoteInfo, config *Config) (*RemoteInfo, error) {
+func selectUseRemote(ui ui.Ui, gitlabRemotes []git.RemoteInfo, conf *config.Config) (*git.RemoteInfo, error) {
 	// Search for remote repositorie whose selection is prioritized in the config
-	var gitlabRemote *RemoteInfo
-	gitlabRemote = hasPriorityRemote(gitlabRemotes, config.PreferredDomains)
+	var gitlabRemote *git.RemoteInfo
+	gitlabRemote = hasPriorityRemote(gitlabRemotes, conf.PreferredDomains)
 	if gitlabRemote == nil {
 		// Get remote repository selected by user input
 		var err error
@@ -58,15 +60,15 @@ func selectUseRemote(ui ui.Ui, gitlabRemotes []RemoteInfo, config *Config) (*Rem
 		}
 
 		// Add selected remote repository to config
-		config.AddRepository(gitlabRemote.Domain)
-		if err := config.Write(); err != nil {
+		conf.AddRepository(gitlabRemote.Domain)
+		if err := conf.Write(); err != nil {
 			return nil, fmt.Errorf("Failed update config of repository priority. %v", err.Error())
 		}
 	}
 	return gitlabRemote, nil
 }
 
-func hasPriorityRemote(remoteInfos []RemoteInfo, preferredDomains []string) *RemoteInfo {
+func hasPriorityRemote(remoteInfos []git.RemoteInfo, preferredDomains []string) *git.RemoteInfo {
 	for _, preferredDomain := range preferredDomains {
 		for _, remoteInfo := range remoteInfos {
 			if preferredDomain == remoteInfo.Domain {
@@ -77,7 +79,7 @@ func hasPriorityRemote(remoteInfos []RemoteInfo, preferredDomains []string) *Rem
 	return nil
 }
 
-func inputUseRemote(ui ui.Ui, remoteInfos []RemoteInfo) (*RemoteInfo, error) {
+func inputUseRemote(ui ui.Ui, remoteInfos []git.RemoteInfo) (*git.RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	ui.Message("That repository existing multi gitlab remote repository.")
 	for i, remoteInfo := range remoteInfos {
@@ -101,8 +103,8 @@ func inputUseRemote(ui ui.Ui, remoteInfos []RemoteInfo) (*RemoteInfo, error) {
 	return gitLabRemote, nil
 }
 
-func GitlabClient(ui ui.Ui, gitlabRemote *RemoteInfo, config *Config) (*gitlab.Client, error) {
-	token, err := getPrivateToken(ui, gitlabRemote.Domain, config)
+func GitlabClient(ui ui.Ui, gitlabRemote *git.RemoteInfo, conf *config.Config) (*gitlab.Client, error) {
+	token, err := getPrivateToken(ui, gitlabRemote.Domain, conf)
 	if err != nil {
 		return nil, fmt.Errorf("Failed getting private token. %s", err.Error())
 	}
@@ -115,9 +117,9 @@ func GitlabClient(ui ui.Ui, gitlabRemote *RemoteInfo, config *Config) (*gitlab.C
 	return client, nil
 }
 
-func getPrivateToken(ui ui.Ui, domain string, config *Config) (string, error) {
+func getPrivateToken(ui ui.Ui, domain string, conf *config.Config) (string, error) {
 	token := ""
-	for _, mapItem := range config.Tokens {
+	for _, mapItem := range conf.Tokens {
 		if mapItem.Key.(string) == domain {
 			token = mapItem.Value.(string)
 		}
@@ -129,8 +131,8 @@ func getPrivateToken(ui ui.Ui, domain string, config *Config) (string, error) {
 			return "", fmt.Errorf("Failed input private token. %s", err.Error())
 		}
 
-		config.AddToken(domain, token)
-		if err := config.Write(); err != nil {
+		conf.AddToken(domain, token)
+		if err := conf.Write(); err != nil {
 			return "", fmt.Errorf("Failed update config of private token. %s", err.Error())
 		}
 	}

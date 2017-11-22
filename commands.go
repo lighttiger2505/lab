@@ -2,14 +2,14 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
-	"runtime"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
-	"github.com/xanzy/go-gitlab"
+	gitlabc "github.com/xanzy/go-gitlab"
 )
 
 type SearchOptons struct {
@@ -22,69 +22,6 @@ type SearchOptons struct {
 
 var searchOptions SearchOptons
 var searchParser = flags.NewParser(&searchOptions, flags.Default)
-
-type BrowseCommand struct {
-	Ui ui.Ui
-}
-
-func (c *BrowseCommand) Synopsis() string {
-	return "Browse project"
-}
-
-func (c *BrowseCommand) Help() string {
-	return "Usage: lab project [option]"
-}
-
-func (c *BrowseCommand) Run(args []string) int {
-	var verbose bool
-
-	// Set subcommand flags
-	flags := flag.NewFlagSet("project", flag.ContinueOnError)
-	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
-	flags.Usage = func() {}
-	if err := flags.Parse(args); err != nil {
-		return ExitCodeError
-	}
-
-	config, err := NewConfig()
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := GitlabRemote(c.Ui, config)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	browser := SearchBrowserLauncher(runtime.GOOS)
-	prefixArgs := flags.Args()
-	if len(prefixArgs) > 0 {
-		browseType, number, err := splitPrefixAndNumber(prefixArgs[0])
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		cmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
-	} else {
-		cmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
-	}
-	return ExitCodeOK
-}
-
-func browseUrl(gitlabRemote *RemoteInfo, browseType BrowseType, number int) string {
-	var url string
-	switch browseType {
-	case Issue:
-		url = gitlabRemote.IssueDetailUrl(number)
-	case MergeRequest:
-		url = gitlabRemote.MergeRequestDetailUrl(number)
-	default:
-		url = ""
-	}
-	return url
-}
 
 type IssueCommand struct {
 	Ui ui.Ui
@@ -107,33 +44,33 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	config, err := NewConfig()
+	conf, err := config.NewConfig()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := GitlabRemote(c.Ui, config)
+	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	client, err := GitlabClient(c.Ui, gitlabRemote, config)
+	client, err := gitlab.GitlabClient(c.Ui, gitlabRemote, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	listOption := &gitlab.ListOptions{
+	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: searchOptions.Line,
 	}
-	listProjectIssuesOptions := &gitlab.ListProjectIssuesOptions{
-		State:       gitlab.String(searchOptions.State),
-		Scope:       gitlab.String(searchOptions.Scope),
-		OrderBy:     gitlab.String(searchOptions.OrderBy),
-		Sort:        gitlab.String(searchOptions.Sort),
+	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
+		State:       gitlabc.String(searchOptions.State),
+		Scope:       gitlabc.String(searchOptions.Scope),
+		OrderBy:     gitlabc.String(searchOptions.OrderBy),
+		Sort:        gitlabc.String(searchOptions.Sort),
 		ListOptions: *listOption,
 	}
 
@@ -178,33 +115,33 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	config, err := NewConfig()
+	conf, err := config.NewConfig()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := GitlabRemote(c.Ui, config)
+	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	client, err := GitlabClient(c.Ui, gitlabRemote, config)
+	client, err := gitlab.GitlabClient(c.Ui, gitlabRemote, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	listOption := &gitlab.ListOptions{
+	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: searchOptions.Line,
 	}
-	listMergeRequestsOptions := &gitlab.ListProjectMergeRequestsOptions{
-		State:       gitlab.String(searchOptions.State),
-		Scope:       gitlab.String(searchOptions.Scope),
-		OrderBy:     gitlab.String(searchOptions.OrderBy),
-		Sort:        gitlab.String(searchOptions.Sort),
+	listMergeRequestsOptions := &gitlabc.ListProjectMergeRequestsOptions{
+		State:       gitlabc.String(searchOptions.State),
+		Scope:       gitlabc.String(searchOptions.Scope),
+		OrderBy:     gitlabc.String(searchOptions.OrderBy),
+		Sort:        gitlabc.String(searchOptions.Sort),
 		ListOptions: *listOption,
 	}
 	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(

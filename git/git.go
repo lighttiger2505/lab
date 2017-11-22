@@ -1,10 +1,12 @@
-package main
+package git
 
 import (
 	"errors"
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/lighttiger2505/lab/utils"
 )
 
 type RemoteInfo struct {
@@ -56,14 +58,14 @@ func (r *RemoteInfo) ApiUrl() string {
 
 func GitRemotes() ([]RemoteInfo, error) {
 	// Get remote repositorys
-	remotes := gitOutputs("git", []string{"remote"})
+	remotes := utils.GitOutputs("git", []string{"remote"})
 	if len(remotes) == 0 {
 		return nil, errors.New("No remote setting in this repository")
 	}
 	// Extract domain, namespace, repository name from git remote url
 	var remoteInfos []RemoteInfo
 	for _, remote := range remotes {
-		url := gitOutput("git", []string{"remote", "get-url", remote})
+		url := utils.GitOutput("git", []string{"remote", "get-url", remote})
 		remoteInfo := NewRemoteInfo(url)
 		remoteInfos = append(remoteInfos, *remoteInfo)
 	}

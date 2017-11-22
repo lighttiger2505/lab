@@ -1,5 +1,12 @@
 package commands
 
+import (
+	flags "github.com/jessevdk/go-flags"
+)
+
+var searchOptions SearchOptons
+var searchParser = flags.NewParser(&searchOptions, flags.Default)
+
 type SearchOptons struct {
 	Line    int    `short:"n" long:"line" default:"20" default-mask:"20" description:"output the NUM lines"`
 	State   string `short:"t" long:"state" default:"all" default-mask:"all" description:"just those that are opened, closed or all"`

@@ -11,22 +11,22 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-type IssueCommand struct {
+type MergeRequestCommand struct {
 	Ui ui.Ui
 }
 
-func (c *IssueCommand) Synopsis() string {
-	return "Browse Issue"
+func (c *MergeRequestCommand) Synopsis() string {
+	return "Browse merge request"
 }
 
-func (c *IssueCommand) Help() string {
+func (c *MergeRequestCommand) Help() string {
 	buf := &bytes.Buffer{}
-	searchParser.Usage = "issue [options]"
+	searchParser.Usage = "merge-request [options]"
 	searchParser.WriteHelp(buf)
 	return buf.String()
 }
 
-func (c *IssueCommand) Run(args []string) int {
+func (c *MergeRequestCommand) Run(args []string) int {
 	if _, err := searchParser.Parse(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -54,17 +54,16 @@ func (c *IssueCommand) Run(args []string) int {
 		Page:    1,
 		PerPage: searchOptions.Line,
 	}
-	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
+	listMergeRequestsOptions := &gitlabc.ListProjectMergeRequestsOptions{
 		State:       gitlabc.String(searchOptions.State),
 		Scope:       gitlabc.String(searchOptions.Scope),
 		OrderBy:     gitlabc.String(searchOptions.OrderBy),
 		Sort:        gitlabc.String(searchOptions.Sort),
 		ListOptions: *listOption,
 	}
-
-	issues, _, err := client.Issues.ListProjectIssues(
+	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(
 		gitlabRemote.RepositoryFullName(),
-		listProjectIssuesOptions,
+		listMergeRequestsOptions,
 	)
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -72,12 +71,13 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	var datas []string
-	for _, issue := range issues {
-		data := fmt.Sprintf("#%d", issue.IID) + "|" + issue.Title
+	for _, mergeRequest := range mergeRequests {
+		data := fmt.Sprintf("!%d", mergeRequest.IID) + "|" + mergeRequest.Title
 		datas = append(datas, data)
 	}
 
 	result := columnize.SimpleFormat(datas)
 	c.Ui.Message(result)
+
 	return ExitCodeOK
 }

@@ -41,7 +41,7 @@ func main() {
 			return &commands.BrowseCommand{Ui: ui}, nil
 		},
 		"issue": func() (cli.Command, error) {
-			return &IssueCommand{Ui: ui}, nil
+			return &commands.IssueCommand{Ui: ui}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &MergeRequestCommand{Ui: ui}, nil

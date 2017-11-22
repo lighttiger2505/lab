@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/lighttiger2505/lab/lab"
+	"github.com/lighttiger2505/lab/ui"
 	"github.com/mitchellh/cli"
 )
 

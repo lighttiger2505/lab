@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/lab"
+	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
 	"github.com/xanzy/go-gitlab"
 )

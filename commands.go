@@ -24,7 +24,7 @@ var searchOptions SearchOptons
 var searchParser = flags.NewParser(&searchOptions, flags.Default)
 
 type BrowseCommand struct {
-	Ui lab.Ui
+	Ui ui.Ui
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -87,7 +87,7 @@ func browseUrl(gitlabRemote *RemoteInfo, browseType BrowseType, number int) stri
 }
 
 type IssueCommand struct {
-	Ui lab.Ui
+	Ui ui.Ui
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -158,7 +158,7 @@ func (c *IssueCommand) Run(args []string) int {
 }
 
 type MergeRequestCommand struct {
-	Ui lab.Ui
+	Ui ui.Ui
 }
 
 func (c *MergeRequestCommand) Synopsis() string {

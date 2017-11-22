@@ -10,7 +10,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-func GitlabRemote(ui lab.Ui, config *Config) (*RemoteInfo, error) {
+func GitlabRemote(ui ui.Ui, config *Config) (*RemoteInfo, error) {
 	// Get remote urls
 	gitRemotes, err := GitRemotes()
 	if err != nil {
@@ -45,7 +45,7 @@ func filterHasGitlabDomain(remoteInfos []RemoteInfo) []RemoteInfo {
 	return gitlabRemotes
 }
 
-func selectUseRemote(ui lab.Ui, gitlabRemotes []RemoteInfo, config *Config) (*RemoteInfo, error) {
+func selectUseRemote(ui ui.Ui, gitlabRemotes []RemoteInfo, config *Config) (*RemoteInfo, error) {
 	// Search for remote repositorie whose selection is prioritized in the config
 	var gitlabRemote *RemoteInfo
 	gitlabRemote = hasPriorityRemote(gitlabRemotes, config.PreferredDomains)
@@ -77,7 +77,7 @@ func hasPriorityRemote(remoteInfos []RemoteInfo, preferredDomains []string) *Rem
 	return nil
 }
 
-func inputUseRemote(ui lab.Ui, remoteInfos []RemoteInfo) (*RemoteInfo, error) {
+func inputUseRemote(ui ui.Ui, remoteInfos []RemoteInfo) (*RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	ui.Message("That repository existing multi gitlab remote repository.")
 	for i, remoteInfo := range remoteInfos {
@@ -101,7 +101,7 @@ func inputUseRemote(ui lab.Ui, remoteInfos []RemoteInfo) (*RemoteInfo, error) {
 	return gitLabRemote, nil
 }
 
-func GitlabClient(ui lab.Ui, gitlabRemote *RemoteInfo, config *Config) (*gitlab.Client, error) {
+func GitlabClient(ui ui.Ui, gitlabRemote *RemoteInfo, config *Config) (*gitlab.Client, error) {
 	token, err := getPrivateToken(ui, gitlabRemote.Domain, config)
 	if err != nil {
 		return nil, fmt.Errorf("Failed getting private token. %s", err.Error())
@@ -115,7 +115,7 @@ func GitlabClient(ui lab.Ui, gitlabRemote *RemoteInfo, config *Config) (*gitlab.
 	return client, nil
 }
 
-func getPrivateToken(ui lab.Ui, domain string, config *Config) (string, error) {
+func getPrivateToken(ui ui.Ui, domain string, config *Config) (string, error) {
 	token := ""
 	for _, mapItem := range config.Tokens {
 		if mapItem.Key.(string) == domain {

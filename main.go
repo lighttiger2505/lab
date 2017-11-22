@@ -21,7 +21,7 @@ func main() {
 	c.Args = os.Args[1:]
 
 	// ui := &cli.BasicUi{Writer: os.Stdout}
-	ui := lab.NewBasicUi()
+	ui := ui.NewBasicUi()
 
 	// Determine where logs should go in general (requested by the user)
 	logWriter, err := logOutput()

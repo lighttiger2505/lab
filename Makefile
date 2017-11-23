@@ -18,6 +18,12 @@ ensure: dep
 test:
 	go test -cover github.com/lighttiger2505/lab/...
 
+.PHONY: coverage
+coverage:
+	go get -u github.com/haya14busa/goverage
+	goverage -v -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out
+
 .PHONY: cross-build
 cross-build: ensure
 	for os in darwin linux windows; do \

@@ -1,8 +1,13 @@
 package commands
 
 import (
+	"errors"
 	"flag"
+	"fmt"
+	"os/exec"
 	"runtime"
+	"strconv"
+	"strings"
 
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
@@ -10,6 +15,22 @@ import (
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/lighttiger2505/lab/utils"
 )
+
+type BrowseType int
+
+const (
+	Issue BrowseType = iota
+	MergeRequest
+)
+
+var browseTypePrefix = map[string]BrowseType{
+	"#": Issue,
+	"i": Issue,
+	"I": Issue,
+	"!": MergeRequest,
+	"m": MergeRequest,
+	"M": MergeRequest,
+}
 
 type BrowseCommand struct {
 	Ui ui.Ui
@@ -72,4 +93,45 @@ func browseUrl(gitlabRemote *git.RemoteInfo, browseType utils.BrowseType, number
 		url = ""
 	}
 	return url
+}
+
+func searchBrowserLauncher(goos string) (browser string) {
+	switch goos {
+	case "darwin":
+		browser = "open"
+	case "windows":
+		browser = "cmd /c start"
+	default:
+		candidates := []string{
+			"xdg-open",
+			"cygstart",
+			"x-www-browser",
+			"firefox",
+			"opera",
+			"mozilla",
+			"netscape",
+		}
+		for _, b := range candidates {
+			path, err := exec.LookPath(b)
+			if err == nil {
+				browser = path
+				break
+			}
+		}
+	}
+	return browser
+}
+
+func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
+	for k, v := range browseTypePrefix {
+		if strings.HasPrefix(arg, k) {
+			numberStr := strings.TrimPrefix(arg, k)
+			number, err := strconv.Atoi(numberStr)
+			if err != nil {
+				return 0, 0, errors.New(fmt.Sprintf("Invalid browsing number: %s", arg))
+			}
+			return v, number, nil
+		}
+	}
+	return 0, 0, errors.New(fmt.Sprintf("Invalid arg: %s", arg))
 }

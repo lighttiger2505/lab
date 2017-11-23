@@ -5,40 +5,41 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/lighttiger2505/lab/lab"
+	"github.com/lighttiger2505/lab/git"
+	"github.com/lighttiger2505/lab/ui"
 )
 
-var TestRemoteInfos = []RemoteInfo{
-	RemoteInfo{
+var TestRemoteInfos = []git.RemoteInfo{
+	git.RemoteInfo{
 		Domain: "gitlab.com",
 	},
-	RemoteInfo{
+	git.RemoteInfo{
 		Domain: "gitlab.ssl.unknown.jp",
 	},
-	RemoteInfo{
+	git.RemoteInfo{
 		Domain: "github.com",
 	},
-	RemoteInfo{
+	git.RemoteInfo{
 		Domain: "gitlao.com",
 	},
 }
 
-var TestRemoteInfoGitlab = []RemoteInfo{
-	RemoteInfo{
+var TestRemoteInfoGitlab = []git.RemoteInfo{
+	git.RemoteInfo{
 		Domain: "gitlab.com",
 	},
-	RemoteInfo{
+	git.RemoteInfo{
 		Domain: "gitlab.ssl.unknown.jp",
 	},
 }
 
 func TestFilterHasGitlabDomain(t *testing.T) {
 	got := filterHasGitlabDomain(TestRemoteInfos)
-	want := []RemoteInfo{
-		RemoteInfo{
+	want := []git.RemoteInfo{
+		git.RemoteInfo{
 			Domain: "gitlab.com",
 		},
-		RemoteInfo{
+		git.RemoteInfo{
 			Domain: "gitlab.ssl.unknown.jp",
 		},
 	}
@@ -73,9 +74,9 @@ func TestHasPriorityRemote_NotFound(t *testing.T) {
 }
 
 func TestInputUseRemote(t *testing.T) {
-	ui := lab.NewMockUi()
-	ui.Reader = bytes.NewBufferString("2\n")
-	got, err := inputUseRemote(ui, TestRemoteInfoGitlab)
+	mockUi := ui.NewMockUi()
+	mockUi.Reader = bytes.NewBufferString("2\n")
+	got, err := inputUseRemote(mockUi, TestRemoteInfoGitlab)
 	if err != nil {
 		t.Fail()
 	}
@@ -85,7 +86,7 @@ func TestInputUseRemote(t *testing.T) {
 		t.Errorf("bad return value want %#v got %#v", want, got.Domain)
 	}
 
-	outGot := ui.Writer.String()
+	outGot := mockUi.Writer.String()
 	outWant := `That repository existing multi gitlab remote repository.
 1) gitlab.com
 2) gitlab.ssl.unknown.jp
@@ -96,27 +97,27 @@ Please choice target domain :`
 }
 
 func TestInputUseRemote_InvalidValue_String(t *testing.T) {
-	ui := lab.NewMockUi()
-	ui.Reader = bytes.NewBufferString("abc\n")
-	_, err := inputUseRemote(ui, TestRemoteInfoGitlab)
+	mockUI := ui.NewMockUi()
+	mockUI.Reader = bytes.NewBufferString("abc\n")
+	_, err := inputUseRemote(mockUI, TestRemoteInfoGitlab)
 	if err == nil {
 		t.Fail()
 	}
 }
 
 func TestInputUseRemote_InvalidValue_Lower(t *testing.T) {
-	ui := lab.NewMockUi()
-	ui.Reader = bytes.NewBufferString("0\n")
-	_, err := inputUseRemote(ui, TestRemoteInfoGitlab)
+	mockUI := ui.NewMockUi()
+	mockUI.Reader = bytes.NewBufferString("0\n")
+	_, err := inputUseRemote(mockUI, TestRemoteInfoGitlab)
 	if err == nil {
 		t.Fail()
 	}
 }
 
 func TestInputUseRemote_InvalidValue_Upper(t *testing.T) {
-	ui := lab.NewMockUi()
-	ui.Reader = bytes.NewBufferString("3\n")
-	_, err := inputUseRemote(ui, TestRemoteInfoGitlab)
+	mockUI := ui.NewMockUi()
+	mockUI.Reader = bytes.NewBufferString("3\n")
+	_, err := inputUseRemote(mockUI, TestRemoteInfoGitlab)
 	if err == nil {
 		t.Fail()
 	}

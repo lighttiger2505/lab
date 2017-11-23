@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	"github.com/lighttiger2505/lab/utils"
 )
 
 type BrowseType int
@@ -67,27 +67,27 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	browser := utils.SearchBrowserLauncher(runtime.GOOS)
+	browser := searchBrowserLauncher(runtime.GOOS)
 	prefixArgs := flags.Args()
 	if len(prefixArgs) > 0 {
-		browseType, number, err := utils.SplitPrefixAndNumber(prefixArgs[0])
+		browseType, number, err := splitPrefixAndNumber(prefixArgs[0])
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		utils.CmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
+		cmd.CmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
 	} else {
-		utils.CmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
+		cmd.CmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
 	}
 	return ExitCodeOK
 }
 
-func browseUrl(gitlabRemote *git.RemoteInfo, browseType utils.BrowseType, number int) string {
+func browseUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
 	var url string
 	switch browseType {
-	case utils.Issue:
+	case Issue:
 		url = gitlabRemote.IssueDetailUrl(number)
-	case utils.MergeRequest:
+	case MergeRequest:
 		url = gitlabRemote.MergeRequestDetailUrl(number)
 	default:
 		url = ""

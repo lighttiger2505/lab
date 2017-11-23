@@ -14,6 +14,10 @@ endif
 ensure: dep
 	$(GOPATH)/bin/dep ensure
 
+.PHONY: test
+test:
+	go test -cover github.com/lighttiger2505/lab/...
+
 .PHONY: cross-build
 cross-build: ensure
 	for os in darwin linux windows; do \

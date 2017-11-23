@@ -44,7 +44,7 @@ func main() {
 			return &commands.IssueCommand{Ui: ui}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
-			return &MergeRequestCommand{Ui: ui}, nil
+			return &commands.MergeRequestCommand{Ui: ui}, nil
 		},
 	}
 

@@ -16,11 +16,12 @@ var createIssueFlags CreateIssueFlags
 var createIssueParser = flags.NewParser(&createIssueFlags, flags.Default)
 
 type CreateIssueFlags struct {
-	Title       int    `short:"t" long:"title" description:"The title of an issue"`
+	Title       string `short:"t" long:"title" description:"The title of an issue"`
 	Description string `short:"d" long:"description" description:"The description of an issue"`
-	AssigneeID  string `short:"a" long:"assignee_id" description:"The ID of a user to assign issue"`
-	MilestoneID string `short:"m" long:"milestone_id" description:"The ID of a milestone to assign issue"`
-	Labels      string `short:"l" long:"labels" description:"Comma-separated label names for an issue"`
+	AssigneeID  int    `short:"a" long:"assignee_id" description:"The ID of a user to assign issue"`
+	MilestoneID int    `short:"m" long:"milestone_id" description:"The ID of a milestone to assign issue"`
+
+	Labels string `short:"l" long:"labels" description:"Comma-separated label names for an issue"`
 }
 
 type AddIssueCommand struct {

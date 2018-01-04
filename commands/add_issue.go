@@ -40,33 +40,36 @@ func (c *AddIssueCommand) Help() string {
 }
 
 func (c *AddIssueCommand) Run(args []string) int {
+	if _, err := createIssueParser.Parse(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
 	var title string
-	var body string
+	var description string
 
-	cs := git.CommentChar()
-	message := strings.Replace(`
-# Creating an issue
-#
-# Write a message for this issue. The first block of
-# text is the title and the rest is the description.
-`, "#", cs, -1)
+	if createIssueFlags.Title == "" || createIssueFlags.Description == "" {
+		cs := git.CommentChar()
+		message := createMessage(createIssueFlags.Title, createIssueFlags.Description, cs)
 
-	editor, err := git.NewEditor("ISSUE", "issue", message)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
+		editor, err := git.NewEditor("ISSUE", "issue", message)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
 
-	title, body, err = editor.EditTitleAndBody()
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
+		title, description, err = editor.EditTitleAndDescription()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
 
-	c.Ui.Message(fmt.Sprintf("title=%s, body=%s", title, body))
-
-	if editor != nil {
-		defer editor.DeleteFile()
+		if editor != nil {
+			defer editor.DeleteFile()
+		}
+	} else {
+		title = createIssueFlags.Title
+		description = createIssueFlags.Description
 	}
 
 	conf, err := config.NewConfig()
@@ -88,8 +91,8 @@ func (c *AddIssueCommand) Run(args []string) int {
 	}
 
 	createIssueOptions := &gitlabc.CreateIssueOptions{
-		Title:       &title,
-		Description: &body,
+		Title:       gitlabc.String(title),
+		Description: gitlabc.String(description),
 		AssigneeID:  nil,
 		MilestoneID: nil,
 		Labels:      []string{},
@@ -107,4 +110,16 @@ func (c *AddIssueCommand) Run(args []string) int {
 	c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
 
 	return ExitCodeOK
+}
+
+func createMessage(title, description, cs string) string {
+	message := strings.Replace(`%s
+# Creating an issue
+
+# Write a message for this issue. The first block of
+# text is the title and the rest is the description.
+%s
+`, "#", cs, -1)
+	message = fmt.Sprintf(message, title, description)
+	return message
 }

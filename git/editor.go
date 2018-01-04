@@ -52,7 +52,7 @@ func (e *Editor) DeleteFile() error {
 	return os.Remove(e.File)
 }
 
-func (e *Editor) EditTitleAndBody() (title, body string, err error) {
+func (e *Editor) EditTitleAndDescription() (title, body string, err error) {
 	content, err := e.openAndEdit()
 	if err != nil {
 		return

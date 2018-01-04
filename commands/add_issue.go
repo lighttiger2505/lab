@@ -2,10 +2,12 @@ package commands
 
 import (
 	"fmt"
-	"strings"
-
+	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
+	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
+	gitlabc "github.com/xanzy/go-gitlab"
+	"strings"
 )
 
 type AddIssueCommand struct {
@@ -49,6 +51,43 @@ func (c *AddIssueCommand) Run(args []string) int {
 	if editor != nil {
 		defer editor.DeleteFile()
 	}
+
+	conf, err := config.NewConfig()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, conf)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	client, err := gitlab.GitlabClient(c.Ui, gitlabRemote, conf)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	createIssueOptions := &gitlabc.CreateIssueOptions{
+		Title:       &title,
+		Description: &body,
+		AssigneeID:  nil,
+		MilestoneID: nil,
+		Labels:      []string{},
+	}
+
+	issue, _, err := client.Issues.CreateIssue(
+		gitlabRemote.RepositoryFullName(),
+		createIssueOptions,
+	)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
 
 	return ExitCodeOK
 }

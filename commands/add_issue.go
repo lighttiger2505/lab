@@ -1,7 +1,9 @@
 package commands
 
 import (
+	"bytes"
 	"fmt"
+	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
@@ -9,6 +11,17 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 	"strings"
 )
+
+var createIssueFlags CreateIssueFlags
+var createIssueParser = flags.NewParser(&createIssueFlags, flags.Default)
+
+type CreateIssueFlags struct {
+	Title       int    `short:"t" long:"title" description:"The title of an issue"`
+	Description string `short:"d" long:"description" description:"The description of an issue"`
+	AssigneeID  string `short:"a" long:"assignee_id" description:"The ID of a user to assign issue"`
+	MilestoneID string `short:"m" long:"milestone_id" description:"The ID of a milestone to assign issue"`
+	Labels      string `short:"l" long:"labels" description:"Comma-separated label names for an issue"`
+}
 
 type AddIssueCommand struct {
 	Ui ui.Ui
@@ -19,7 +32,10 @@ func (c *AddIssueCommand) Synopsis() string {
 }
 
 func (c *AddIssueCommand) Help() string {
-	return "Usage: lab add-issue [option]"
+	buf := &bytes.Buffer{}
+	createIssueParser.Usage = "add-issue [options]"
+	createIssueParser.WriteHelp(buf)
+	return buf.String()
 }
 
 func (c *AddIssueCommand) Run(args []string) int {

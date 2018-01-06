@@ -50,22 +50,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	listOption := &gitlabc.ListOptions{
-		Page:    1,
-		PerPage: searchOptions.Line,
-	}
-	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
-		State:       gitlabc.String(searchOptions.State),
-		Scope:       gitlabc.String(searchOptions.Scope),
-		OrderBy:     gitlabc.String(searchOptions.OrderBy),
-		Sort:        gitlabc.String(searchOptions.Sort),
-		ListOptions: *listOption,
-	}
-
-	issues, _, err := client.Issues.ListProjectIssues(
-		gitlabRemote.RepositoryFullName(),
-		listProjectIssuesOptions,
-	)
+	issues, err := getIssues(client, gitlabRemote.RepositoryFullName())
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -79,5 +64,30 @@ func (c *IssueCommand) Run(args []string) int {
 
 	result := columnize.SimpleFormat(datas)
 	c.Ui.Message(result)
+
 	return ExitCodeOK
+}
+
+func getIssues(client *gitlabc.Client, repositoryName string) ([]*gitlabc.Issue, error) {
+	listOption := &gitlabc.ListOptions{
+		Page:    1,
+		PerPage: searchOptions.Line,
+	}
+	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
+		State:       gitlabc.String(searchOptions.State),
+		Scope:       gitlabc.String(searchOptions.Scope),
+		OrderBy:     gitlabc.String(searchOptions.OrderBy),
+		Sort:        gitlabc.String(searchOptions.Sort),
+		ListOptions: *listOption,
+	}
+
+	issues, _, err := client.Issues.ListProjectIssues(
+		repositoryName,
+		listProjectIssuesOptions,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list project issue. %s", err.Error())
+	}
+
+	return issues, nil
 }

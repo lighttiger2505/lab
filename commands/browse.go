@@ -92,7 +92,7 @@ func (c *BrowseCommand) Run(args []string) int {
 
 func browseUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
 	var url string
-	if number < 0 {
+	if number > 0 {
 		switch browseType {
 		case Issue:
 			url = gitlabRemote.IssueDetailUrl(number)
@@ -105,6 +105,10 @@ func browseUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) 
 		}
 	} else {
 		switch browseType {
+		case Issue:
+			url = gitlabRemote.IssueUrl()
+		case MergeRequest:
+			url = gitlabRemote.MergeRequestUrl()
 		case PipeLine:
 			url = gitlabRemote.PipeLineUrl()
 		default:

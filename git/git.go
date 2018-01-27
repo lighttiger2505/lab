@@ -60,6 +60,25 @@ func (r *RemoteInfo) ApiUrl() string {
 	return strings.Join([]string{r.BaseUrl(), "api", "v4"}, "/")
 }
 
+func GitCurrentBranch() (string, error) {
+	// Get remote repositorys
+	branches := cmd.GitOutputs("git", []string{"branch"})
+
+	currentPrefix := "*"
+	currentBranch := ""
+	for _, branch := range branches {
+		if strings.HasPrefix(branch, currentPrefix) {
+			trimPrefix := strings.TrimPrefix(branch, currentPrefix)
+			currentBranch = strings.Trim(trimPrefix, " ")
+		}
+	}
+
+	if currentBranch == "" {
+		return "", errors.New("Not found current branch")
+	}
+	return currentBranch, nil
+}
+
 func GitRemotes() ([]RemoteInfo, error) {
 	// Get remote repositorys
 	remotes := cmd.GitOutputs("git", []string{"remote"})

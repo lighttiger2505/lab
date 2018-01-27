@@ -49,6 +49,9 @@ func main() {
 		"merge-request": func() (cli.Command, error) {
 			return &commands.MergeRequestCommand{Ui: ui}, nil
 		},
+		"add-merge-request": func() (cli.Command, error) {
+			return &commands.AddMergeReqeustCommand{Ui: ui}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

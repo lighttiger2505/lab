@@ -77,7 +77,12 @@ func (c *BrowseCommand) Run(args []string) int {
 		}
 		cmd.CmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
 	} else {
-		cmd.CmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
+		currentBranch, err := git.GitCurrentBranch()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		cmd.CmdOutput(browser, []string{gitlabRemote.BranchUrl(currentBranch)})
 	}
 	return ExitCodeOK
 }

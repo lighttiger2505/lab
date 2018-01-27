@@ -60,6 +60,14 @@ func TestRepositoryUrl(t *testing.T) {
 	}
 }
 
+func TestBranchUrl(t *testing.T) {
+	got := testRemoteInfo.BranchUrl("Branch")
+	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/tree/Branch"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
 func TestIssueUrl(t *testing.T) {
 	got := testRemoteInfo.IssueUrl()
 	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/issues"

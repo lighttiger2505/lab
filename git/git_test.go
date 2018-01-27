@@ -100,6 +100,22 @@ func TestMergeRequestDetailUrl(t *testing.T) {
 	}
 }
 
+func TestPipeLineUrl(t *testing.T) {
+	got := testRemoteInfo.PipeLineUrl()
+	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/pipelines"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
+func TestPipeLineDetailUrl(t *testing.T) {
+	got := testRemoteInfo.PipeLineDetailUrl(12)
+	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/pipelines/12"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
+
 func TestBaseUrl(t *testing.T) {
 	got := testRemoteInfo.BaseUrl()
 	want := "https://gitlab.ssl.domain.jp"

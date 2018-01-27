@@ -105,6 +105,10 @@ func browseUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) 
 		}
 	} else {
 		switch browseType {
+		case Issue:
+			url = gitlabRemote.IssueUrl()
+		case MergeRequest:
+			url = gitlabRemote.MergeRequestUrl()
 		case PipeLine:
 			url = gitlabRemote.PipeLineUrl()
 		default:

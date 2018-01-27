@@ -54,7 +54,7 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		cs := git.CommentChar()
 		message := createMergeRequestMessage(createMergeReqeustFlags.Title, createMergeReqeustFlags.Description, cs)
 
-		editor, err := git.NewEditor("ISSUE", "issue", message)
+		editor, err := git.NewEditor("MERGE_REQUEST", "merge-request", message)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -101,7 +101,7 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		TargetProjectID: nil,
 	}
 
-	issue, _, err := client.MergeRequests.CreateMergeRequest(
+	mergeRequest, _, err := client.MergeRequests.CreateMergeRequest(
 		gitlabRemote.RepositoryFullName(),
 		createMergeReqeustOptions,
 	)
@@ -110,7 +110,7 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
+	c.Ui.Message(fmt.Sprintf("#%d", mergeRequest.IID))
 
 	return ExitCodeOK
 }
@@ -119,7 +119,7 @@ func createMergeRequestMessage(title, description, cs string) string {
 	message := strings.Replace(`%s
 # Creating an merge request
 
-# Write a message for this issue. The first block of
+# Write a message for this merge request. The first block of
 # text is the title and the rest is the description.
 %s
 `, "#", cs, -1)

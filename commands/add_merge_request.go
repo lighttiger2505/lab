@@ -75,6 +75,17 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		description = createMergeReqeustFlags.Description
 	}
 
+	// Get source branch
+	// current branch from local repository when non specific flags
+	currentBranch, err := git.GitCurrentBranch()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	if createMergeReqeustFlags.SourceBranch != "" {
+		currentBranch = createMergeReqeustFlags.SourceBranch
+	}
+
 	conf, err := config.NewConfig()
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -96,7 +107,7 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 	createMergeReqeustOptions := &gitlabc.CreateMergeRequestOptions{
 		Title:           gitlabc.String(title),
 		Description:     gitlabc.String(description),
-		SourceBranch:    gitlabc.String(createMergeReqeustFlags.SourceBranch),
+		SourceBranch:    gitlabc.String(currentBranch),
 		TargetBranch:    gitlabc.String(createMergeReqeustFlags.TargetBranch),
 		AssigneeID:      nil,
 		TargetProjectID: nil,

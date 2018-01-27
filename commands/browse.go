@@ -92,7 +92,7 @@ func (c *BrowseCommand) Run(args []string) int {
 
 func browseUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
 	var url string
-	if number < 0 {
+	if number > 0 {
 		switch browseType {
 		case Issue:
 			url = gitlabRemote.IssueDetailUrl(number)

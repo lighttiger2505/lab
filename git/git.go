@@ -60,6 +60,14 @@ func (r *RemoteInfo) MergeRequestDetailUrl(mergeRequestNo int) string {
 	return strings.Join([]string{r.MergeRequestUrl(), fmt.Sprintf("%d", mergeRequestNo)}, "/")
 }
 
+func (r *RemoteInfo) PipeLineUrl() string {
+	return strings.Join([]string{r.RepositoryUrl(), "pipelines"}, "/")
+}
+
+func (r *RemoteInfo) PipeLineDetailUrl(iid int) string {
+	return strings.Join([]string{r.PipeLineUrl(), fmt.Sprintf("%d", iid)}, "/")
+}
+
 func (r *RemoteInfo) ApiUrl() string {
 	return strings.Join([]string{r.BaseUrl(), "api", "v4"}, "/")
 }

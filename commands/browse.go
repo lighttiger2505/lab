@@ -21,6 +21,7 @@ type BrowseType int
 const (
 	Issue BrowseType = iota
 	MergeRequest
+	PipeLine
 )
 
 var browseTypePrefix = map[string]BrowseType{
@@ -30,6 +31,8 @@ var browseTypePrefix = map[string]BrowseType{
 	"!": MergeRequest,
 	"m": MergeRequest,
 	"M": MergeRequest,
+	"p": PipeLine,
+	"P": PipeLine,
 }
 
 type BrowseCommand struct {
@@ -89,13 +92,24 @@ func (c *BrowseCommand) Run(args []string) int {
 
 func browseUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
 	var url string
-	switch browseType {
-	case Issue:
-		url = gitlabRemote.IssueDetailUrl(number)
-	case MergeRequest:
-		url = gitlabRemote.MergeRequestDetailUrl(number)
-	default:
-		url = ""
+	if number < 0 {
+		switch browseType {
+		case Issue:
+			url = gitlabRemote.IssueDetailUrl(number)
+		case MergeRequest:
+			url = gitlabRemote.MergeRequestDetailUrl(number)
+		case PipeLine:
+			url = gitlabRemote.PipeLineDetailUrl(number)
+		default:
+			url = ""
+		}
+	} else {
+		switch browseType {
+		case PipeLine:
+			url = gitlabRemote.PipeLineUrl()
+		default:
+			url = ""
+		}
 	}
 	return url
 }
@@ -131,11 +145,15 @@ func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
 	for k, v := range browseTypePrefix {
 		if strings.HasPrefix(arg, k) {
 			numberStr := strings.TrimPrefix(arg, k)
-			number, err := strconv.Atoi(numberStr)
-			if err != nil {
-				return 0, 0, errors.New(fmt.Sprintf("Invalid browsing number: %s", arg))
+			if numberStr == "" {
+				return v, 0, nil
+			} else {
+				number, err := strconv.Atoi(numberStr)
+				if err != nil {
+					return 0, 0, errors.New(fmt.Sprintf("Invalid browsing number: %s", arg))
+				}
+				return v, number, nil
 			}
-			return v, number, nil
 		}
 	}
 	return 0, 0, errors.New(fmt.Sprintf("Invalid arg: %s", arg))

@@ -47,9 +47,10 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	// Get merge request title and description
+	// launch vim when non specific flags
 	var title string
 	var description string
-
 	if createMergeReqeustFlags.Title == "" || createMergeReqeustFlags.Description == "" {
 		cs := git.CommentChar()
 		message := createMergeRequestMessage(createMergeReqeustFlags.Title, createMergeReqeustFlags.Description, cs)

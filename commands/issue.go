@@ -62,7 +62,7 @@ func (c *IssueCommand) Run(args []string) int {
 		for _, issue := range issues {
 			data := strings.Join([]string{
 				fmt.Sprintf("#%d", issue.IID),
-				issue.WebURL,
+				gitlab.ParceRepositoryFullName(issue.WebURL),
 				issue.Title,
 			}, "|")
 			datas = append(datas, data)

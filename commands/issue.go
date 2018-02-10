@@ -52,7 +52,6 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	var datas []string
-	fmt.Println(searchOptions.AllProject)
 	if searchOptions.AllProject {
 		issues, err := getIssues(client)
 		if err != nil {

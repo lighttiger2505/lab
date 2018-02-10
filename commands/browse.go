@@ -85,7 +85,11 @@ func (c *BrowseCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		cmd.CmdOutput(browser, []string{gitlabRemote.BranchUrl(currentBranch)})
+		if currentBranch == "master" {
+			cmd.CmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
+		} else {
+			cmd.CmdOutput(browser, []string{gitlabRemote.BranchUrl(currentBranch)})
+		}
 	}
 	return ExitCodeOK
 }

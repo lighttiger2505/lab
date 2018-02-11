@@ -13,5 +13,5 @@ type SearchOptons struct {
 	Scope      string `short:"c" long:"scope" default:"all" default-mask:"all" description:"given scope: created-by-me, assigned-to-me or all."`
 	OrderBy    string `short:"o" long:"orderby" default:"updated_at" default-mask:"updated_at" description:"ordered by created_at or updated_at fields."`
 	Sort       string `short:"s" long:"sort" default:"desc" default-mask:"desc" description:"sorted in asc or desc order."`
-	AllProject bool   `short:"a" long:"all-project" description:"output the NUM lines"`
+	AllProject bool   `short:"a" long:"all-project" description:"search all project"`
 }

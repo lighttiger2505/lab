@@ -75,6 +75,10 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		description = createMergeReqeustFlags.Description
 	}
 
+	if title == "" || description == "" {
+		return ExitCodeOK
+	}
+
 	// Get source branch
 	// current branch from local repository when non specific flags
 	currentBranch, err := git.GitCurrentBranch()

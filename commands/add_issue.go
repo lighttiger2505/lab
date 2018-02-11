@@ -72,6 +72,10 @@ func (c *AddIssueCommand) Run(args []string) int {
 		description = createIssueFlags.Description
 	}
 
+	if title == "" || description == "" {
+		return ExitCodeOK
+	}
+
 	conf, err := config.NewConfig()
 	if err != nil {
 		c.Ui.Error(err.Error())

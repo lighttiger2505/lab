@@ -51,25 +51,65 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	mergeRequests, err := getProjectMergeRequest(client, gitlabRemote.RepositoryFullName())
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
 	var datas []string
-	for _, mergeRequest := range mergeRequests {
-		data := strings.Join([]string{
-			fmt.Sprintf("!%d", mergeRequest.IID),
-			mergeRequest.Title,
-		}, "|")
-		datas = append(datas, data)
+	if searchOptions.AllProject {
+		mergeRequests, err := getMergeRequest(client)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		for _, mergeRequest := range mergeRequests {
+			data := strings.Join([]string{
+				fmt.Sprintf("!%d", mergeRequest.IID),
+				gitlab.ParceRepositoryFullName(mergeRequest.WebURL),
+				mergeRequest.Title,
+			}, "|")
+			datas = append(datas, data)
+		}
+	} else {
+		mergeRequests, err := getProjectMergeRequest(client, gitlabRemote.RepositoryFullName())
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		for _, mergeRequest := range mergeRequests {
+			data := strings.Join([]string{
+				fmt.Sprintf("!%d", mergeRequest.IID),
+				mergeRequest.Title,
+			}, "|")
+			datas = append(datas, data)
+		}
 	}
 
 	result := columnize.SimpleFormat(datas)
 	c.Ui.Message(result)
 
 	return ExitCodeOK
+}
+
+func getMergeRequest(client *gitlabc.Client) ([]*gitlabc.MergeRequest, error) {
+	listOption := &gitlabc.ListOptions{
+		Page:    1,
+		PerPage: searchOptions.Line,
+	}
+	listRequestsOptions := &gitlabc.ListMergeRequestsOptions{
+		State:       gitlabc.String(searchOptions.State),
+		Scope:       gitlabc.String(searchOptions.Scope),
+		OrderBy:     gitlabc.String(searchOptions.OrderBy),
+		Sort:        gitlabc.String(searchOptions.Sort),
+		ListOptions: *listOption,
+	}
+
+	mergeRequests, _, err := client.MergeRequests.ListMergeRequests(
+		listRequestsOptions,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list merge requests. %s", err.Error())
+	}
+
+	return mergeRequests, nil
 }
 
 func getProjectMergeRequest(client *gitlabc.Client, repositoryName string) ([]*gitlabc.MergeRequest, error) {

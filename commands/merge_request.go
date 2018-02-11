@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/gitlab"
@@ -50,6 +51,28 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	mergeRequests, err := getProjectMergeRequest(client, gitlabRemote.RepositoryFullName())
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	var datas []string
+	for _, mergeRequest := range mergeRequests {
+		data := strings.Join([]string{
+			fmt.Sprintf("!%d", mergeRequest.IID),
+			mergeRequest.Title,
+		}, "|")
+		datas = append(datas, data)
+	}
+
+	result := columnize.SimpleFormat(datas)
+	c.Ui.Message(result)
+
+	return ExitCodeOK
+}
+
+func getProjectMergeRequest(client *gitlabc.Client, repositoryName string) ([]*gitlabc.MergeRequest, error) {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: searchOptions.Line,
@@ -61,23 +84,14 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		Sort:        gitlabc.String(searchOptions.Sort),
 		ListOptions: *listOption,
 	}
+
 	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(
-		gitlabRemote.RepositoryFullName(),
+		repositoryName,
 		listMergeRequestsOptions,
 	)
 	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
+		return nil, fmt.Errorf("Failed list project merge requests. %s", err.Error())
 	}
 
-	var datas []string
-	for _, mergeRequest := range mergeRequests {
-		data := fmt.Sprintf("!%d", mergeRequest.IID) + "|" + mergeRequest.Title
-		datas = append(datas, data)
-	}
-
-	result := columnize.SimpleFormat(datas)
-	c.Ui.Message(result)
-
-	return ExitCodeOK
+	return mergeRequests, nil
 }

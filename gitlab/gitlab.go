@@ -138,3 +138,8 @@ func getPrivateToken(ui ui.Ui, domain string, conf *config.Config) (string, erro
 	}
 	return token, nil
 }
+
+func ParceRepositoryFullName(webURL string) string {
+	sp := strings.Split(webURL, "/")
+	return strings.Join([]string{sp[3], sp[4]}, "/")
+}

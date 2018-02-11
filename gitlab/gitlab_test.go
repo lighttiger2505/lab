@@ -122,3 +122,11 @@ func TestInputUseRemote_InvalidValue_Upper(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestParceRepositoryFullName(t *testing.T) {
+	got := ParceRepositoryFullName("https://gitlab.ssl.iridge.jp/proj/repo/issues/12")
+	want := "proj/repo"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}

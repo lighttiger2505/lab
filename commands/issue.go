@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/gitlab"
@@ -50,16 +51,40 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	issues, err := getIssues(client, gitlabRemote.RepositoryFullName())
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
 	var datas []string
-	for _, issue := range issues {
-		data := fmt.Sprintf("#%d", issue.IID) + "|" + issue.Title
-		datas = append(datas, data)
+	if searchOptions.AllProject {
+		issues, err := getIssues(client)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		for _, issue := range issues {
+			data := strings.Join([]string{
+				fmt.Sprintf("#%d", issue.IID),
+				gitlab.ParceRepositoryFullName(issue.WebURL),
+				issue.Title,
+			}, "|")
+			datas = append(datas, data)
+		}
+
+	} else {
+		issues, err := getProjectIssues(client, gitlabRemote.RepositoryFullName())
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		for _, issue := range issues {
+			data := strings.Join([]string{
+				fmt.Sprintf("#%d", issue.IID),
+				issue.Title,
+			}, "|")
+			datas = append(datas, data)
+		}
+
+		result := columnize.SimpleFormat(datas)
+		c.Ui.Message(result)
 	}
 
 	result := columnize.SimpleFormat(datas)
@@ -68,7 +93,30 @@ func (c *IssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func getIssues(client *gitlabc.Client, repositoryName string) ([]*gitlabc.Issue, error) {
+func getIssues(client *gitlabc.Client) ([]*gitlabc.Issue, error) {
+	listOption := &gitlabc.ListOptions{
+		Page:    1,
+		PerPage: searchOptions.Line,
+	}
+	listIssuesOptions := &gitlabc.ListIssuesOptions{
+		State:       gitlabc.String(searchOptions.State),
+		Scope:       gitlabc.String(searchOptions.Scope),
+		OrderBy:     gitlabc.String(searchOptions.OrderBy),
+		Sort:        gitlabc.String(searchOptions.Sort),
+		ListOptions: *listOption,
+	}
+
+	issues, _, err := client.Issues.ListIssues(
+		listIssuesOptions,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list issue. %s", err.Error())
+	}
+
+	return issues, nil
+}
+
+func getProjectIssues(client *gitlabc.Client, repositoryName string) ([]*gitlabc.Issue, error) {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: searchOptions.Line,

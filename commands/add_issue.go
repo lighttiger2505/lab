@@ -9,7 +9,6 @@ import (
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	gitlabc "github.com/xanzy/go-gitlab"
-	"strings"
 )
 
 var createIssueFlags CreateIssueFlags
@@ -117,13 +116,15 @@ func (c *AddIssueCommand) Run(args []string) int {
 }
 
 func createMessage(title, description, cs string) string {
-	message := strings.Replace(`%s
-# Creating an issue
+	message := `%s
+<!-- Creating an issue -->
 
+<!-- 
 # Write a message for this issue. The first block of
 # text is the title and the rest is the description.
+ -->
 %s
-`, "#", cs, -1)
+`
 	message = fmt.Sprintf(message, title, description)
 	return message
 }

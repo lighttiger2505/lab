@@ -60,7 +60,7 @@ func (e *Editor) EditTitleAndDescription() (title, body string, err error) {
 
 	content = bytes.TrimSpace(content)
 	reader := bytes.NewReader(content)
-	title, body, err = readTitleAndBody(reader, e.CS)
+	title, body, err = readTitleAndBodyMarkdown(reader, e.CS)
 
 	if err != nil || title == "" {
 		defer e.DeleteFile()
@@ -113,13 +113,44 @@ func openTextEditor(program, file string) error {
 	r := regexp.MustCompile("[mg]?vi[m]$")
 	if r.MatchString(program) {
 		editCmd.WithArg("--cmd")
-		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
+		editCmd.WithArg("set ft=markdown tw=0 wrap lbr")
 	}
 	editCmd.WithArg(file)
 	// Reattach stdin to the console before opening the editor
 	setConsole(editCmd)
 
 	return editCmd.Spawn()
+}
+
+func readTitleAndBodyMarkdown(reader io.Reader, cs string) (title, body string, err error) {
+	var r *regexp.Regexp
+
+	b, err := ioutil.ReadAll(reader)
+	text := string(b)
+	r = regexp.MustCompile("<!--[\\s\\S]*?-->[\\n]*")
+	if err != nil {
+		return
+	}
+
+	sweepText := r.ReplaceAllString(text, "")
+
+	r = regexp.MustCompile("\\S")
+	var titleParts, bodyParts []string
+	for _, line := range strings.Split(sweepText, "\n") {
+		// fmt.Println(line)
+		if len(bodyParts) == 0 && r.MatchString(line) {
+			titleParts = append(titleParts, line)
+		} else {
+			bodyParts = append(bodyParts, line)
+		}
+	}
+
+	title = strings.Join(titleParts, " ")
+	title = strings.TrimSpace(title)
+
+	body = strings.Join(bodyParts, "\n")
+	body = strings.TrimSpace(body)
+	return
 }
 
 func readTitleAndBody(reader io.Reader, cs string) (title, body string, err error) {

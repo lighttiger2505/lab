@@ -99,8 +99,8 @@ func getIssues(client *gitlabc.Client) ([]*gitlabc.Issue, error) {
 		PerPage: searchOptions.Line,
 	}
 	listIssuesOptions := &gitlabc.ListIssuesOptions{
-		State:       gitlabc.String(searchOptions.State),
-		Scope:       gitlabc.String(searchOptions.Scope),
+		State:       gitlabc.String(searchOptions.GetState()),
+		Scope:       gitlabc.String(searchOptions.GetScope()),
 		OrderBy:     gitlabc.String(searchOptions.OrderBy),
 		Sort:        gitlabc.String(searchOptions.Sort),
 		ListOptions: *listOption,
@@ -122,8 +122,8 @@ func getProjectIssues(client *gitlabc.Client, repositoryName string) ([]*gitlabc
 		PerPage: searchOptions.Line,
 	}
 	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
-		State:       gitlabc.String(searchOptions.State),
-		Scope:       gitlabc.String(searchOptions.Scope),
+		State:       gitlabc.String(searchOptions.GetState()),
+		Scope:       gitlabc.String(searchOptions.GetScope()),
 		OrderBy:     gitlabc.String(searchOptions.OrderBy),
 		Sort:        gitlabc.String(searchOptions.Sort),
 		ListOptions: *listOption,

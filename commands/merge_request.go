@@ -95,8 +95,8 @@ func getMergeRequest(client *gitlabc.Client) ([]*gitlabc.MergeRequest, error) {
 		PerPage: searchOptions.Line,
 	}
 	listRequestsOptions := &gitlabc.ListMergeRequestsOptions{
-		State:       gitlabc.String(searchOptions.State),
-		Scope:       gitlabc.String(searchOptions.Scope),
+		State:       gitlabc.String(searchOptions.GetState()),
+		Scope:       gitlabc.String(searchOptions.GetScope()),
 		OrderBy:     gitlabc.String(searchOptions.OrderBy),
 		Sort:        gitlabc.String(searchOptions.Sort),
 		ListOptions: *listOption,
@@ -118,8 +118,8 @@ func getProjectMergeRequest(client *gitlabc.Client, repositoryName string) ([]*g
 		PerPage: searchOptions.Line,
 	}
 	listMergeRequestsOptions := &gitlabc.ListProjectMergeRequestsOptions{
-		State:       gitlabc.String(searchOptions.State),
-		Scope:       gitlabc.String(searchOptions.Scope),
+		State:       gitlabc.String(searchOptions.GetState()),
+		Scope:       gitlabc.String(searchOptions.GetScope()),
 		OrderBy:     gitlabc.String(searchOptions.OrderBy),
 		Sort:        gitlabc.String(searchOptions.Sort),
 		ListOptions: *listOption,

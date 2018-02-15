@@ -52,7 +52,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	}
 
 	var datas []string
-	if searchOptions.AllProject {
+	if searchOptions.AllRepository {
 		mergeRequests, err := getMergeRequest(client)
 		if err != nil {
 			c.Ui.Error(err.Error())

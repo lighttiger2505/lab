@@ -52,7 +52,7 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	var datas []string
-	if searchOptions.AllProject {
+	if searchOptions.AllRepository {
 		issues, err := getIssues(client)
 		if err != nil {
 			c.Ui.Error(err.Error())

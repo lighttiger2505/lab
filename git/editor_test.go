@@ -6,30 +6,33 @@ import (
 	"testing"
 )
 
-// func TestRemoveMarkdownCommnet(t *testing.T) {
-// 	text := `A title
-// A title continues
-// <!-- A comment -->
-// A body
-// <!--
-// A comment continues -->
-// <!-- A comment continues
-// -->
-// A body continues
-// <!--
-// A comment continues
-// -->
-// `
-// 	want := `A title
-// A title continues
-// A body
-// A body continues
-// `
-// 	got := removeMarkdownCommnet(text)
-// 	if want != got {
-// 		t.Errorf("bad return value want %#v got %#v", want, got)
-// 	}
-// }
+func TestRemoveMarkdownCommnet(t *testing.T) {
+	text := `A title
+<!-- A comment -->
+A title continues
+
+<!-- A comment -->
+A body
+<!--
+A comment continues -->
+<!-- A comment continues
+-->
+A body continues
+<!--
+A comment continues
+-->
+`
+	want := `A title
+A title continues
+
+A body
+A body continues
+`
+	got := removeMarkdownCommnet(text)
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
+	}
+}
 
 func TestReadTitleAndBody(t *testing.T) {
 	message := `A title

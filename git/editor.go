@@ -122,6 +122,11 @@ func openTextEditor(program, file string) error {
 	return editCmd.Spawn()
 }
 
+func removeMarkdownCommnet(text string) string {
+	r := regexp.MustCompile("<!--[\\s\\S]*?-->[\\n]*")
+	return r.ReplaceAllString(text, "")
+}
+
 func readTitleAndBodyMarkdown(reader io.Reader, cs string) (title, body string, err error) {
 	var r *regexp.Regexp
 
@@ -137,7 +142,6 @@ func readTitleAndBodyMarkdown(reader io.Reader, cs string) (title, body string, 
 	r = regexp.MustCompile("\\S")
 	var titleParts, bodyParts []string
 	for _, line := range strings.Split(sweepText, "\n") {
-		// fmt.Println(line)
 		if len(bodyParts) == 0 && r.MatchString(line) {
 			titleParts = append(titleParts, line)
 		} else {

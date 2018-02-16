@@ -82,9 +82,6 @@ func (c *IssueCommand) Run(args []string) int {
 			}, "|")
 			datas = append(datas, data)
 		}
-
-		result := columnize.SimpleFormat(datas)
-		c.Ui.Message(result)
 	}
 
 	result := columnize.SimpleFormat(datas)

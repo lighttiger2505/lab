@@ -75,7 +75,7 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		description = createMergeReqeustFlags.Description
 	}
 
-	if title == "" || description == "" {
+	if title == "" {
 		return ExitCodeOK
 	}
 

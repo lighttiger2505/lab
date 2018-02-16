@@ -71,7 +71,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 		description = createIssueFlags.Description
 	}
 
-	if title == "" || description == "" {
+	if title == "" {
 		return ExitCodeOK
 	}
 

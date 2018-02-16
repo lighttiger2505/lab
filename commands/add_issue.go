@@ -116,13 +116,10 @@ func (c *AddIssueCommand) Run(args []string) int {
 }
 
 func createMessage(title, description, cs string) string {
-	message := `<!-- Creating an issue -->
+	message := `<!-- Write a message for this issue. The first block of text is the title -->
 %s
 
-<!-- 
-Write a message for this issue. The first block of
-text is the title and the rest is the description.
--->
+<!-- the rest is the description.  -->
 %s
 `
 	message = fmt.Sprintf(message, title, description)

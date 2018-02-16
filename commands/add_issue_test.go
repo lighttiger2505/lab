@@ -5,7 +5,7 @@ import (
 )
 
 func TestCreateMessage(t *testing.T) {
-	got := createMessage("title", "description", "#")
+	got := createMessage("title", "description")
 	want := `<!-- Write a message for this issue. The first block of text is the title -->
 title
 

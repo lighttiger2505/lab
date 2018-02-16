@@ -48,8 +48,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 	var description string
 
 	if createIssueFlags.Title == "" || createIssueFlags.Description == "" {
-		cs := git.CommentChar()
-		message := createMessage(createIssueFlags.Title, createIssueFlags.Description, cs)
+		message := createMessage(createIssueFlags.Title, createIssueFlags.Description)
 
 		editor, err := git.NewEditor("ISSUE", "issue", message)
 		if err != nil {
@@ -115,7 +114,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func createMessage(title, description, cs string) string {
+func createMessage(title, description string) string {
 	message := `<!-- Write a message for this issue. The first block of text is the title -->
 %s
 

@@ -1,7 +1,7 @@
 package git
 
 import (
-	"bufio"
+	// "bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -60,7 +60,7 @@ func (e *Editor) EditTitleAndDescription() (title, body string, err error) {
 
 	content = bytes.TrimSpace(content)
 	reader := bytes.NewReader(content)
-	title, body, err = readTitleAndBodyMarkdown(reader, e.CS)
+	title, body, err = readTitleAndBody(reader, e.CS)
 
 	if err != nil || title == "" {
 		defer e.DeleteFile()
@@ -122,26 +122,15 @@ func openTextEditor(program, file string) error {
 	return editCmd.Spawn()
 }
 
-func removeMarkdownCommnet(text string) string {
+func sweepMarkdownComment(text string) string {
 	r := regexp.MustCompile("<!--[\\s\\S]*?-->[\\n]*")
 	return r.ReplaceAllString(text, "")
 }
 
-func readTitleAndBodyMarkdown(reader io.Reader, cs string) (title, body string, err error) {
-	var r *regexp.Regexp
-
-	b, err := ioutil.ReadAll(reader)
-	text := string(b)
-	r = regexp.MustCompile("<!--[\\s\\S]*?-->[\\n]*")
-	if err != nil {
-		return
-	}
-
-	sweepText := r.ReplaceAllString(text, "")
-
-	r = regexp.MustCompile("\\S")
+func parceTitleAndBody(text string) (title, body string) {
+	r := regexp.MustCompile("\\S")
 	var titleParts, bodyParts []string
-	for _, line := range strings.Split(sweepText, "\n") {
+	for _, line := range strings.Split(text, "\n") {
 		if len(bodyParts) == 0 && r.MatchString(line) {
 			titleParts = append(titleParts, line)
 		} else {
@@ -149,42 +138,23 @@ func readTitleAndBodyMarkdown(reader io.Reader, cs string) (title, body string, 
 		}
 	}
 
-	title = strings.Join(titleParts, " ")
-	title = strings.TrimSpace(title)
-
-	body = strings.Join(bodyParts, "\n")
-	body = strings.TrimSpace(body)
+	title = strings.TrimSpace(strings.Join(titleParts, " "))
+	body = strings.TrimSpace(strings.Join(bodyParts, "\n"))
 	return
 }
 
 func readTitleAndBody(reader io.Reader, cs string) (title, body string, err error) {
-	var titleParts, bodyParts []string
-
-	r := regexp.MustCompile("\\S")
-	scanner := bufio.NewScanner(reader)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, cs) {
-			continue
-		}
-
-		if len(bodyParts) == 0 && r.MatchString(line) {
-			titleParts = append(titleParts, line)
-		} else {
-			bodyParts = append(bodyParts, line)
-		}
-	}
-
-	if err = scanner.Err(); err != nil {
+	// Reading message file
+	b, err := ioutil.ReadAll(reader)
+	if err != nil {
 		return
 	}
+	text := string(b)
 
-	title = strings.Join(titleParts, " ")
-	title = strings.TrimSpace(title)
-
-	body = strings.Join(bodyParts, "\n")
-	body = strings.TrimSpace(body)
-
+	// Sweep markdown text
+	sweepText := sweepMarkdownComment(text)
+	// Parce title and body from message file
+	title, body = parceTitleAndBody(sweepText)
 	return
 }
 

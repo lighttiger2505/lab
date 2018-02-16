@@ -15,8 +15,20 @@ ensure: dep
 	$(GOPATH)/bin/dep ensure
 
 .PHONY: test
-test:
+test: ensure
+	go test github.com/lighttiger2505/lab/...
+
+.PHONY: cover
+cover: ensure
 	go test -v -cover github.com/lighttiger2505/lab/...
+
+.PHONY: build
+build: ensure
+	go build
+
+.PHONY: install
+install: ensure
+	go install
 
 .PHONY: coverage
 coverage:

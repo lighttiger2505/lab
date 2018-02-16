@@ -4,10 +4,10 @@ import (
 	flags "github.com/jessevdk/go-flags"
 )
 
-var searchOptions SearchOptons
+var searchOptions SearchOpt
 var searchParser = flags.NewParser(&searchOptions, flags.Default)
 
-type SearchOptons struct {
+type SearchOpt struct {
 	Line          int    `short:"n" long:"line" default:"20" default-mask:"20" description:"output the NUM lines"`
 	State         string `short:"t" long:"state" default:"all" default-mask:"all" description:"just those that are opened, closed or all"`
 	Scope         string `short:"c" long:"scope" default:"all" default-mask:"all" description:"given scope: created-by-me, assigned-to-me or all."`
@@ -20,7 +20,7 @@ type SearchOptons struct {
 	AllRepository bool   `short:"a" long:"all-repository" description:"search target all repository"`
 }
 
-func (s *SearchOptons) GetState() string {
+func (s *SearchOpt) GetState() string {
 	if s.Opened {
 		return "opened"
 	}
@@ -30,7 +30,7 @@ func (s *SearchOptons) GetState() string {
 	return s.State
 }
 
-func (s *SearchOptons) GetScope() string {
+func (s *SearchOpt) GetScope() string {
 	if s.CreatedMe {
 		return "created-by-me"
 	}

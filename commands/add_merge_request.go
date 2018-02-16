@@ -9,7 +9,6 @@ import (
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	gitlabc "github.com/xanzy/go-gitlab"
-	"strings"
 )
 
 var createMergeReqeustFlags CreateMergeReqeustFlags
@@ -52,8 +51,7 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 	var title string
 	var description string
 	if createMergeReqeustFlags.Title == "" || createMergeReqeustFlags.Description == "" {
-		cs := git.CommentChar()
-		message := createMergeRequestMessage(createMergeReqeustFlags.Title, createMergeReqeustFlags.Description, cs)
+		message := createMergeRequestMessage(createMergeReqeustFlags.Title, createMergeReqeustFlags.Description)
 
 		editor, err := git.NewEditor("MERGE_REQUEST", "merge-request", message)
 		if err != nil {
@@ -131,14 +129,13 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func createMergeRequestMessage(title, description, cs string) string {
-	message := strings.Replace(`%s
-# Creating an merge request
-
-# Write a message for this merge request. The first block of
-# text is the title and the rest is the description.
+func createMergeRequestMessage(title, description string) string {
+	message := `<!-- Write a message for this merge request. The first block of text is the title -->
 %s
-`, "#", cs, -1)
+
+<!-- the rest is the description.  -->
+%s
+`
 	message = fmt.Sprintf(message, title, description)
 	return message
 }

@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-func TestCreateIssueMessage(t *testing.T) {
-	got := createIssueMessage("title", "description")
+func TestCreateMergeRequestMessage(t *testing.T) {
+	got := createMergeRequestMessage("title", "description")
 	want := `<!-- Write a message for this issue. The first block of text is the title -->
 title
 

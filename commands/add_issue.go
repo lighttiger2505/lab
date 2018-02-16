@@ -9,7 +9,6 @@ import (
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	gitlabc "github.com/xanzy/go-gitlab"
-	"strings"
 )
 
 var createIssueFlags CreateIssueFlags
@@ -49,8 +48,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 	var description string
 
 	if createIssueFlags.Title == "" || createIssueFlags.Description == "" {
-		cs := git.CommentChar()
-		message := createMessage(createIssueFlags.Title, createIssueFlags.Description, cs)
+		message := createIssueMessage(createIssueFlags.Title, createIssueFlags.Description)
 
 		editor, err := git.NewEditor("ISSUE", "issue", message)
 		if err != nil {
@@ -72,7 +70,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 		description = createIssueFlags.Description
 	}
 
-	if title == "" || description == "" {
+	if title == "" {
 		return ExitCodeOK
 	}
 
@@ -116,14 +114,13 @@ func (c *AddIssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func createMessage(title, description, cs string) string {
-	message := strings.Replace(`%s
-# Creating an issue
-
-# Write a message for this issue. The first block of
-# text is the title and the rest is the description.
+func createIssueMessage(title, description string) string {
+	message := `<!-- Write a message for this issue. The first block of text is the title -->
 %s
-`, "#", cs, -1)
+
+<!-- the rest is the description.  -->
+%s
+`
 	message = fmt.Sprintf(message, title, description)
 	return message
 }

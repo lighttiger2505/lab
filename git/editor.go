@@ -1,7 +1,7 @@
 package git
 
 import (
-	"bufio"
+	// "bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -113,7 +113,7 @@ func openTextEditor(program, file string) error {
 	r := regexp.MustCompile("[mg]?vi[m]$")
 	if r.MatchString(program) {
 		editCmd.WithArg("--cmd")
-		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
+		editCmd.WithArg("set ft=markdown tw=0 wrap lbr")
 	}
 	editCmd.WithArg(file)
 	// Reattach stdin to the console before opening the editor
@@ -122,17 +122,15 @@ func openTextEditor(program, file string) error {
 	return editCmd.Spawn()
 }
 
-func readTitleAndBody(reader io.Reader, cs string) (title, body string, err error) {
-	var titleParts, bodyParts []string
+func sweepMarkdownComment(text string) string {
+	r := regexp.MustCompile("<!--[\\s\\S]*?-->[\\n]*")
+	return r.ReplaceAllString(text, "")
+}
 
+func parceTitleAndBody(text string) (title, body string) {
 	r := regexp.MustCompile("\\S")
-	scanner := bufio.NewScanner(reader)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, cs) {
-			continue
-		}
-
+	var titleParts, bodyParts []string
+	for _, line := range strings.Split(text, "\n") {
 		if len(bodyParts) == 0 && r.MatchString(line) {
 			titleParts = append(titleParts, line)
 		} else {
@@ -140,16 +138,23 @@ func readTitleAndBody(reader io.Reader, cs string) (title, body string, err erro
 		}
 	}
 
-	if err = scanner.Err(); err != nil {
+	title = strings.TrimSpace(strings.Join(titleParts, " "))
+	body = strings.TrimSpace(strings.Join(bodyParts, "\n"))
+	return
+}
+
+func readTitleAndBody(reader io.Reader, cs string) (title, body string, err error) {
+	// Reading message file
+	b, err := ioutil.ReadAll(reader)
+	if err != nil {
 		return
 	}
+	text := string(b)
 
-	title = strings.Join(titleParts, " ")
-	title = strings.TrimSpace(title)
-
-	body = strings.Join(bodyParts, "\n")
-	body = strings.TrimSpace(body)
-
+	// Sweep markdown text
+	sweepText := sweepMarkdownComment(text)
+	// Parce title and body from message file
+	title, body = parceTitleAndBody(sweepText)
 	return
 }
 

@@ -1,14 +1,15 @@
 package commands
 
 import (
+	"bytes"
 	"errors"
-	"flag"
 	"fmt"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
 
+	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
@@ -35,26 +36,56 @@ var browseTypePrefix = map[string]BrowseType{
 	"P": PipeLine,
 }
 
+var browseOpt BrowseOpt
+
+type BrowseOpt struct {
+	GlobalOpt *GlobalOpt `group:"Global Options"`
+}
+
+func newBrowseOptionParser(browseOpt *BrowseOpt) *flags.Parser {
+	globalParser := flags.NewParser(&globalOpt, flags.Default)
+	globalParser.AddGroup("Global Options", "", &GlobalOpt{})
+
+	parser := flags.NewParser(browseOpt, flags.Default)
+	parser.Usage = "issue [options]"
+	return parser
+}
+
 type BrowseCommand struct {
 	Ui ui.Ui
 }
 
 func (c *BrowseCommand) Synopsis() string {
-	return "Browse project"
+	return "Browse repository page"
 }
 
 func (c *BrowseCommand) Help() string {
-	return "Usage: lab project [option]"
+	buf := &bytes.Buffer{}
+	newBrowseOptionParser(&browseOpt).WriteHelp(buf)
+	return buf.String()
 }
 
 func (c *BrowseCommand) Run(args []string) int {
-	var verbose bool
+	parser := newBrowseOptionParser(&browseOpt)
+	if _, err := parser.Parse(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
 
-	// Set subcommand flags
-	flags := flag.NewFlagSet("project", flag.ContinueOnError)
-	flags.BoolVar(&verbose, "verbose", false, "Run as debug mode")
-	flags.Usage = func() {}
-	if err := flags.Parse(args); err != nil {
+	globalOpt := browseOpt.GlobalOpt
+	if err := globalOpt.IsValid(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	if _, err := parser.Parse(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	parseArgs, err := parser.ParseArgs(args)
+	if err != nil {
+		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
@@ -64,33 +95,59 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, config)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
+	// Getting base project
+	var gitlabRemote *git.RemoteInfo
+	domain := config.PreferredDomains[0]
+	if globalOpt.Repository != "" {
+		namespace, project := globalOpt.NameSpaceAndProject()
+		gitlabRemote = &git.RemoteInfo{
+			Domain:     domain,
+			NameSpace:  namespace,
+			Repository: project,
+		}
+	} else {
+		gitlabRemote, err = gitlab.GitlabRemote(c.Ui, config)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
 	}
 
+	// Getting browse command
 	browser := searchBrowserLauncher(runtime.GOOS)
-	prefixArgs := flags.Args()
-	if len(prefixArgs) > 0 {
-		browseType, number, err := splitPrefixAndNumber(prefixArgs[0])
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		cmd.CmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
-	} else {
-		currentBranch, err := git.GitCurrentBranch()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		if currentBranch == "master" {
-			cmd.CmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
+
+	// Browse current repository page
+	if gitlabRemote != nil {
+		if len(parseArgs) > 0 {
+			// Browse github resource page
+			browseType, number, err := splitPrefixAndNumber(parseArgs[0])
+			if err != nil {
+				c.Ui.Error(err.Error())
+				return ExitCodeError
+			}
+			cmd.CmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
 		} else {
-			cmd.CmdOutput(browser, []string{gitlabRemote.BranchUrl(currentBranch)})
+			// Browse current branch top page
+			currentBranch, err := git.GitCurrentBranch()
+			if err != nil {
+				c.Ui.Error(err.Error())
+				return ExitCodeError
+			}
+			if currentBranch == "master" || browseOpt.GlobalOpt.Repository != "" {
+				cmd.CmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
+			} else {
+				cmd.CmdOutput(browser, []string{gitlabRemote.BranchUrl(currentBranch)})
+			}
+		}
+	} else {
+		if domain != "" {
+			// Browse current domain page
+			cmd.CmdOutput(browser, []string{"https://" + domain})
+		} else {
+			c.Ui.Message("Not found browse url.")
 		}
 	}
+
 	return ExitCodeOK
 }
 

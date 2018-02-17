@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -32,7 +31,8 @@ func GitlabRemote(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
 			return nil, fmt.Errorf("Failed select multi remote repository. %v", err.Error())
 		}
 	} else {
-		return nil, errors.New("Not a cloned repository from gitlab")
+		// Current directory is not git repository
+		return nil, nil
 	}
 	return gitlabRemote, nil
 }

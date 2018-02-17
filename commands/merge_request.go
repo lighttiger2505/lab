@@ -5,12 +5,33 @@ import (
 	"fmt"
 	"strings"
 
+	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
 	gitlabc "github.com/xanzy/go-gitlab"
 )
+
+var mergeRequestOpt MergeRequestOpt
+
+type MergeRequestOpt struct {
+	GlobalOpt *GlobalOpt `group:"Global Options"`
+	SearchOpt *SearchOpt `group:"Search Options"`
+}
+
+func newMergeRequestOptionParser(mrOpt *MergeRequestOpt) *flags.Parser {
+	globalParser := flags.NewParser(&globalOpt, flags.Default)
+	globalParser.AddGroup("Global Options", "", &GlobalOpt{})
+
+	searchParser := flags.NewParser(&searchOptions, flags.Default)
+	searchParser.AddGroup("Search Options", "", &GlobalOpt{})
+
+	parser := flags.NewParser(mrOpt, flags.Default)
+	parser.Usage = "merge-request [options]"
+	return parser
+}
 
 type MergeRequestCommand struct {
 	Ui ui.Ui
@@ -22,13 +43,19 @@ func (c *MergeRequestCommand) Synopsis() string {
 
 func (c *MergeRequestCommand) Help() string {
 	buf := &bytes.Buffer{}
-	searchParser.Usage = "merge-request [options]"
-	searchParser.WriteHelp(buf)
+	newMergeRequestOptionParser(&mergeRequestOpt).WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *MergeRequestCommand) Run(args []string) int {
-	if _, err := searchParser.Parse(); err != nil {
+	parser := newMergeRequestOptionParser(&mergeRequestOpt)
+	if _, err := parser.Parse(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	globalOpt := browseOpt.GlobalOpt
+	if err := globalOpt.IsValid(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
@@ -39,10 +66,30 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, conf)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
+	// Getting base project
+	var gitlabRemote *git.RemoteInfo
+	domain := conf.PreferredDomains[0]
+	if globalOpt.Repository != "" {
+		namespace, project := globalOpt.NameSpaceAndProject()
+		gitlabRemote = &git.RemoteInfo{
+			Domain:     domain,
+			NameSpace:  namespace,
+			Repository: project,
+		}
+	} else {
+		gitlabRemote, err = gitlab.GitlabRemote(c.Ui, conf)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+	}
+
+	// Replace specific repository
+	if mergeRequestOpt.GlobalOpt.Repository != "" {
+		namespace, project := mergeRequestOpt.GlobalOpt.NameSpaceAndProject()
+		gitlabRemote.Domain = domain
+		gitlabRemote.NameSpace = namespace
+		gitlabRemote.Repository = project
 	}
 
 	client, err := gitlab.GitlabClient(c.Ui, gitlabRemote, conf)
@@ -52,8 +99,8 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	}
 
 	var datas []string
-	if searchOptions.AllRepository {
-		mergeRequests, err := getMergeRequest(client)
+	if mergeRequestOpt.SearchOpt.AllRepository {
+		mergeRequests, err := getMergeRequest(client, mergeRequestOpt.SearchOpt)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -68,7 +115,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 			datas = append(datas, data)
 		}
 	} else {
-		mergeRequests, err := getProjectMergeRequest(client, gitlabRemote.RepositoryFullName())
+		mergeRequests, err := getProjectMergeRequest(client, mergeRequestOpt.SearchOpt, gitlabRemote.RepositoryFullName())
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -89,16 +136,16 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func getMergeRequest(client *gitlabc.Client) ([]*gitlabc.MergeRequest, error) {
+func getMergeRequest(client *gitlabc.Client, opt *SearchOpt) ([]*gitlabc.MergeRequest, error) {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
-		PerPage: searchOptions.Line,
+		PerPage: opt.Line,
 	}
 	listRequestsOptions := &gitlabc.ListMergeRequestsOptions{
-		State:       gitlabc.String(searchOptions.GetState()),
-		Scope:       gitlabc.String(searchOptions.GetScope()),
-		OrderBy:     gitlabc.String(searchOptions.OrderBy),
-		Sort:        gitlabc.String(searchOptions.Sort),
+		State:       gitlabc.String(opt.GetState()),
+		Scope:       gitlabc.String(opt.GetScope()),
+		OrderBy:     gitlabc.String(opt.OrderBy),
+		Sort:        gitlabc.String(opt.Sort),
 		ListOptions: *listOption,
 	}
 
@@ -112,16 +159,16 @@ func getMergeRequest(client *gitlabc.Client) ([]*gitlabc.MergeRequest, error) {
 	return mergeRequests, nil
 }
 
-func getProjectMergeRequest(client *gitlabc.Client, repositoryName string) ([]*gitlabc.MergeRequest, error) {
+func getProjectMergeRequest(client *gitlabc.Client, opt *SearchOpt, repositoryName string) ([]*gitlabc.MergeRequest, error) {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
-		PerPage: searchOptions.Line,
+		PerPage: opt.Line,
 	}
 	listMergeRequestsOptions := &gitlabc.ListProjectMergeRequestsOptions{
-		State:       gitlabc.String(searchOptions.GetState()),
-		Scope:       gitlabc.String(searchOptions.GetScope()),
-		OrderBy:     gitlabc.String(searchOptions.OrderBy),
-		Sort:        gitlabc.String(searchOptions.Sort),
+		State:       gitlabc.String(opt.GetState()),
+		Scope:       gitlabc.String(opt.GetScope()),
+		OrderBy:     gitlabc.String(opt.OrderBy),
+		Sort:        gitlabc.String(opt.Sort),
 		ListOptions: *listOption,
 	}
 

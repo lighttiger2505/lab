@@ -20,6 +20,18 @@ type IssueOpt struct {
 	SearchOpt *SearchOpt `group:"Search Options"`
 }
 
+func newIssueOptionParser(issueOpt *IssueOpt) *flags.Parser {
+	globalParser := flags.NewParser(&globalOpt, flags.Default)
+	globalParser.AddGroup("Global Options", "", &GlobalOpt{})
+
+	searchParser := flags.NewParser(&searchOptions, flags.Default)
+	searchParser.AddGroup("Search Options", "", &GlobalOpt{})
+
+	parser := flags.NewParser(issueOpt, flags.Default)
+	parser.Usage = "issue [options]"
+	return parser
+}
+
 type IssueCommand struct {
 	Ui ui.Ui
 }
@@ -96,18 +108,6 @@ func (c *IssueCommand) Run(args []string) int {
 	c.Ui.Message(result)
 
 	return ExitCodeOK
-}
-
-func newIssueOptionParser(issueOpt *IssueOpt) *flags.Parser {
-	globalParser := flags.NewParser(&globalOpt, flags.Default)
-	globalParser.AddGroup("Global Options", "", &GlobalOpt{})
-
-	searchParser := flags.NewParser(&searchOptions, flags.Default)
-	searchParser.AddGroup("Search Options", "", &GlobalOpt{})
-
-	parser := flags.NewParser(issueOpt, flags.Default)
-	parser.Usage = "issue [options]"
-	return parser
 }
 
 func getIssues(client *gitlabc.Client, opt *SearchOpt) ([]*gitlabc.Issue, error) {

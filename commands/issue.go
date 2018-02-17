@@ -78,15 +78,7 @@ func (c *IssueCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		for _, issue := range issues {
-			data := strings.Join([]string{
-				fmt.Sprintf("#%d", issue.IID),
-				gitlab.ParceRepositoryFullName(issue.WebURL),
-				issue.Title,
-			}, "|")
-			datas = append(datas, data)
-		}
+		datas = issueOutput(issues)
 
 	} else {
 		issues, err := getProjectIssues(client, issueOpt.SearchOpt, gitlabRemote.RepositoryFullName())
@@ -94,14 +86,7 @@ func (c *IssueCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		for _, issue := range issues {
-			data := strings.Join([]string{
-				fmt.Sprintf("#%d", issue.IID),
-				issue.Title,
-			}, "|")
-			datas = append(datas, data)
-		}
+		datas = projectIssueOutput(issues)
 	}
 
 	result := columnize.SimpleFormat(datas)
@@ -133,6 +118,19 @@ func getIssues(client *gitlabc.Client, opt *SearchOpt) ([]*gitlabc.Issue, error)
 	return issues, nil
 }
 
+func issueOutput(issues []*gitlabc.Issue) []string {
+	var datas []string
+	for _, issue := range issues {
+		data := strings.Join([]string{
+			fmt.Sprintf("#%d", issue.IID),
+			gitlab.ParceRepositoryFullName(issue.WebURL),
+			issue.Title,
+		}, "|")
+		datas = append(datas, data)
+	}
+	return datas
+}
+
 func getProjectIssues(client *gitlabc.Client, opt *SearchOpt, repositoryName string) ([]*gitlabc.Issue, error) {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
@@ -155,4 +153,16 @@ func getProjectIssues(client *gitlabc.Client, opt *SearchOpt, repositoryName str
 	}
 
 	return issues, nil
+}
+
+func projectIssueOutput(issues []*gitlabc.Issue) []string {
+	var datas []string
+	for _, issue := range issues {
+		data := strings.Join([]string{
+			fmt.Sprintf("#%d", issue.IID),
+			issue.Title,
+		}, "|")
+		datas = append(datas, data)
+	}
+	return datas
 }

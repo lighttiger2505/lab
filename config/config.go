@@ -123,3 +123,10 @@ func (c *Config) AddToken(domain string, token string) {
 func (c *Config) AddRepository(repository string) {
 	c.PreferredDomains = append(c.PreferredDomains, repository)
 }
+
+func (c *Config) MustDomain() string {
+	if len(c.PreferredDomains) > 0 {
+		return c.PreferredDomains[0]
+	}
+	return ""
+}

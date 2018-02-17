@@ -65,6 +65,19 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	// Replace specific repository
+	domain := conf.MustDomain()
+	if issueOpt.GlobalOpt.Repository != "" {
+		namespace, project, err := issueOpt.GlobalOpt.ValidRepository()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		gitlabRemote.Domain = domain
+		gitlabRemote.NameSpace = namespace
+		gitlabRemote.Repository = project
+	}
+
 	client, err := gitlab.GitlabClient(c.Ui, gitlabRemote, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())

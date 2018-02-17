@@ -3,8 +3,6 @@ package commands
 import (
 	"fmt"
 	"strings"
-
-	flags "github.com/jessevdk/go-flags"
 )
 
 var globalOpt GlobalOpt
@@ -14,7 +12,6 @@ type GlobalOpt struct {
 }
 
 var searchOptions SearchOpt
-var searchParser = flags.NewParser(&searchOptions, flags.Default)
 
 type SearchOpt struct {
 	Line          int    `short:"n" long:"line" default:"20" default-mask:"20" description:"output the NUM lines"`

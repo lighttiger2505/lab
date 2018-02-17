@@ -43,8 +43,11 @@ type BrowseOpt struct {
 }
 
 func newBrowseOptionParser(browseOpt *BrowseOpt) *flags.Parser {
-	parser := flags.NewParser(issueOpt, flags.Default)
-	parser.Usage = "browse [options] [args]"
+	globalParser := flags.NewParser(&globalOpt, flags.Default)
+	globalParser.AddGroup("Global Options", "", &GlobalOpt{})
+
+	parser := flags.NewParser(browseOpt, flags.Default)
+	parser.Usage = "issue [options]"
 	return parser
 }
 
@@ -69,6 +72,17 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	globalOpt := browseOpt.GlobalOpt
+	if err := globalOpt.IsValid(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	if _, err := parser.Parse(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
 	parseArgs, err := parser.ParseArgs(args)
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -81,23 +95,22 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, config)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	// Replace specific repository
-	oneDomain := config.PreferredDomains[0]
-	if browseOpt.GlobalOpt.Repository != "" {
-		namespace, project, err := browseOpt.GlobalOpt.ValidRepository()
+	// Getting base project
+	var gitlabRemote *git.RemoteInfo
+	domain := config.PreferredDomains[0]
+	if globalOpt.Repository != "" {
+		namespace, project := globalOpt.NameSpaceAndProject()
+		gitlabRemote = &git.RemoteInfo{
+			Domain:     domain,
+			NameSpace:  namespace,
+			Repository: project,
+		}
+	} else {
+		gitlabRemote, err = gitlab.GitlabRemote(c.Ui, config)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		gitlabRemote.Domain = oneDomain
-		gitlabRemote.NameSpace = namespace
-		gitlabRemote.Repository = project
 	}
 
 	// Getting browse command
@@ -127,9 +140,9 @@ func (c *BrowseCommand) Run(args []string) int {
 			}
 		}
 	} else {
-		if oneDomain != "" {
+		if domain != "" {
 			// Browse current domain page
-			cmd.CmdOutput(browser, []string{"https://" + oneDomain})
+			cmd.CmdOutput(browser, []string{"https://" + domain})
 		} else {
 			c.Ui.Message("Not found browse url.")
 		}

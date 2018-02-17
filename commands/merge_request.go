@@ -7,6 +7,7 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
@@ -53,35 +54,48 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	globalOpt := browseOpt.GlobalOpt
+	if err := globalOpt.IsValid(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
 	conf, err := config.NewConfig()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, conf)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
+	// Getting base project
+	var gitlabRemote *git.RemoteInfo
+	domain := conf.PreferredDomains[0]
+	if globalOpt.Repository != "" {
+		namespace, project := globalOpt.NameSpaceAndProject()
+		gitlabRemote = &git.RemoteInfo{
+			Domain:     domain,
+			NameSpace:  namespace,
+			Repository: project,
+		}
+	} else {
+		gitlabRemote, err = gitlab.GitlabRemote(c.Ui, conf)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+	}
+
+	// Replace specific repository
+	if mergeRequestOpt.GlobalOpt.Repository != "" {
+		namespace, project := mergeRequestOpt.GlobalOpt.NameSpaceAndProject()
+		gitlabRemote.Domain = domain
+		gitlabRemote.NameSpace = namespace
+		gitlabRemote.Repository = project
 	}
 
 	client, err := gitlab.GitlabClient(c.Ui, gitlabRemote, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
-	}
-
-	// Replace specific repository
-	domain := conf.MustDomain()
-	if mergeRequestOpt.GlobalOpt.Repository != "" {
-		namespace, project, err := mergeRequestOpt.GlobalOpt.ValidRepository()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		gitlabRemote.Domain = domain
-		gitlabRemote.NameSpace = namespace
-		gitlabRemote.Repository = project
 	}
 
 	var datas []string

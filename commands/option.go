@@ -5,19 +5,44 @@ import (
 	"strings"
 )
 
+type OptionValidator interface {
+	IsValid(error)
+}
+
 var globalOpt GlobalOpt
 
 type GlobalOpt struct {
 	Repository string `short:"p" long:"repository" description:"target specific repository"`
 }
 
-func (g *GlobalOpt) ValidRepository() (string, string, error) {
-	value := g.Repository
+func (g *GlobalOpt) IsValid() error {
+	var errMsg []string
+	var tmpErr error
+
+	tmpErr = validRepository(g.Repository)
+	if tmpErr != nil {
+		errMsg = append(errMsg, tmpErr.Error())
+	}
+
+	if len(errMsg) > 0 {
+		return fmt.Errorf("Invalid value in global option. %v", errMsg)
+	}
+	return nil
+}
+
+func validRepository(value string) error {
 	splited := strings.Split(value, "/")
 	if value != "" && len(splited) != 2 {
-		return "", "", fmt.Errorf("Invalid repository \"%s\". Assumed input style is \"Namespace/Project\".", value)
+		return fmt.Errorf("Invalid repository \"%s\". Assumed input style is \"Namespace/Project\".", value)
 	}
-	return splited[0], splited[1], nil
+	return nil
+}
+
+func (g *GlobalOpt) NameSpaceAndProject() (namespace, project string) {
+	splited := strings.Split(g.Repository, "/")
+	namespace = splited[0]
+	project = splited[1]
+	return
 }
 
 var searchOptions SearchOpt

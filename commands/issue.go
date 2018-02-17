@@ -53,6 +53,12 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	opt := browseOpt.GlobalOpt
+	if err := opt.IsValid(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
 	conf, err := config.NewConfig()
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -68,11 +74,7 @@ func (c *IssueCommand) Run(args []string) int {
 	// Replace specific repository
 	domain := conf.MustDomain()
 	if issueOpt.GlobalOpt.Repository != "" {
-		namespace, project, err := issueOpt.GlobalOpt.ValidRepository()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
+		namespace, project := issueOpt.GlobalOpt.NameSpaceAndProject()
 		gitlabRemote.Domain = domain
 		gitlabRemote.NameSpace = namespace
 		gitlabRemote.Repository = project

@@ -215,11 +215,11 @@ func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
 			} else {
 				number, err := strconv.Atoi(numberStr)
 				if err != nil {
-					return 0, 0, errors.New(fmt.Sprintf("Invalid browsing number: %s", arg))
+					return 0, 0, errors.New(fmt.Sprintf("Invalid browse number. \"%s\"", numberStr))
 				}
 				return v, number, nil
 			}
 		}
 	}
-	return 0, 0, errors.New(fmt.Sprintf("Invalid arg: %s", arg))
+	return 0, 0, errors.New(fmt.Sprintf("Invalid arg. %s", arg))
 }

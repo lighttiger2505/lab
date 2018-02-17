@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
@@ -35,6 +36,18 @@ var browseTypePrefix = map[string]BrowseType{
 	"P": PipeLine,
 }
 
+var browseOpt BrowseOpt
+
+type BrowseOpt struct {
+	GlobalOpt *GlobalOpt `group:"Global Options"`
+}
+
+func newBrowseOptionParser(browseOpt *BrowseOpt) *flags.Parser {
+	parser := flags.NewParser(issueOpt, flags.Default)
+	parser.Usage = "browse [options] [args]"
+	return parser
+}
+
 type BrowseCommand struct {
 	Ui ui.Ui
 }
@@ -45,18 +58,18 @@ func (c *BrowseCommand) Synopsis() string {
 
 func (c *BrowseCommand) Help() string {
 	buf := &bytes.Buffer{}
-	globalParser.Usage = "browse [options] [args]"
-	globalParser.WriteHelp(buf)
+	newBrowseOptionParser(&browseOpt).WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *BrowseCommand) Run(args []string) int {
-	if _, err := globalParser.Parse(); err != nil {
+	parser := newBrowseOptionParser(&browseOpt)
+	if _, err := parser.Parse(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	parseArgs, err := globalParser.ParseArgs(args)
+	parseArgs, err := parser.ParseArgs(args)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -74,9 +87,10 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	// Replace specific repository
 	oneDomain := config.PreferredDomains[0]
-	if globalOpt.Repository != "" {
-		namespace, project, err := globalOpt.ValidRepository()
+	if browseOpt.GlobalOpt.Repository != "" {
+		namespace, project, err := browseOpt.GlobalOpt.ValidRepository()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -106,7 +120,7 @@ func (c *BrowseCommand) Run(args []string) int {
 				c.Ui.Error(err.Error())
 				return ExitCodeError
 			}
-			if currentBranch == "master" || globalOpt.Repository != "" {
+			if currentBranch == "master" || browseOpt.GlobalOpt.Repository != "" {
 				cmd.CmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
 			} else {
 				cmd.CmdOutput(browser, []string{gitlabRemote.BranchUrl(currentBranch)})

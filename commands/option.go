@@ -8,7 +8,6 @@ import (
 )
 
 var globalOpt GlobalOpt
-var globalParser = flags.NewParser(&globalOpt, flags.Default)
 
 type GlobalOpt struct {
 	Repository string `short:"p" long:"repository" description:"target specific repository"`

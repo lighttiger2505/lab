@@ -76,7 +76,6 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	oneDomain := config.PreferredDomains[0]
 	if globalOpt.Repository != "" {
-		fmt.Println("specific remote!!!!!!!!")
 		namespace, project, err := globalOpt.ValidRepository()
 		if err != nil {
 			c.Ui.Error(err.Error())

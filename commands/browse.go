@@ -90,8 +90,7 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Getting base project
-	var url = ""
+	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
 	domain := config.MustDomain()
 	if globalOpt.Repository != "" {
@@ -101,17 +100,23 @@ func (c *BrowseCommand) Run(args []string) int {
 			NameSpace:  namespace,
 			Repository: project,
 		}
-		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, domain)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
 	} else {
 		gitlabRemote, err = gitlab.GitlabRemote(c.Ui, config)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
+	}
+
+	// Getting browse repository
+	var url = ""
+	if globalOpt.Repository != "" {
+		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, domain)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+	} else {
 		branch, err := git.GitCurrentBranch()
 		if err != nil {
 			c.Ui.Error(err.Error())

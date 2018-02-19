@@ -78,11 +78,6 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	if _, err := parser.Parse(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
 	parseArgs, err := parser.ParseArgs(args)
 	if err != nil {
 		c.Ui.Error(err.Error())

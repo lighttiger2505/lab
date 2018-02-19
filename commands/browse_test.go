@@ -2,21 +2,23 @@ package commands
 
 import (
 	"errors"
-	"github.com/lighttiger2505/lab/git"
 	"reflect"
 	"testing"
+
+	"github.com/lighttiger2505/lab/git"
+	// "github.com/lighttiger2505/lab/ui"
 )
 
-func TestBrowseCommandRun(t *testing.T) {
-
-}
-
-type browseUrlTest struct {
-	gitlabRemote *git.RemoteInfo
-	browseType   BrowseType
-	number       int
-	url          string
-}
+// func TestBrowseCommandRun(t *testing.T) {
+// 	ui := ui.NewMockUi()
+// 	cmd := BrowseCommand{Ui: ui}
+// 	args := []string{}
+// 	want := 0
+// 	got := cmd.Run(args)
+// 	if want != got {
+// 		t.Errorf("bad return value want %#v got %#v", want, got)
+// 	}
+// }
 
 var gitlabRemoteTest = &git.RemoteInfo{
 	Domain:     "domain",
@@ -24,7 +26,60 @@ var gitlabRemoteTest = &git.RemoteInfo{
 	Repository: "project",
 }
 
-var browseUrlTests = []browseUrlTest{
+type getUrlByUserSpecificTest struct {
+	gitlabRemote *git.RemoteInfo
+	args         []string
+	domain       string
+	url          string
+	err          error
+}
+
+var getUrlByUserSpecificTests = []getUrlByUserSpecificTest{
+	{gitlabRemote: gitlabRemoteTest, args: []string{"#12", "#13"}, domain: "specific", url: "https://domain/namespace/project/issues/12", err: nil},
+	{gitlabRemote: gitlabRemoteTest, args: []string{}, domain: "specific", url: "https://domain/namespace/project", err: nil},
+	{gitlabRemote: nil, args: []string{}, domain: "specific", url: "https://specific", err: nil},
+}
+
+func TestGetUrlByUserSpecific(t *testing.T) {
+	for i, test := range getUrlByUserSpecificTests {
+		url, err := getUrlByUserSpecific(test.gitlabRemote, test.args, test.domain)
+		if test.url != url || !reflect.DeepEqual(test.err, err) {
+			t.Errorf("#%d: bad return value \nwant %#v %#v \ngot  %#v %#v", i, test.url, test.err, url, err)
+		}
+	}
+}
+
+type getUrlByRemoteTest struct {
+	gitlabRemote *git.RemoteInfo
+	args         []string
+	branch       string
+	url          string
+	err          error
+}
+
+var getUrlByRemoteTests = []getUrlByRemoteTest{
+	{gitlabRemote: gitlabRemoteTest, args: []string{"#12", "#13"}, branch: "", url: "https://domain/namespace/project/issues/12", err: nil},
+	{gitlabRemote: gitlabRemoteTest, args: []string{}, branch: "master", url: "https://domain/namespace/project", err: nil},
+	{gitlabRemote: gitlabRemoteTest, args: []string{}, branch: "develop", url: "https://domain/namespace/project/tree/develop", err: nil},
+}
+
+func TestGetUrlByRemote(t *testing.T) {
+	for i, test := range getUrlByRemoteTests {
+		url, err := getUrlByRemote(test.gitlabRemote, test.args, test.branch)
+		if test.url != url || !reflect.DeepEqual(test.err, err) {
+			t.Errorf("#%d: bad return value \nwant %#v %#v \ngot  %#v %#v", i, test.url, test.err, url, err)
+		}
+	}
+}
+
+type makeGitlabResourceUrlTest struct {
+	gitlabRemote *git.RemoteInfo
+	browseType   BrowseType
+	number       int
+	url          string
+}
+
+var makeGitlabResourceUrlTests = []makeGitlabResourceUrlTest{
 	{gitlabRemote: gitlabRemoteTest, browseType: Issue, number: 12, url: gitlabRemoteTest.IssueDetailUrl(12)},
 	{gitlabRemote: gitlabRemoteTest, browseType: MergeRequest, number: 12, url: gitlabRemoteTest.MergeRequestDetailUrl(12)},
 	{gitlabRemote: gitlabRemoteTest, browseType: PipeLine, number: 12, url: gitlabRemoteTest.PipeLineDetailUrl(12)},
@@ -34,8 +89,8 @@ var browseUrlTests = []browseUrlTest{
 }
 
 func TestBrowseUrl(t *testing.T) {
-	for i, test := range browseUrlTests {
-		url := browseUrl(test.gitlabRemote, test.browseType, test.number)
+	for i, test := range makeGitlabResourceUrlTests {
+		url := makeGitlabResourceUrl(test.gitlabRemote, test.browseType, test.number)
 		if test.url != url {
 			t.Errorf("#%d: bad return value want %#v got %#v", i, test.url, url)
 		}

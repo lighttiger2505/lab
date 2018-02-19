@@ -96,8 +96,9 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	// Getting base project
+	var url = ""
 	var gitlabRemote *git.RemoteInfo
-	domain := config.PreferredDomains[0]
+	domain := config.MustDomain()
 	if globalOpt.Repository != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
 		gitlabRemote = &git.RemoteInfo{
@@ -105,53 +106,82 @@ func (c *BrowseCommand) Run(args []string) int {
 			NameSpace:  namespace,
 			Repository: project,
 		}
+		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, domain)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
 	} else {
 		gitlabRemote, err = gitlab.GitlabRemote(c.Ui, config)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
+		branch, err := git.GitCurrentBranch()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		url, err = getUrlByRemote(gitlabRemote, parseArgs, branch)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
 	}
 
-	// Getting browse command
 	browser := searchBrowserLauncher(runtime.GOOS)
-
-	// Browse current repository page
-	if gitlabRemote != nil {
-		if len(parseArgs) > 0 {
-			// Browse github resource page
-			browseType, number, err := splitPrefixAndNumber(parseArgs[0])
-			if err != nil {
-				c.Ui.Error(err.Error())
-				return ExitCodeError
-			}
-			cmd.CmdOutput(browser, []string{browseUrl(gitlabRemote, browseType, number)})
-		} else {
-			// Browse current branch top page
-			currentBranch, err := git.GitCurrentBranch()
-			if err != nil {
-				c.Ui.Error(err.Error())
-				return ExitCodeError
-			}
-			if currentBranch == "master" || browseOpt.GlobalOpt.Repository != "" {
-				cmd.CmdOutput(browser, []string{gitlabRemote.RepositoryUrl()})
-			} else {
-				cmd.CmdOutput(browser, []string{gitlabRemote.BranchUrl(currentBranch)})
-			}
-		}
-	} else {
-		if domain != "" {
-			// Browse current domain page
-			cmd.CmdOutput(browser, []string{"https://" + domain})
-		} else {
-			c.Ui.Message("Not found browse url.")
-		}
-	}
+	doBrowse(browser, url)
 
 	return ExitCodeOK
 }
 
-func browseUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
+func getUrlByRemote(gitlabRemote *git.RemoteInfo, args []string, branch string) (string, error) {
+	if len(args) > 0 {
+		// Gitlab resource page
+		browseType, number, err := splitPrefixAndNumber(args[0])
+		if err != nil {
+			return "", err
+		}
+		return makeGitlabResourceUrl(gitlabRemote, browseType, number), nil
+	} else {
+		if branch == "master" {
+			// Repository top page
+			return gitlabRemote.RepositoryUrl(), nil
+		} else {
+			// Current branch top page
+			return gitlabRemote.BranchUrl(branch), nil
+		}
+	}
+}
+
+func getUrlByUserSpecific(gitlabRemote *git.RemoteInfo, args []string, domain string) (string, error) {
+	// Browse current repository page
+	if gitlabRemote != nil {
+		if len(args) > 0 {
+			// Gitlab resource page
+			browseType, number, err := splitPrefixAndNumber(args[0])
+			if err != nil {
+				return "", err
+			}
+			return makeGitlabResourceUrl(gitlabRemote, browseType, number), nil
+		} else {
+			// Repository top page
+			return gitlabRemote.RepositoryUrl(), nil
+		}
+	} else {
+		if domain != "" {
+			// Browse current domain page
+			return "https://" + domain, nil
+		}
+	}
+	return "", fmt.Errorf("Not found browse url.")
+}
+
+func doBrowse(browser, url string) {
+	cmd.CmdOutput(browser, []string{url})
+}
+
+func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
 	var url string
 	if number > 0 {
 		switch browseType {

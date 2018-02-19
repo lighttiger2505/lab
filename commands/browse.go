@@ -66,24 +66,28 @@ func (c *BrowseCommand) Help() string {
 }
 
 func (c *BrowseCommand) Run(args []string) int {
+	// Parse option
 	parser := newBrowseOptionParser(&browseOpt)
 	if _, err := parser.Parse(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
+	// Validate option
 	globalOpt := browseOpt.GlobalOpt
 	if err := globalOpt.IsValid(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
+	// Parse args
 	parseArgs, err := parser.ParseArgs(args)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
+	// Load config
 	config, err := config.NewConfig()
 	if err != nil {
 		c.Ui.Error(err.Error())

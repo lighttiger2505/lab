@@ -144,12 +144,6 @@ func inputUseRemote(ui ui.Ui, remoteInfos []git.RemoteInfo) (*git.RemoteInfo, er
 }
 
 func NewGitlabClient(ui ui.Ui, gitlabRemote *git.RemoteInfo, token string) (*gitlab.Client, error) {
-	// token, err := getPrivateToken(ui, gitlabRemote.Domain, conf)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("Failed getting private token. %s", err.Error())
-	// }
-
-	// Create client
 	client := gitlab.NewClient(nil, token)
 	if err := client.SetBaseURL(gitlabRemote.ApiUrl()); err != nil {
 		return nil, fmt.Errorf("Invalid api url. %s", err.Error())

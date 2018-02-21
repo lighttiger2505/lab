@@ -143,7 +143,7 @@ func inputUseRemote(ui ui.Ui, remoteInfos []git.RemoteInfo) (*git.RemoteInfo, er
 	return gitLabRemote, nil
 }
 
-func GitlabClient(ui ui.Ui, gitlabRemote *git.RemoteInfo, conf *config.Config) (*gitlab.Client, error) {
+func NewGitlabClient(ui ui.Ui, gitlabRemote *git.RemoteInfo, conf *config.Config) (*gitlab.Client, error) {
 	token, err := getPrivateToken(ui, gitlabRemote.Domain, conf)
 	if err != nil {
 		return nil, fmt.Errorf("Failed getting private token. %s", err.Error())

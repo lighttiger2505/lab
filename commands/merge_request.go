@@ -92,7 +92,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		gitlabRemote.Repository = project
 	}
 
-	client, err := gitlab.GitlabClient(c.Ui, gitlabRemote, conf)
+	client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

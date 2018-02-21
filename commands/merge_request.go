@@ -15,6 +15,7 @@ import (
 )
 
 var mergeRequestOpt MergeRequestOpt
+var mergeRequestParser *flags.Parser = newMergeRequestOptionParser(&mergeRequestOpt)
 
 type MergeRequestOpt struct {
 	GlobalOpt *GlobalOpt `group:"Global Options"`
@@ -43,13 +44,12 @@ func (c *MergeRequestCommand) Synopsis() string {
 
 func (c *MergeRequestCommand) Help() string {
 	buf := &bytes.Buffer{}
-	newMergeRequestOptionParser(&mergeRequestOpt).WriteHelp(buf)
+	mergeRequestParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *MergeRequestCommand) Run(args []string) int {
-	parser := newMergeRequestOptionParser(&mergeRequestOpt)
-	if _, err := parser.Parse(); err != nil {
+	if _, err := mergeRequestParser.Parse(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}

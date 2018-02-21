@@ -14,6 +14,7 @@ import (
 )
 
 var issueOpt IssueOpt
+var issueOptionParser *flags.Parser = newIssueOptionParser(&issueOpt)
 
 type IssueOpt struct {
 	GlobalOpt *GlobalOpt `group:"Global Options"`
@@ -42,18 +43,17 @@ func (c *IssueCommand) Synopsis() string {
 
 func (c *IssueCommand) Help() string {
 	buf := &bytes.Buffer{}
-	newIssueOptionParser(&issueOpt).WriteHelp(buf)
+	issueOptionParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *IssueCommand) Run(args []string) int {
-	parser := newIssueOptionParser(&issueOpt)
-	if _, err := parser.Parse(); err != nil {
+	if _, err := issueOptionParser.ParseArgs(args); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	opt := browseOpt.GlobalOpt
+	opt := issueOpt.GlobalOpt
 	if err := opt.IsValid(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

@@ -80,7 +80,13 @@ func (c *IssueCommand) Run(args []string) int {
 		gitlabRemote.Repository = project
 	}
 
-	client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, conf)
+	token, err := gitlab.GetPrivateToken(c.Ui, gitlabRemote.Domain, conf)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, token)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

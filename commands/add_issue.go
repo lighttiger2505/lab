@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
@@ -86,7 +87,13 @@ func (c *AddIssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, conf)
+	token, err := gitlab.GetPrivateToken(c.Ui, gitlabRemote.Domain, conf)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, token)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

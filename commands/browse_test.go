@@ -5,20 +5,25 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/git"
-	// "github.com/lighttiger2505/lab/ui"
+	"github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/ui"
 )
 
-// func TestBrowseCommandRun(t *testing.T) {
-// 	ui := ui.NewMockUi()
-// 	cmd := BrowseCommand{Ui: ui}
-// 	args := []string{}
-// 	want := 0
-// 	got := cmd.Run(args)
-// 	if want != got {
-// 		t.Errorf("bad return value want %#v got %#v", want, got)
-// 	}
-// }
+func TestBrowseCommandRun(t *testing.T) {
+	ui := ui.NewMockUi()
+	c := BrowseCommand{
+		Ui:           ui,
+		RemoteFilter: gitlab.NewRemoteFilter(),
+		GitClient:    git.NewMockClient(),
+		Cmd:          cmd.NewMockCmd("browse"),
+	}
+	args := []string{}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("wrong exit code. errors: \n%s", ui.ErrorWriter.String())
+	}
+}
 
 var gitlabRemoteTest = &git.RemoteInfo{
 	Domain:     "domain",

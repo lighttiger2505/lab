@@ -13,6 +13,32 @@ import (
 	"github.com/lighttiger2505/lab/cmd"
 )
 
+type Client interface {
+	CurrentBranch() (string, error)
+}
+
+type GitClient struct {
+}
+
+func (g *GitClient) CurrentBranch() (string, error) {
+	// Get remote repositorys
+	branches := cmd.GitOutputs("git", []string{"branch"})
+
+	currentPrefix := "*"
+	currentBranch := ""
+	for _, branch := range branches {
+		if strings.HasPrefix(branch, currentPrefix) {
+			trimPrefix := strings.TrimPrefix(branch, currentPrefix)
+			currentBranch = strings.Trim(trimPrefix, " ")
+		}
+	}
+
+	if currentBranch == "" {
+		return "", errors.New("Not found current branch")
+	}
+	return currentBranch, nil
+}
+
 type RemoteInfo struct {
 	Domain     string
 	NameSpace  string
@@ -171,8 +197,8 @@ func gitOutput(input ...string) (outputs []string, err error) {
 	return outputs, err
 }
 
-func gitCmd(args ...string) *cmd.Cmd {
-	cmd := cmd.NewCmd("git")
+func gitCmd(args ...string) *cmd.BasicCmd {
+	cmd := cmd.NewBasicCmd("git")
 
 	for _, v := range GlobalFlags {
 		cmd.WithArg(v)

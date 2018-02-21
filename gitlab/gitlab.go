@@ -11,6 +11,46 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
+type RemoteFilter interface {
+	Collect() error
+	Filter(ui.Ui, *config.Config) (*git.RemoteInfo, error)
+}
+
+type GitlabRemoteFilter struct {
+	GitRemotes []git.RemoteInfo
+}
+
+func (g *GitlabRemoteFilter) Collect() error {
+	// Get remote urls
+	gitRemotes, err := git.GitRemotes()
+	if err != nil {
+		return err
+	}
+	g.GitRemotes = gitRemotes
+	return nil
+}
+
+func (g *GitlabRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+	// Filtering only gitlab remote info
+	gitlabRemotes := filterHasGitlabDomain(g.GitRemotes)
+
+	// Filter gitlab remote url only
+	var gitlabRemote *git.RemoteInfo
+	if len(gitlabRemotes) == 1 {
+		gitlabRemote = &gitlabRemotes[0]
+	} else if len(gitlabRemotes) > 1 {
+		var err error
+		gitlabRemote, err = selectUseRemote(ui, gitlabRemotes, conf)
+		if err != nil {
+			return nil, fmt.Errorf("Failed select multi remote repository. %v", err.Error())
+		}
+	} else {
+		// Current directory is not git repository
+		return nil, nil
+	}
+	return gitlabRemote, nil
+}
+
 func GitlabRemote(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
 	// Get remote urls
 	gitRemotes, err := git.GitRemotes()

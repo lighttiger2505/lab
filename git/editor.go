@@ -109,7 +109,7 @@ func (e *Editor) readContent() (content []byte, err error) {
 }
 
 func openTextEditor(program, file string) error {
-	editCmd := cmd.NewCmd(program)
+	editCmd := cmd.NewBasicCmd(program)
 	r := regexp.MustCompile("[mg]?vi[m]$")
 	if r.MatchString(program) {
 		editCmd.WithArg("--cmd")
@@ -167,7 +167,7 @@ func getMessageFile(about string) (string, error) {
 	return filepath.Join(gitDir, fmt.Sprintf("%s_EDITMSG", about)), nil
 }
 
-func setConsole(cmd *cmd.Cmd) {
+func setConsole(cmd *cmd.BasicCmd) {
 	stdin, err := os.OpenFile("/dev/tty", os.O_RDONLY, 0660)
 	if err == nil {
 		cmd.Stdin = stdin

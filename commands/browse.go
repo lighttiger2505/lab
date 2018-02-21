@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -37,6 +38,7 @@ var browseTypePrefix = map[string]BrowseType{
 }
 
 var browseOpt BrowseOpt
+var browseOptionParser *flags.Parser = newBrowseOptionParser(&browseOpt)
 
 type BrowseOpt struct {
 	GlobalOpt *GlobalOpt `group:"Global Options"`
@@ -52,7 +54,10 @@ func newBrowseOptionParser(browseOpt *BrowseOpt) *flags.Parser {
 }
 
 type BrowseCommand struct {
-	Ui ui.Ui
+	Ui           ui.Ui
+	RemoteFilter gitlab.RemoteFilter
+	GitClient    git.Client
+	Cmd          cmd.Cmd
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -61,14 +66,13 @@ func (c *BrowseCommand) Synopsis() string {
 
 func (c *BrowseCommand) Help() string {
 	buf := &bytes.Buffer{}
-	newBrowseOptionParser(&browseOpt).WriteHelp(buf)
+	browseOptionParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *BrowseCommand) Run(args []string) int {
 	// Parse option
-	parser := newBrowseOptionParser(&browseOpt)
-	if _, err := parser.Parse(); err != nil {
+	if _, err := browseOptionParser.ParseArgs(args); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
@@ -81,7 +85,7 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	// Parse args
-	parseArgs, err := parser.ParseArgs(args)
+	parseArgs, err := browseOptionParser.ParseArgs(args)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -105,7 +109,11 @@ func (c *BrowseCommand) Run(args []string) int {
 			Repository: project,
 		}
 	} else {
-		gitlabRemote, err = gitlab.GitlabRemote(c.Ui, config)
+		if err := c.RemoteFilter.Collect(); err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		gitlabRemote, err = c.RemoteFilter.Filter(c.Ui, config)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -121,7 +129,7 @@ func (c *BrowseCommand) Run(args []string) int {
 			return ExitCodeError
 		}
 	} else {
-		branch, err := git.GitCurrentBranch()
+		branch, err := c.GitClient.CurrentBranch()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -134,7 +142,13 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	browser := searchBrowserLauncher(runtime.GOOS)
-	doBrowse(browser, url)
+
+	c.Cmd.SetCmd(browser)
+	c.Cmd.WithArg(url)
+	if err := c.Cmd.Spawn(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
 
 	return ExitCodeOK
 }
@@ -182,7 +196,6 @@ func getUrlByUserSpecific(gitlabRemote *git.RemoteInfo, args []string, domain st
 }
 
 func doBrowse(browser, url string) {
-	cmd.CmdOutput(browser, []string{url})
 }
 
 func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {

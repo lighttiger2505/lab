@@ -86,7 +86,8 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, token)
+	client, err := gitlab.NewLabClient(gitlabRemote.ApiUrl(), token)
+	// client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, token)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -94,7 +95,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 	var datas []string
 	if issueOpt.SearchOpt.AllRepository {
-		issues, err := getIssues(client, issueOpt.SearchOpt)
+		issues, err := client.Issues(makeIssueOption(issueOpt.SearchOpt))
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -102,7 +103,10 @@ func (c *IssueCommand) Run(args []string) int {
 		datas = issueOutput(issues)
 
 	} else {
-		issues, err := getProjectIssues(client, issueOpt.SearchOpt, gitlabRemote.RepositoryFullName())
+		issues, err := client.ProjectIssues(
+			makeProjectIssueOption(issueOpt.SearchOpt),
+			gitlabRemote.RepositoryFullName(),
+		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -116,7 +120,22 @@ func (c *IssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func getIssues(client *gitlabc.Client, opt *SearchOpt) ([]*gitlabc.Issue, error) {
+func makeProjectIssueOption(opt *SearchOpt) *gitlabc.ListProjectIssuesOptions {
+	listOption := &gitlabc.ListOptions{
+		Page:    1,
+		PerPage: opt.Line,
+	}
+	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
+		State:       gitlabc.String(opt.GetState()),
+		Scope:       gitlabc.String(opt.GetScope()),
+		OrderBy:     gitlabc.String(opt.OrderBy),
+		Sort:        gitlabc.String(opt.Sort),
+		ListOptions: *listOption,
+	}
+	return listProjectIssuesOptions
+}
+
+func makeIssueOption(opt *SearchOpt) *gitlabc.ListIssuesOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: opt.Line,
@@ -128,15 +147,7 @@ func getIssues(client *gitlabc.Client, opt *SearchOpt) ([]*gitlabc.Issue, error)
 		Sort:        gitlabc.String(opt.Sort),
 		ListOptions: *listOption,
 	}
-
-	issues, _, err := client.Issues.ListIssues(
-		listIssuesOptions,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list issue. %s", err.Error())
-	}
-
-	return issues, nil
+	return listIssuesOptions
 }
 
 func issueOutput(issues []*gitlabc.Issue) []string {
@@ -150,30 +161,6 @@ func issueOutput(issues []*gitlabc.Issue) []string {
 		datas = append(datas, data)
 	}
 	return datas
-}
-
-func getProjectIssues(client *gitlabc.Client, opt *SearchOpt, repositoryName string) ([]*gitlabc.Issue, error) {
-	listOption := &gitlabc.ListOptions{
-		Page:    1,
-		PerPage: opt.Line,
-	}
-	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
-		State:       gitlabc.String(opt.GetState()),
-		Scope:       gitlabc.String(opt.GetScope()),
-		OrderBy:     gitlabc.String(opt.OrderBy),
-		Sort:        gitlabc.String(opt.Sort),
-		ListOptions: *listOption,
-	}
-
-	issues, _, err := client.Issues.ListProjectIssues(
-		repositoryName,
-		listProjectIssuesOptions,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list project issue. %s", err.Error())
-	}
-
-	return issues, nil
 }
 
 func projectIssueOutput(issues []*gitlabc.Issue) []string {

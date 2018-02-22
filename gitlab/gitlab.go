@@ -177,3 +177,35 @@ func ParceRepositoryFullName(webURL string) string {
 	sp := strings.Split(webURL, "/")
 	return strings.Join([]string{sp[3], sp[4]}, "/")
 }
+
+type Client interface {
+}
+
+type LabClient struct {
+	Client *gitlab.Client
+}
+
+func NewLabClient(baseurl, token string) (*LabClient, error) {
+	client := gitlab.NewClient(nil, token)
+	if err := client.SetBaseURL(baseurl); err != nil {
+		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
+	}
+
+	return &LabClient{Client: client}, nil
+}
+
+func (g *LabClient) Issues(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
+	issues, _, err := g.Client.Issues.ListIssues(opt)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list issue. %s", err.Error())
+	}
+	return issues, nil
+}
+
+func (g *LabClient) ProjectIssues(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
+	issues, _, err := g.Client.Issues.ListProjectIssues(repositoryName, opt)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list project issue. %s", err.Error())
+	}
+	return issues, nil
+}

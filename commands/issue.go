@@ -7,6 +7,7 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
@@ -34,7 +35,10 @@ func newIssueOptionParser(issueOpt *IssueOpt) *flags.Parser {
 }
 
 type IssueCommand struct {
-	Ui ui.Ui
+	Ui           ui.Ui
+	RemoteFilter gitlab.RemoteFilter
+	GitClient    git.Client
+	LabClient    gitlab.Client
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -65,7 +69,11 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, conf)
+	if err := c.RemoteFilter.Collect(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -86,16 +94,13 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := gitlab.NewLabClient(gitlabRemote.ApiUrl(), token)
-	// client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, token)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
 	var datas []string
 	if issueOpt.SearchOpt.AllRepository {
-		issues, err := client.Issues(makeIssueOption(issueOpt.SearchOpt))
+		issues, err := c.LabClient.Issues(
+			gitlabRemote.ApiUrl(),
+			token,
+			makeIssueOption(issueOpt.SearchOpt),
+		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -103,7 +108,9 @@ func (c *IssueCommand) Run(args []string) int {
 		datas = issueOutput(issues)
 
 	} else {
-		issues, err := client.ProjectIssues(
+		issues, err := c.LabClient.ProjectIssues(
+			gitlabRemote.ApiUrl(),
+			token,
 			makeProjectIssueOption(issueOpt.SearchOpt),
 			gitlabRemote.RepositoryFullName(),
 		)

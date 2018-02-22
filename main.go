@@ -49,7 +49,12 @@ func main() {
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {
-			return &commands.IssueCommand{Ui: ui}, nil
+			return &commands.IssueCommand{
+				Ui:           ui,
+				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				GitClient:    &git.GitClient{},
+				LabClient:    &gitlab.LabClient{},
+			}, nil
 		},
 		"add-issue": func() (cli.Command, error) {
 			return &commands.AddIssueCommand{Ui: ui}, nil

@@ -17,34 +17,36 @@ type Config struct {
 }
 
 func NewConfig() (*Config, error) {
-	configData, err := getConfigData()
+	filepath := getConfigPath()
+	if !fileExists(filepath) {
+		err := createConfig(filepath)
+		if err != nil {
+			return nil, fmt.Errorf("Not exist config: %s", filepath)
+		}
+	}
+
+	c, err := NewConfigWithFile(filepath)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+func NewConfigWithFile(filepath string) (*Config, error) {
+	if !fileExists(filepath) {
+		return nil, fmt.Errorf("Not exist config: %s", filepath)
+	}
+
+	configData, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("Failed read config file: %s", err.Error())
 	}
 
 	c := Config{}
-	err1 := yaml.Unmarshal(configData, &c)
-	if err1 != nil {
-		return nil, fmt.Errorf("Failed unmarshal yaml: %s", err1.Error())
+	if err := yaml.Unmarshal(configData, &c); err != nil {
+		return nil, fmt.Errorf("Failed unmarshal yaml: %s", err.Error())
 	}
 	return &c, nil
-}
-
-func getConfigData() ([]byte, error) {
-	filePath := getConfigPath()
-	if !fileExists(filePath) {
-		err := createConfig(filePath)
-		if err != nil {
-			return nil, fmt.Errorf("Not exist config: %s", filePath)
-		}
-	}
-
-	configData, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("Failed read config file: %s", err.Error())
-	}
-
-	return configData, nil
 }
 
 func getConfigPath() string {

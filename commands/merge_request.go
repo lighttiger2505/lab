@@ -188,3 +188,33 @@ func getProjectMergeRequest(client *gitlabc.Client, opt *SearchOpt, repositoryNa
 
 	return mergeRequests, nil
 }
+
+func makeMergeRequestOption(opt *SearchOpt) *gitlabc.ListMergeRequestsOptions {
+	listOption := &gitlabc.ListOptions{
+		Page:    1,
+		PerPage: opt.Line,
+	}
+	listRequestsOptions := &gitlabc.ListMergeRequestsOptions{
+		State:       gitlabc.String(opt.GetState()),
+		Scope:       gitlabc.String(opt.GetScope()),
+		OrderBy:     gitlabc.String(opt.OrderBy),
+		Sort:        gitlabc.String(opt.Sort),
+		ListOptions: *listOption,
+	}
+	return listRequestsOptions
+}
+
+func makeProjectMergeRequestOption(opt *SearchOpt) *gitlabc.ListProjectMergeRequestsOptions {
+	listOption := &gitlabc.ListOptions{
+		Page:    1,
+		PerPage: opt.Line,
+	}
+	listMergeRequestsOptions := &gitlabc.ListProjectMergeRequestsOptions{
+		State:       gitlabc.String(opt.GetState()),
+		Scope:       gitlabc.String(opt.GetScope()),
+		OrderBy:     gitlabc.String(opt.OrderBy),
+		Sort:        gitlabc.String(opt.Sort),
+		ListOptions: *listOption,
+	}
+	return listMergeRequestsOptions
+}

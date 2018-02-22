@@ -181,6 +181,8 @@ func ParceRepositoryFullName(webURL string) string {
 type Client interface {
 	Issues(baseurl, token string, opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error)
 	ProjectIssues(baseurl, token string, opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)
+	MergeRequest(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
+	ProjectMergeRequest(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
 }
 
 type LabClient struct {
@@ -217,9 +219,39 @@ func (g *LabClient) ProjectIssues(baseurl, token string, opt *gitlab.ListProject
 	return issues, nil
 }
 
+func MergeRequest(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
+	client := gitlab.NewClient(nil, token)
+	if err := client.SetBaseURL(baseurl); err != nil {
+		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
+	}
+
+	mergeRequests, _, err := client.MergeRequests.ListMergeRequests(opt)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list merge requests. %s", err.Error())
+	}
+
+	return mergeRequests, nil
+}
+
+func ProjectMergeRequest(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
+	client := gitlab.NewClient(nil, token)
+	if err := client.SetBaseURL(baseurl); err != nil {
+		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
+	}
+
+	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(repositoryName, opt)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list project merge requests. %s", err.Error())
+	}
+
+	return mergeRequests, nil
+}
+
 type MockLabClient struct {
-	MockIssues        func(baseurl, token string, opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error)
-	MockProjectIssues func(baseurl, token string, opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)
+	MockIssues              func(baseurl, token string, opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error)
+	MockProjectIssues       func(baseurl, token string, opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)
+	MockMergeRequest        func(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
+	MockProjectMergeRequest func(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
 }
 
 func (m *MockLabClient) Issues(baseurl, token string, opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
@@ -228,4 +260,12 @@ func (m *MockLabClient) Issues(baseurl, token string, opt *gitlab.ListIssuesOpti
 
 func (m *MockLabClient) ProjectIssues(baseurl, token string, opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
 	return m.MockProjectIssues(baseurl, token, opt, repositoryName)
+}
+
+func (m *MockLabClient) MergeRequest(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
+	return m.MergeRequest(baseurl, token, opt)
+}
+
+func (m *MockLabClient) ProjectMergeRequest(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
+	return m.ProjectMergeRequest(baseurl, token, opt, repositoryName)
 }

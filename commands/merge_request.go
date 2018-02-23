@@ -35,7 +35,10 @@ func newMergeRequestOptionParser(mrOpt *MergeRequestOpt) *flags.Parser {
 }
 
 type MergeRequestCommand struct {
-	Ui ui.Ui
+	Ui           ui.Ui
+	RemoteFilter gitlab.RemoteFilter
+	GitClient    git.Client
+	LabClient    gitlab.Client
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
@@ -49,7 +52,7 @@ func (c *MergeRequestCommand) Help() string {
 }
 
 func (c *MergeRequestCommand) Run(args []string) int {
-	if _, err := mergeRequestParser.Parse(); err != nil {
+	if _, err := mergeRequestParser.ParseArgs(args); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
@@ -66,27 +69,20 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Getting base project
-	var gitlabRemote *git.RemoteInfo
-	domain := conf.PreferredDomains[0]
-	if globalOpt.Repository != "" {
-		namespace, project := globalOpt.NameSpaceAndProject()
-		gitlabRemote = &git.RemoteInfo{
-			Domain:     domain,
-			NameSpace:  namespace,
-			Repository: project,
-		}
-	} else {
-		gitlabRemote, err = gitlab.GitlabRemote(c.Ui, conf)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
+	if err := c.RemoteFilter.Collect(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
 	}
 
 	// Replace specific repository
-	if mergeRequestOpt.GlobalOpt.Repository != "" {
-		namespace, project := mergeRequestOpt.GlobalOpt.NameSpaceAndProject()
+	domain := conf.MustDomain()
+	if issueOpt.GlobalOpt.Repository != "" {
+		namespace, project := issueOpt.GlobalOpt.NameSpaceAndProject()
 		gitlabRemote.Domain = domain
 		gitlabRemote.NameSpace = namespace
 		gitlabRemote.Repository = project
@@ -98,15 +94,13 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, token)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
 	var datas []string
 	if mergeRequestOpt.SearchOpt.AllRepository {
-		mergeRequests, err := getMergeRequest(client, mergeRequestOpt.SearchOpt)
+		mergeRequests, err := c.LabClient.MergeRequest(
+			gitlabRemote.ApiUrl(),
+			token,
+			makeMergeRequestOption(mergeRequestOpt.SearchOpt),
+		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -121,7 +115,12 @@ func (c *MergeRequestCommand) Run(args []string) int {
 			datas = append(datas, data)
 		}
 	} else {
-		mergeRequests, err := getProjectMergeRequest(client, mergeRequestOpt.SearchOpt, gitlabRemote.RepositoryFullName())
+		mergeRequests, err := c.LabClient.ProjectMergeRequest(
+			gitlabRemote.ApiUrl(),
+			token,
+			makeProjectMergeRequestOption(mergeRequestOpt.SearchOpt),
+			gitlabRemote.RepositoryFullName(),
+		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -140,53 +139,6 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	c.Ui.Message(result)
 
 	return ExitCodeOK
-}
-
-func getMergeRequest(client *gitlabc.Client, opt *SearchOpt) ([]*gitlabc.MergeRequest, error) {
-	listOption := &gitlabc.ListOptions{
-		Page:    1,
-		PerPage: opt.Line,
-	}
-	listRequestsOptions := &gitlabc.ListMergeRequestsOptions{
-		State:       gitlabc.String(opt.GetState()),
-		Scope:       gitlabc.String(opt.GetScope()),
-		OrderBy:     gitlabc.String(opt.OrderBy),
-		Sort:        gitlabc.String(opt.Sort),
-		ListOptions: *listOption,
-	}
-
-	mergeRequests, _, err := client.MergeRequests.ListMergeRequests(
-		listRequestsOptions,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list merge requests. %s", err.Error())
-	}
-
-	return mergeRequests, nil
-}
-
-func getProjectMergeRequest(client *gitlabc.Client, opt *SearchOpt, repositoryName string) ([]*gitlabc.MergeRequest, error) {
-	listOption := &gitlabc.ListOptions{
-		Page:    1,
-		PerPage: opt.Line,
-	}
-	listMergeRequestsOptions := &gitlabc.ListProjectMergeRequestsOptions{
-		State:       gitlabc.String(opt.GetState()),
-		Scope:       gitlabc.String(opt.GetScope()),
-		OrderBy:     gitlabc.String(opt.OrderBy),
-		Sort:        gitlabc.String(opt.Sort),
-		ListOptions: *listOption,
-	}
-
-	mergeRequests, _, err := client.MergeRequests.ListProjectMergeRequests(
-		repositoryName,
-		listMergeRequestsOptions,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list project merge requests. %s", err.Error())
-	}
-
-	return mergeRequests, nil
 }
 
 func makeMergeRequestOption(opt *SearchOpt) *gitlabc.ListMergeRequestsOptions {

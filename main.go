@@ -60,7 +60,12 @@ func main() {
 			return &commands.AddIssueCommand{Ui: ui}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
-			return &commands.MergeRequestCommand{Ui: ui}, nil
+			return &commands.MergeRequestCommand{
+				Ui:           ui,
+				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				GitClient:    &git.GitClient{},
+				LabClient:    &gitlab.LabClient{},
+			}, nil
 		},
 		"add-merge-request": func() (cli.Command, error) {
 			return &commands.AddMergeReqeustCommand{Ui: ui}, nil

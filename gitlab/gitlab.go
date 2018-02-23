@@ -219,7 +219,7 @@ func (g *LabClient) ProjectIssues(baseurl, token string, opt *gitlab.ListProject
 	return issues, nil
 }
 
-func MergeRequest(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
+func (g *LabClient) MergeRequest(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
 	client := gitlab.NewClient(nil, token)
 	if err := client.SetBaseURL(baseurl); err != nil {
 		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
@@ -233,7 +233,7 @@ func MergeRequest(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) (
 	return mergeRequests, nil
 }
 
-func ProjectMergeRequest(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
+func (g *LabClient) ProjectMergeRequest(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
 	client := gitlab.NewClient(nil, token)
 	if err := client.SetBaseURL(baseurl); err != nil {
 		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
@@ -263,9 +263,9 @@ func (m *MockLabClient) ProjectIssues(baseurl, token string, opt *gitlab.ListPro
 }
 
 func (m *MockLabClient) MergeRequest(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
-	return m.MergeRequest(baseurl, token, opt)
+	return m.MockMergeRequest(baseurl, token, opt)
 }
 
 func (m *MockLabClient) ProjectMergeRequest(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
-	return m.ProjectMergeRequest(baseurl, token, opt, repositoryName)
+	return m.MockProjectMergeRequest(baseurl, token, opt, repositoryName)
 }

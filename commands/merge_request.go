@@ -94,7 +94,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	var datas []string
+	var outputs []string
 	if mergeRequestOpt.SearchOpt.AllRepository {
 		mergeRequests, err := c.LabClient.MergeRequest(
 			gitlabRemote.ApiUrl(),
@@ -105,15 +105,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		for _, mergeRequest := range mergeRequests {
-			data := strings.Join([]string{
-				fmt.Sprintf("!%d", mergeRequest.IID),
-				gitlab.ParceRepositoryFullName(mergeRequest.WebURL),
-				mergeRequest.Title,
-			}, "|")
-			datas = append(datas, data)
-		}
+		outputs = outMergeRequest(mergeRequests)
 	} else {
 		mergeRequests, err := c.LabClient.ProjectMergeRequest(
 			gitlabRemote.ApiUrl(),
@@ -125,17 +117,10 @@ func (c *MergeRequestCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		for _, mergeRequest := range mergeRequests {
-			data := strings.Join([]string{
-				fmt.Sprintf("!%d", mergeRequest.IID),
-				mergeRequest.Title,
-			}, "|")
-			datas = append(datas, data)
-		}
+		outputs = outProjectMergeRequest(mergeRequests)
 	}
 
-	result := columnize.SimpleFormat(datas)
+	result := columnize.SimpleFormat(outputs)
 	c.Ui.Message(result)
 
 	return ExitCodeOK
@@ -169,4 +154,29 @@ func makeProjectMergeRequestOption(opt *SearchOpt) *gitlabc.ListProjectMergeRequ
 		ListOptions: *listOption,
 	}
 	return listMergeRequestsOptions
+}
+
+func outMergeRequest(mergeRequsets []*gitlabc.MergeRequest) []string {
+	outputs := []string{}
+	for _, mergeRequest := range mergeRequsets {
+		output := strings.Join([]string{
+			fmt.Sprintf("!%d", mergeRequest.IID),
+			gitlab.ParceRepositoryFullName(mergeRequest.WebURL),
+			mergeRequest.Title,
+		}, "|")
+		outputs = append(outputs, output)
+	}
+	return outputs
+}
+
+func outProjectMergeRequest(mergeRequsets []*gitlabc.MergeRequest) []string {
+	outputs := []string{}
+	for _, mergeRequest := range mergeRequsets {
+		output := strings.Join([]string{
+			fmt.Sprintf("!%d", mergeRequest.IID),
+			mergeRequest.Title,
+		}, "|")
+		outputs = append(outputs, output)
+	}
+	return outputs
 }

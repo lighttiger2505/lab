@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/config"
-	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	gitlabc "github.com/xanzy/go-gitlab"
@@ -41,7 +40,6 @@ func TestMergeRequestCommandRun(t *testing.T) {
 	c := MergeRequestCommand{
 		Ui:           mockUi,
 		RemoteFilter: gitlab.NewRemoteFilter(),
-		GitClient:    git.NewMockClient(),
 		LabClient:    mockLabMergeRequestClient,
 		Config:       conf,
 	}
@@ -72,7 +70,6 @@ func TestMergeRequestCommandRun_AllProjectOption(t *testing.T) {
 	c := MergeRequestCommand{
 		Ui:           mockUi,
 		RemoteFilter: gitlab.NewRemoteFilter(),
-		GitClient:    git.NewMockClient(),
 		LabClient:    mockLabMergeRequestClient,
 		Config:       conf,
 	}

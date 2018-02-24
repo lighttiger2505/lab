@@ -45,32 +45,6 @@ func (g *GitlabRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteI
 	return gitlabRemote, nil
 }
 
-func GitlabRemote(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
-	// Get remote urls
-	gitRemotes, err := git.GitRemotes()
-	if err != nil {
-		return nil, err
-	}
-	// Filtering only gitlab remote info
-	gitlabRemotes := filterHasGitlabDomain(gitRemotes)
-
-	// Filter gitlab remote url only
-	var gitlabRemote *git.RemoteInfo
-	if len(gitlabRemotes) == 1 {
-		gitlabRemote = &gitlabRemotes[0]
-	} else if len(gitlabRemotes) > 1 {
-		var err error
-		gitlabRemote, err = selectUseRemote(ui, gitlabRemotes, conf)
-		if err != nil {
-			return nil, fmt.Errorf("Failed select multi remote repository. %v", err.Error())
-		}
-	} else {
-		// Current directory is not git repository
-		return nil, nil
-	}
-	return gitlabRemote, nil
-}
-
 func filterHasGitlabDomain(remoteInfos []git.RemoteInfo) []git.RemoteInfo {
 	var gitlabRemotes []git.RemoteInfo
 	for _, remoteInfo := range remoteInfos {

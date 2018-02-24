@@ -7,7 +7,6 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/config"
-	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
@@ -37,7 +36,6 @@ func newIssueOptionParser(issueOpt *IssueOpt) *flags.Parser {
 type IssueCommand struct {
 	Ui           ui.Ui
 	RemoteFilter gitlab.RemoteFilter
-	GitClient    git.Client
 	LabClient    gitlab.Client
 	Config       *config.ConfigManager
 }

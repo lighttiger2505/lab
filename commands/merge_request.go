@@ -37,7 +37,6 @@ func newMergeRequestOptionParser(mrOpt *MergeRequestOpt) *flags.Parser {
 type MergeRequestCommand struct {
 	Ui           ui.Ui
 	RemoteFilter gitlab.RemoteFilter
-	GitClient    git.Client
 	LabClient    gitlab.Client
 	Config       *config.ConfigManager
 }

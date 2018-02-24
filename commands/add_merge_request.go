@@ -27,8 +27,9 @@ type CreateMergeReqeustFlags struct {
 }
 
 type AddMergeReqeustCommand struct {
-	Ui     ui.Ui
-	Config config.ConfigManager
+	Ui           ui.Ui
+	RemoteFilter gitlab.RemoteFilter
+	Config       *config.ConfigManager
 }
 
 func (c *AddMergeReqeustCommand) Synopsis() string {
@@ -96,7 +97,7 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, conf)
+	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

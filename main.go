@@ -54,25 +54,31 @@ func main() {
 			return &commands.IssueCommand{
 				Ui:           ui,
 				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				GitClient:    &git.GitClient{},
 				LabClient:    &gitlab.LabClient{},
 				Config:       config.NewConfigManager(),
 			}, nil
 		},
 		"add-issue": func() (cli.Command, error) {
-			return &commands.AddIssueCommand{Ui: ui}, nil
+			return &commands.AddIssueCommand{
+				Ui:           ui,
+				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				Config:       config.NewConfigManager(),
+			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &commands.MergeRequestCommand{
 				Ui:           ui,
 				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				GitClient:    &git.GitClient{},
 				LabClient:    &gitlab.LabClient{},
 				Config:       config.NewConfigManager(),
 			}, nil
 		},
 		"add-merge-request": func() (cli.Command, error) {
-			return &commands.AddMergeReqeustCommand{Ui: ui}, nil
+			return &commands.AddMergeReqeustCommand{
+				Ui:           ui,
+				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				Config:       config.NewConfigManager(),
+			}, nil
 		},
 	}
 

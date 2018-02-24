@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/config"
-	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	gitlabc "github.com/xanzy/go-gitlab"
@@ -42,7 +41,6 @@ func TestIssueCommandRun_Issue(t *testing.T) {
 	c := IssueCommand{
 		Ui:           mockUi,
 		RemoteFilter: gitlab.NewRemoteFilter(),
-		GitClient:    git.NewMockClient(),
 		LabClient:    mockLabIssueClient,
 		Config:       conf,
 	}
@@ -74,7 +72,6 @@ func TestIssueCommandRun_ProjectIssue(t *testing.T) {
 	c := IssueCommand{
 		Ui:           mockUi,
 		RemoteFilter: gitlab.NewRemoteFilter(),
-		GitClient:    git.NewMockClient(),
 		LabClient:    mockLabIssueClient,
 		Config:       conf,
 	}

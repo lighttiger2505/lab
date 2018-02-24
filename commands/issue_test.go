@@ -2,9 +2,12 @@ package commands
 
 import (
 	"bytes"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 
+	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -28,11 +31,20 @@ var mockLabIssueClient *gitlab.MockLabClient = &gitlab.MockLabClient{
 func TestIssueCommandRun_Issue(t *testing.T) {
 	mockUi := ui.NewMockUi()
 	mockUi.Reader = bytes.NewBufferString("token\n")
+
+	f, _ := ioutil.TempFile("", "test")
+	tmppath := f.Name()
+	f.Write([]byte(config.ConfigDataTest))
+	f.Close()
+	defer os.Remove(tmppath)
+	conf := config.NewConfigManagerPath(tmppath)
+
 	c := IssueCommand{
 		Ui:           mockUi,
 		RemoteFilter: gitlab.NewRemoteFilter(),
 		GitClient:    git.NewMockClient(),
 		LabClient:    mockLabIssueClient,
+		Config:       conf,
 	}
 
 	args := []string{}
@@ -51,11 +63,20 @@ func TestIssueCommandRun_Issue(t *testing.T) {
 func TestIssueCommandRun_ProjectIssue(t *testing.T) {
 	mockUi := ui.NewMockUi()
 	mockUi.Reader = bytes.NewBufferString("token\n")
+
+	f, _ := ioutil.TempFile("", "test")
+	tmppath := f.Name()
+	f.Write([]byte(config.ConfigDataTest))
+	f.Close()
+	defer os.Remove(tmppath)
+	conf := config.NewConfigManagerPath(tmppath)
+
 	c := IssueCommand{
 		Ui:           mockUi,
 		RemoteFilter: gitlab.NewRemoteFilter(),
 		GitClient:    git.NewMockClient(),
 		LabClient:    mockLabIssueClient,
+		Config:       conf,
 	}
 
 	args := []string{"-a"}

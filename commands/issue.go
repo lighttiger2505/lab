@@ -94,6 +94,7 @@ func (c *IssueCommand) Run(args []string) int {
 		gitlabRemote.Repository = project
 	}
 
+	fmt.Println(gitlabRemote.Domain)
 	token, err := gitlab.GetPrivateToken(c.Ui, gitlabRemote.Domain, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())

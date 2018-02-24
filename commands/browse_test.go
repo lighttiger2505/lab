@@ -2,10 +2,13 @@ package commands
 
 import (
 	"errors"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 
 	"github.com/lighttiger2505/lab/cmd"
+	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -13,11 +16,20 @@ import (
 
 func TestBrowseCommandRun(t *testing.T) {
 	ui := ui.NewMockUi()
+
+	f, _ := ioutil.TempFile("", "test")
+	tmppath := f.Name()
+	f.Write([]byte(config.ConfigDataTest))
+	f.Close()
+	defer os.Remove(tmppath)
+	conf := config.NewConfigManagerPath(tmppath)
+
 	c := BrowseCommand{
 		Ui:           ui,
 		RemoteFilter: gitlab.NewRemoteFilter(),
 		GitClient:    git.NewMockClient(),
 		Cmd:          cmd.NewMockCmd("browse"),
+		Config:       conf,
 	}
 	args := []string{}
 	if code := c.Run(args); code != 0 {

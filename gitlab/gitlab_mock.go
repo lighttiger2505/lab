@@ -19,7 +19,7 @@ func (g *MockRemoteFilter) Collect() error {
 
 func (g *MockRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
 	gitlabRemote := &git.RemoteInfo{
-		Domain:     "domain",
+		Domain:     "gitlab.ssl.domain1.jp",
 		NameSpace:  "namespace",
 		Repository: "project",
 	}

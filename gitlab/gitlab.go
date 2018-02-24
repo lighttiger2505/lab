@@ -152,13 +152,7 @@ func NewGitlabClient(ui ui.Ui, gitlabRemote *git.RemoteInfo, token string) (*git
 }
 
 func GetPrivateToken(ui ui.Ui, domain string, conf *config.Config) (string, error) {
-	token := ""
-	for _, mapItem := range conf.Tokens {
-		if mapItem.Key.(string) == domain {
-			token = mapItem.Value.(string)
-		}
-	}
-
+	token := conf.GetToken(domain)
 	if token == "" {
 		token, err := ui.Ask("Please input GitLab private token :")
 		if err != nil {

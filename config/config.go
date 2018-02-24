@@ -159,15 +159,20 @@ func (c *ConfigManager) write(writer io.Writer) error {
 func (c *ConfigManager) GetToken(ui ui.Ui, domain string) (string, error) {
 	token := c.Config.getToken(domain)
 	if token == "" {
-		token, err := ui.Ask("Please input GitLab private token :")
-		if err != nil {
-			return "", fmt.Errorf("Failed input private token. %s", err.Error())
-		}
+		return c.askToken(ui, domain)
+	}
+	return token, nil
+}
 
-		c.Config.addToken(domain, token)
-		if err := c.Save(); err != nil {
-			return "", fmt.Errorf("Failed update config of private token. %s", err.Error())
-		}
+func (c *ConfigManager) askToken(ui ui.Ui, domain string) (string, error) {
+	token, err := ui.Ask("Please input GitLab private token :")
+	if err != nil {
+		return "", fmt.Errorf("Failed input private token. %s", err.Error())
+	}
+
+	c.Config.addToken(domain, token)
+	if err := c.Save(); err != nil {
+		return "", fmt.Errorf("Failed update config of private token. %s", err.Error())
 	}
 	return token, nil
 }

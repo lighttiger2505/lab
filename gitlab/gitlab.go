@@ -40,7 +40,7 @@ func (g *GitlabRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteI
 		}
 	} else {
 		// Current directory is not git repository
-		return nil, nil
+		return nil, fmt.Errorf("Not found gitlab remote repository")
 	}
 	return gitlabRemote, nil
 }

@@ -9,30 +9,6 @@ import (
 	"testing"
 )
 
-// var ConfigDataTest = `tokens:
-//   gitlab.ssl.domain1.jp: token1
-//   gitlab.ssl.domain2.jp: token2
-// preferreddomains:
-// - gitlab.ssl.domain1.jp
-// - gitlab.ssl.domain2.jp
-// `
-//
-// var TokensTest = yaml.MapSlice{
-// 	yaml.MapItem{
-// 		Key:   "gitlab.ssl.domain1.jp",
-// 		Value: "token1",
-// 	},
-// 	yaml.MapItem{
-// 		Key:   "gitlab.ssl.domain2.jp",
-// 		Value: "token2",
-// 	},
-// }
-//
-// var PreferredDomainTest = []string{
-// 	"gitlab.ssl.domain1.jp",
-// 	"gitlab.ssl.domain2.jp",
-// }
-
 func TestConfigManagerLoad(t *testing.T) {
 	f, _ := ioutil.TempFile("", "test")
 	tmppath := f.Name()

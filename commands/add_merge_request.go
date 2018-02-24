@@ -91,7 +91,12 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		currentBranch = createMergeReqeustFlags.SourceBranch
 	}
 
-	conf, err := config.NewConfig()
+	// Load config
+	if err := c.Config.Init(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	conf, err := c.Config.Load()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

@@ -177,17 +177,6 @@ type Config struct {
 	PreferredDomains []string
 }
 
-func NewConfig() (*Config, error) {
-	filepath := getConfigPath()
-	if !fileExists(filepath) {
-		err := MakeConfig(filepath)
-		if err != nil {
-			return nil, fmt.Errorf("Not exist config: %s", filepath)
-		}
-	}
-	return NewConfigWithFile(filepath)
-}
-
 func NewConfigWithFile(filepath string) (*Config, error) {
 	if !fileExists(filepath) {
 		return nil, fmt.Errorf("Not exist config: %s", filepath)

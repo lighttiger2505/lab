@@ -68,6 +68,7 @@ func main() {
 				RemoteFilter: &gitlab.GitlabRemoteFilter{},
 				GitClient:    &git.GitClient{},
 				LabClient:    &gitlab.LabClient{},
+				Config:       config.NewConfigManager(),
 			}, nil
 		},
 		"add-merge-request": func() (cli.Command, error) {

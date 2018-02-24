@@ -75,19 +75,22 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	// Replace specific repository
+	// Getting git remote info
+	var gitlabRemote *git.RemoteInfo
 	domain := c.Config.GetDomain()
-	if issueOpt.GlobalOpt.Repository != "" {
-		namespace, project := issueOpt.GlobalOpt.NameSpaceAndProject()
-		gitlabRemote.Domain = domain
-		gitlabRemote.NameSpace = namespace
-		gitlabRemote.Repository = project
+	if globalOpt.Repository != "" {
+		namespace, project := globalOpt.NameSpaceAndProject()
+		gitlabRemote = &git.RemoteInfo{
+			Domain:     domain,
+			NameSpace:  namespace,
+			Repository: project,
+		}
+	} else {
+		gitlabRemote, err = c.RemoteFilter.Filter(c.Ui, conf)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
 	}
 
 	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)

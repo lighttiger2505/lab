@@ -9,6 +9,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/lighttiger2505/lab/ui"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -153,12 +154,30 @@ func (c *ConfigManager) write(writer io.Writer) error {
 		return fmt.Errorf("Failed marshal config. Error: %v", err.Error())
 	}
 
-	fmt.Println("output-------------------------------------------")
-	fmt.Println(string(out))
 	if _, err = io.WriteString(writer, string(out)); err != nil {
 		return fmt.Errorf("Failed write config file. Error: %s", err.Error())
 	}
 	return nil
+}
+
+func (c *ConfigManager) GetToken(ui ui.Ui, domain string) (string, error) {
+	token := c.Config.getToken(domain)
+	if token == "" {
+		token, err := ui.Ask("Please input GitLab private token :")
+		if err != nil {
+			return "", fmt.Errorf("Failed input private token. %s", err.Error())
+		}
+
+		c.Config.addToken(domain, token)
+		if err := c.Save(); err != nil {
+			return "", fmt.Errorf("Failed update config of private token. %s", err.Error())
+		}
+	}
+	return token, nil
+}
+
+func (c *ConfigManager) GetDomain() string {
+	return c.Config.getDomain()
 }
 
 type Config struct {
@@ -259,7 +278,7 @@ func (c *Config) Write() error {
 	return nil
 }
 
-func (c *Config) GetToken(domain string) (token string) {
+func (c *Config) getToken(domain string) (token string) {
 	for _, mapItem := range c.Tokens {
 		if mapItem.Key.(string) == domain {
 			token = mapItem.Value.(string)
@@ -268,7 +287,14 @@ func (c *Config) GetToken(domain string) (token string) {
 	return
 }
 
-func (c *Config) AddToken(domain string, token string) {
+func (c *Config) getDomain() string {
+	if len(c.PreferredDomains) > 0 {
+		return c.PreferredDomains[0]
+	}
+	return ""
+}
+
+func (c *Config) addToken(domain string, token string) {
 	item := yaml.MapItem{
 		Key:   domain,
 		Value: token,
@@ -278,11 +304,4 @@ func (c *Config) AddToken(domain string, token string) {
 
 func (c *Config) AddRepository(repository string) {
 	c.PreferredDomains = append(c.PreferredDomains, repository)
-}
-
-func (c *Config) MustDomain() string {
-	if len(c.PreferredDomains) > 0 {
-		return c.PreferredDomains[0]
-	}
-	return ""
 }

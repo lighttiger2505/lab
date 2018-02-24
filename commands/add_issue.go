@@ -25,7 +25,8 @@ type CreateIssueFlags struct {
 }
 
 type AddIssueCommand struct {
-	Ui ui.Ui
+	Ui     ui.Ui
+	Config config.ConfigManager
 }
 
 func (c *AddIssueCommand) Synopsis() string {
@@ -75,7 +76,12 @@ func (c *AddIssueCommand) Run(args []string) int {
 		return ExitCodeOK
 	}
 
-	conf, err := config.NewConfig()
+	// Load config
+	if err := c.Config.Init(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	conf, err := c.Config.Load()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -87,7 +93,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	token, err := gitlab.GetPrivateToken(c.Ui, gitlabRemote.Domain, conf)
+	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

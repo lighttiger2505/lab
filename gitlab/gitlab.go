@@ -151,22 +151,6 @@ func NewGitlabClient(ui ui.Ui, gitlabRemote *git.RemoteInfo, token string) (*git
 	return client, nil
 }
 
-func GetPrivateToken(ui ui.Ui, domain string, conf *config.Config) (string, error) {
-	token := conf.GetToken(domain)
-	if token == "" {
-		token, err := ui.Ask("Please input GitLab private token :")
-		if err != nil {
-			return "", fmt.Errorf("Failed input private token. %s", err.Error())
-		}
-
-		conf.AddToken(domain, token)
-		if err := conf.Write(); err != nil {
-			return "", fmt.Errorf("Failed update config of private token. %s", err.Error())
-		}
-	}
-	return token, nil
-}
-
 func ParceRepositoryFullName(webURL string) string {
 	sp := strings.Split(webURL, "/")
 	return strings.Join([]string{sp[3], sp[4]}, "/")

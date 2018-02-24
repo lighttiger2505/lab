@@ -104,7 +104,7 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	domain := conf.MustDomain()
+	domain := c.Config.GetDomain()
 	if globalOpt.Repository != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
 		gitlabRemote = &git.RemoteInfo{

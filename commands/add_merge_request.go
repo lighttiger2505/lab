@@ -27,7 +27,8 @@ type CreateMergeReqeustFlags struct {
 }
 
 type AddMergeReqeustCommand struct {
-	Ui ui.Ui
+	Ui     ui.Ui
+	Config config.ConfigManager
 }
 
 func (c *AddMergeReqeustCommand) Synopsis() string {
@@ -101,7 +102,7 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	token, err := gitlab.GetPrivateToken(c.Ui, gitlabRemote.Domain, conf)
+	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

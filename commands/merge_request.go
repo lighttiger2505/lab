@@ -86,7 +86,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	}
 
 	// Replace specific repository
-	domain := conf.MustDomain()
+	domain := c.Config.GetDomain()
 	if issueOpt.GlobalOpt.Repository != "" {
 		namespace, project := issueOpt.GlobalOpt.NameSpaceAndProject()
 		gitlabRemote.Domain = domain
@@ -94,7 +94,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		gitlabRemote.Repository = project
 	}
 
-	token, err := gitlab.GetPrivateToken(c.Ui, gitlabRemote.Domain, conf)
+	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

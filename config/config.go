@@ -39,7 +39,6 @@ var PreferredDomainTest = []string{
 
 type ConfigManager struct {
 	Path   string
-	File   *os.File
 	Config *Config
 }
 
@@ -80,7 +79,7 @@ func (c *ConfigManager) Load() (conf *Config, err error) {
 		return nil, err
 	}
 	defer func() {
-		if cerr := c.close(); err != nil {
+		if cerr := file.Close(); err != nil {
 			err = cerr
 		}
 	}()
@@ -102,7 +101,6 @@ func (c *ConfigManager) open(flag int, perm os.FileMode) (*os.File, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Filed open file. Error: %s", err.Error())
 	}
-	c.File = file
 	return file, nil
 }
 
@@ -119,20 +117,13 @@ func (c *ConfigManager) read(r io.Reader) (*Config, error) {
 	return conf, nil
 }
 
-func (c *ConfigManager) close() error {
-	if err := c.File.Close(); err != nil {
-		return fmt.Errorf("Filed close file. Error: %s", err.Error())
-	}
-	return nil
-}
-
 func (c *ConfigManager) Save() error {
 	file, err := c.open(os.O_WRONLY, 0666)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		if cerr := c.close(); err != nil {
+		if cerr := file.Close(); err != nil {
 			err = cerr
 		}
 	}()

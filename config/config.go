@@ -11,6 +11,50 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
+type ConfigManager struct {
+	Path   string
+	Config *Config
+}
+
+func NewConfigManager() *ConfigManager {
+	return &ConfigManager{
+		Path:   "",
+		Config: nil,
+	}
+}
+
+func (c *ConfigManager) Init() error {
+	filepath := c.Path
+	if filepath == "" {
+		filepath := getConfigPath()
+		if !fileExists(filepath) {
+			if err := createConfig(filepath); err != nil {
+				return fmt.Errorf("Not exist config: %s", filepath)
+			}
+		}
+		c.Path = filepath
+	}
+	return nil
+}
+
+func (c *ConfigManager) Load() (*Config, error) {
+	if !fileExists(c.Path) {
+		return nil, fmt.Errorf("Not exist config: %s", c.Path)
+	}
+
+	configData, err := ioutil.ReadFile(c.Path)
+	if err != nil {
+		return nil, fmt.Errorf("Failed read config file: %s", err.Error())
+	}
+
+	conf := Config{}
+	if err := yaml.Unmarshal(configData, &conf); err != nil {
+		return nil, fmt.Errorf("Failed unmarshal yaml: %s", err.Error())
+	}
+	c.Config = &conf
+	return &conf, nil
+}
+
 type Config struct {
 	Tokens           yaml.MapSlice
 	PreferredDomains []string
@@ -24,12 +68,7 @@ func NewConfig() (*Config, error) {
 			return nil, fmt.Errorf("Not exist config: %s", filepath)
 		}
 	}
-
-	c, err := NewConfigWithFile(filepath)
-	if err != nil {
-		return nil, err
-	}
-	return c, nil
+	return NewConfigWithFile(filepath)
 }
 
 func NewConfigWithFile(filepath string) (*Config, error) {

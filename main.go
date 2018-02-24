@@ -8,6 +8,7 @@ import (
 
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands"
+	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -46,6 +47,7 @@ func main() {
 				RemoteFilter: &gitlab.GitlabRemoteFilter{},
 				GitClient:    &git.GitClient{},
 				Cmd:          cmd.NewBasicCmd(""),
+				Config:       config.NewConfigManager(),
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {

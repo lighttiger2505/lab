@@ -57,6 +57,7 @@ type BrowseCommand struct {
 	RemoteFilter gitlab.RemoteFilter
 	GitClient    git.Client
 	Cmd          cmd.Cmd
+	Config       *config.ConfigManager
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -91,7 +92,11 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	// Load config
-	config, err := config.NewConfig()
+	if err := c.Config.Init(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	conf, err := c.Config.Load()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -99,7 +104,7 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	domain := config.MustDomain()
+	domain := conf.MustDomain()
 	if globalOpt.Repository != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
 		gitlabRemote = &git.RemoteInfo{
@@ -112,7 +117,7 @@ func (c *BrowseCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		gitlabRemote, err = c.RemoteFilter.Filter(c.Ui, config)
+		gitlabRemote, err = c.RemoteFilter.Filter(c.Ui, conf)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError

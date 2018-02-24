@@ -76,7 +76,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	domain := c.Config.GetDomain()
+	domain := c.Config.GetTopDomain()
 	if globalOpt.Repository != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
 		gitlabRemote = &git.RemoteInfo{

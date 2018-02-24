@@ -168,8 +168,8 @@ func (c *ConfigManager) askToken(ui ui.Ui, domain string) (string, error) {
 	return token, nil
 }
 
-func (c *ConfigManager) GetDomain() string {
-	return c.Config.getDomain()
+func (c *ConfigManager) GetTopDomain() string {
+	return c.Config.getTopDomain()
 }
 
 type Config struct {
@@ -279,7 +279,7 @@ func (c *Config) getToken(domain string) (token string) {
 	return
 }
 
-func (c *Config) getDomain() string {
+func (c *Config) getTopDomain() string {
 	if len(c.PreferredDomains) > 0 {
 		return c.PreferredDomains[0]
 	}

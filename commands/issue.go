@@ -80,7 +80,7 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	// Replace specific repository
-	domain := c.Config.GetDomain()
+	domain := c.Config.GetTopDomain()
 	if issueOpt.GlobalOpt.Repository != "" {
 		namespace, project := issueOpt.GlobalOpt.NameSpaceAndProject()
 		gitlabRemote.Domain = domain

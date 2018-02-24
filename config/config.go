@@ -70,10 +70,6 @@ func (c *ConfigManager) Init() error {
 	return nil
 }
 
-func (c *ConfigManager) InitPath(path string) {
-	c.Path = path
-}
-
 func (c *ConfigManager) Load() (conf *Config, err error) {
 	if c.Path == "" {
 		return nil, fmt.Errorf("Please initialize config manager")

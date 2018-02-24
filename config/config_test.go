@@ -120,7 +120,7 @@ func TestConfigGetToken(t *testing.T) {
 		Tokens:           TokensTest,
 		PreferredDomains: PreferredDomainTest,
 	}
-	got := conf.GetToken("gitlab.ssl.domain1.jp")
+	got := conf.getToken("gitlab.ssl.domain1.jp")
 	want := "token1"
 	if want != got {
 		t.Fatalf("bad return value \nwant %s \ngot  %s", want, got)

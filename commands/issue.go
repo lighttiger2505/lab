@@ -75,10 +75,6 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	if err := c.RemoteFilter.Collect(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
 	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())

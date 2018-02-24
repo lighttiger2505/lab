@@ -12,27 +12,21 @@ import (
 )
 
 type RemoteFilter interface {
-	Collect() error
 	Filter(ui.Ui, *config.Config) (*git.RemoteInfo, error)
 }
 
 type GitlabRemoteFilter struct {
-	GitRemotes []git.RemoteInfo
-}
-
-func (g *GitlabRemoteFilter) Collect() error {
-	// Get remote urls
-	gitRemotes, err := git.GitRemotes()
-	if err != nil {
-		return err
-	}
-	g.GitRemotes = gitRemotes
-	return nil
 }
 
 func (g *GitlabRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+	// Get remote urls
+	gitRemotes, err := git.GitRemotes()
+	if err != nil {
+		return nil, err
+	}
+
 	// Filtering only gitlab remote info
-	gitlabRemotes := filterHasGitlabDomain(g.GitRemotes)
+	gitlabRemotes := filterHasGitlabDomain(gitRemotes)
 
 	// Filter gitlab remote url only
 	var gitlabRemote *git.RemoteInfo

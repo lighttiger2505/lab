@@ -56,6 +56,7 @@ func main() {
 				RemoteFilter: &gitlab.GitlabRemoteFilter{},
 				GitClient:    &git.GitClient{},
 				LabClient:    &gitlab.LabClient{},
+				Config:       config.NewConfigManager(),
 			}, nil
 		},
 		"add-issue": func() (cli.Command, error) {

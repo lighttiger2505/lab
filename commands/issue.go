@@ -39,6 +39,7 @@ type IssueCommand struct {
 	RemoteFilter gitlab.RemoteFilter
 	GitClient    git.Client
 	LabClient    gitlab.Client
+	Config       *config.ConfigManager
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -63,7 +64,12 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	conf, err := config.NewConfig()
+	// Load config
+	if err := c.Config.Init(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	conf, err := c.Config.Load()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

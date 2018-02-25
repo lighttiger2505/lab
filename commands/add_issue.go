@@ -27,6 +27,7 @@ type CreateIssueFlags struct {
 type AddIssueCommand struct {
 	Ui           ui.Ui
 	RemoteFilter gitlab.RemoteFilter
+	LabClient    gitlab.Client
 	Config       *config.ConfigManager
 }
 
@@ -100,23 +101,11 @@ func (c *AddIssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, token)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	createIssueOptions := &gitlabc.CreateIssueOptions{
-		Title:       gitlabc.String(title),
-		Description: gitlabc.String(description),
-		AssigneeID:  nil,
-		MilestoneID: nil,
-		Labels:      []string{},
-	}
-
-	issue, _, err := client.Issues.CreateIssue(
+	issue, err := c.LabClient.CreateIssue(
+		gitlabRemote.BaseUrl(),
+		token,
+		makeCreateIssueOptions(title, description),
 		gitlabRemote.RepositoryFullName(),
-		createIssueOptions,
 	)
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -126,6 +115,17 @@ func (c *AddIssueCommand) Run(args []string) int {
 	c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
 
 	return ExitCodeOK
+}
+
+func makeCreateIssueOptions(title, description string) *gitlabc.CreateIssueOptions {
+	opt := &gitlabc.CreateIssueOptions{
+		Title:       gitlabc.String(title),
+		Description: gitlabc.String(description),
+		AssigneeID:  nil,
+		MilestoneID: nil,
+		Labels:      []string{},
+	}
+	return opt
 }
 
 func createIssueMessage(title, description string) string {

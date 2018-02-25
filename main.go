@@ -62,6 +62,7 @@ func main() {
 			return &commands.AddIssueCommand{
 				Ui:           ui,
 				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				LabClient:    &gitlab.LabClient{},
 				Config:       config.NewConfigManager(),
 			}, nil
 		},

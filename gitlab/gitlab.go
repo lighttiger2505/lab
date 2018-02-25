@@ -109,3 +109,8 @@ func inputUseRemote(ui ui.Ui, remoteInfos []git.RemoteInfo) (*git.RemoteInfo, er
 	gitLabRemote := &remoteInfos[choiceNumber-1]
 	return gitLabRemote, nil
 }
+
+func ParceRepositoryFullName(webURL string) string {
+	sp := strings.Split(webURL, "/")
+	return strings.Join([]string{sp[3], sp[4]}, "/")
+}

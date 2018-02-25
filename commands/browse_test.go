@@ -14,6 +14,16 @@ import (
 	"github.com/lighttiger2505/lab/ui"
 )
 
+var mockBrwoseRemoteFilter = &gitlab.MockRemoteFilter{
+	MockFilter: func(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+		return &git.RemoteInfo{
+			Domain:     "gitlab.ssl.domain1.jp",
+			NameSpace:  "namespace",
+			Repository: "project",
+		}, nil
+	},
+}
+
 func TestBrowseCommandRun(t *testing.T) {
 	ui := ui.NewMockUi()
 
@@ -26,7 +36,7 @@ func TestBrowseCommandRun(t *testing.T) {
 
 	c := BrowseCommand{
 		Ui:           ui,
-		RemoteFilter: gitlab.NewRemoteFilter(),
+		RemoteFilter: mockBrwoseRemoteFilter,
 		GitClient:    git.NewMockClient(),
 		Cmd:          cmd.NewMockCmd("browse"),
 		Config:       conf,

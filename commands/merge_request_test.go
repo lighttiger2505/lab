@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	gitlabc "github.com/xanzy/go-gitlab"
@@ -26,6 +27,16 @@ var mockLabMergeRequestClient *gitlab.MockLabClient = &gitlab.MockLabClient{
 	},
 }
 
+var mockMergeReqeustRemoteFilter = &gitlab.MockRemoteFilter{
+	MockFilter: func(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+		return &git.RemoteInfo{
+			Domain:     "gitlab.ssl.domain1.jp",
+			NameSpace:  "namespace",
+			Repository: "project",
+		}, nil
+	},
+}
+
 func TestMergeRequestCommandRun(t *testing.T) {
 	mockUi := ui.NewMockUi()
 	mockUi.Reader = bytes.NewBufferString("token\n")
@@ -39,7 +50,7 @@ func TestMergeRequestCommandRun(t *testing.T) {
 
 	c := MergeRequestCommand{
 		Ui:           mockUi,
-		RemoteFilter: gitlab.NewRemoteFilter(),
+		RemoteFilter: mockMergeReqeustRemoteFilter,
 		LabClient:    mockLabMergeRequestClient,
 		Config:       conf,
 	}
@@ -69,7 +80,7 @@ func TestMergeRequestCommandRun_AllProjectOption(t *testing.T) {
 
 	c := MergeRequestCommand{
 		Ui:           mockUi,
-		RemoteFilter: gitlab.NewRemoteFilter(),
+		RemoteFilter: mockMergeReqeustRemoteFilter,
 		LabClient:    mockLabMergeRequestClient,
 		Config:       conf,
 	}

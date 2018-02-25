@@ -114,3 +114,11 @@ func ParceRepositoryFullName(webURL string) string {
 	sp := strings.Split(webURL, "/")
 	return strings.Join([]string{sp[3], sp[4]}, "/")
 }
+
+type MockRemoteFilter struct {
+	MockFilter func(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error)
+}
+
+func (m *MockRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+	return m.MockFilter(ui, conf)
+}

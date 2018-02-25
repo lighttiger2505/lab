@@ -8,17 +8,18 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var issues []*gitlabc.Issue = []*gitlabc.Issue{
+var issues = []*gitlabc.Issue{
 	&gitlabc.Issue{IID: 12, Title: "Title12", WebURL: "http://gitlab.jp/namespace/repo12"},
 	&gitlabc.Issue{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
 }
 
-var mockLabIssueClient *gitlab.MockLabClient = &gitlab.MockLabClient{
+var mockLabIssueClient = &gitlab.MockLabClient{
 	MockIssues: func(baseurl, token string, opt *gitlabc.ListIssuesOptions) ([]*gitlabc.Issue, error) {
 		return issues, nil
 	},
@@ -27,9 +28,18 @@ var mockLabIssueClient *gitlab.MockLabClient = &gitlab.MockLabClient{
 	},
 }
 
+var mockIssueRemoteFilter = &gitlab.MockRemoteFilter{
+	MockFilter: func(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+		return &git.RemoteInfo{
+			Domain:     "gitlab.ssl.domain1.jp",
+			NameSpace:  "namespace",
+			Repository: "project",
+		}, nil
+	},
+}
+
 func TestIssueCommandRun_Issue(t *testing.T) {
 	mockUi := ui.NewMockUi()
-	mockUi.Reader = bytes.NewBufferString("token\n")
 
 	f, _ := ioutil.TempFile("", "test")
 	tmppath := f.Name()
@@ -40,7 +50,7 @@ func TestIssueCommandRun_Issue(t *testing.T) {
 
 	c := IssueCommand{
 		Ui:           mockUi,
-		RemoteFilter: gitlab.NewRemoteFilter(),
+		RemoteFilter: mockIssueRemoteFilter,
 		LabClient:    mockLabIssueClient,
 		Config:       conf,
 	}
@@ -71,7 +81,7 @@ func TestIssueCommandRun_ProjectIssue(t *testing.T) {
 
 	c := IssueCommand{
 		Ui:           mockUi,
-		RemoteFilter: gitlab.NewRemoteFilter(),
+		RemoteFilter: mockIssueRemoteFilter,
 		LabClient:    mockLabIssueClient,
 		Config:       conf,
 	}

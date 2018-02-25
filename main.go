@@ -78,6 +78,7 @@ func main() {
 			return &commands.AddMergeReqeustCommand{
 				Ui:           ui,
 				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				LabClient:    &gitlab.LabClient{},
 				Config:       config.NewConfigManager(),
 			}, nil
 		},

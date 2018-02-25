@@ -12,6 +12,7 @@ type Client interface {
 	MergeRequest(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
 	ProjectMergeRequest(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
 	CreateIssue(baseurl, token string, opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error)
+	CreateMergeRequest(baseurl, token string, opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error)
 }
 
 type LabClient struct {
@@ -90,6 +91,22 @@ func (l *LabClient) CreateIssue(baseurl, token string, opt *gitlab.CreateIssueOp
 		return nil, fmt.Errorf("Failed list project merge requests. %s", err.Error())
 	}
 	return issue, nil
+}
+
+func (l *LabClient) CreateMergeRequest(baseurl, token string, opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error) {
+	client := gitlab.NewClient(nil, token)
+	if err := client.SetBaseURL(baseurl); err != nil {
+		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
+	}
+
+	mergeRequest, _, err := client.MergeRequests.CreateMergeRequest(
+		repositoryName,
+		opt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list project merge requests. %s", err.Error())
+	}
+	return mergeRequest, nil
 }
 
 type MockLabClient struct {

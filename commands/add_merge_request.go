@@ -29,6 +29,7 @@ type CreateMergeReqeustFlags struct {
 type AddMergeReqeustCommand struct {
 	Ui           ui.Ui
 	RemoteFilter gitlab.RemoteFilter
+	LabClient    gitlab.Client
 	Config       *config.ConfigManager
 }
 
@@ -114,24 +115,11 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := gitlab.NewGitlabClient(c.Ui, gitlabRemote, token)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	createMergeReqeustOptions := &gitlabc.CreateMergeRequestOptions{
-		Title:           gitlabc.String(title),
-		Description:     gitlabc.String(description),
-		SourceBranch:    gitlabc.String(currentBranch),
-		TargetBranch:    gitlabc.String(createMergeReqeustFlags.TargetBranch),
-		AssigneeID:      nil,
-		TargetProjectID: nil,
-	}
-
-	mergeRequest, _, err := client.MergeRequests.CreateMergeRequest(
+	mergeRequest, err := c.LabClient.CreateMergeRequest(
+		gitlabRemote.BaseUrl(),
+		token,
+		makeCreateMergeRequestOptios(title, description, currentBranch),
 		gitlabRemote.RepositoryFullName(),
-		createMergeReqeustOptions,
 	)
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -141,6 +129,18 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 	c.Ui.Message(fmt.Sprintf("#%d", mergeRequest.IID))
 
 	return ExitCodeOK
+}
+
+func makeCreateMergeRequestOptios(title, description, branch string) *gitlabc.CreateMergeRequestOptions {
+	opt := &gitlabc.CreateMergeRequestOptions{
+		Title:           gitlabc.String(title),
+		Description:     gitlabc.String(description),
+		SourceBranch:    gitlabc.String(branch),
+		TargetBranch:    gitlabc.String(createMergeReqeustFlags.TargetBranch),
+		AssigneeID:      nil,
+		TargetProjectID: nil,
+	}
+	return opt
 }
 
 func createMergeRequestMessage(title, description string) string {

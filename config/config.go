@@ -168,6 +168,15 @@ func (c *ConfigManager) askToken(ui ui.Ui, domain string) (string, error) {
 	return token, nil
 }
 
+func (c *ConfigManager) TopPriorityDomain(domains []string) string {
+	for _, domain := range domains {
+		if c.Config.hasDomain(domain) {
+			return domain
+		}
+	}
+	return ""
+}
+
 func (c *ConfigManager) GetTopDomain() string {
 	return c.Config.getTopDomain()
 }
@@ -273,6 +282,16 @@ func (c *Config) getTopDomain() string {
 		return c.PreferredDomains[0]
 	}
 	return ""
+}
+
+func (c *Config) hasDomain(value string) (result bool) {
+	result = false
+	for _, domain := range c.PreferredDomains {
+		if value == domain {
+			result = true
+		}
+	}
+	return
 }
 
 func (c *Config) addToken(domain string, token string) {

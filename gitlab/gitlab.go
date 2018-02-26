@@ -30,7 +30,7 @@ func (g *GitlabRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteI
 	// Filter gitlab remote url only
 	var gitlabRemote *git.RemoteInfo
 	if len(gitlabRemotes) == 1 {
-		gitlabRemote = &gitlabRemotes[0]
+		gitlabRemote = gitlabRemotes[0]
 	} else if len(gitlabRemotes) > 1 {
 		var err error
 		gitlabRemote, err = selectUseRemote(ui, gitlabRemotes, conf)
@@ -44,8 +44,8 @@ func (g *GitlabRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteI
 	return gitlabRemote, nil
 }
 
-func filterHasGitlabDomain(remoteInfos []git.RemoteInfo) []git.RemoteInfo {
-	var gitlabRemotes []git.RemoteInfo
+func filterHasGitlabDomain(remoteInfos []*git.RemoteInfo) []*git.RemoteInfo {
+	var gitlabRemotes []*git.RemoteInfo
 	for _, remoteInfo := range remoteInfos {
 		if strings.HasPrefix(remoteInfo.Domain, "gitlab") {
 			gitlabRemotes = append(gitlabRemotes, remoteInfo)
@@ -54,7 +54,7 @@ func filterHasGitlabDomain(remoteInfos []git.RemoteInfo) []git.RemoteInfo {
 	return gitlabRemotes
 }
 
-func selectUseRemote(ui ui.Ui, gitlabRemotes []git.RemoteInfo, conf *config.Config) (*git.RemoteInfo, error) {
+func selectUseRemote(ui ui.Ui, gitlabRemotes []*git.RemoteInfo, conf *config.Config) (*git.RemoteInfo, error) {
 	// Search for remote repositorie whose selection is prioritized in the config
 	var gitlabRemote *git.RemoteInfo
 	gitlabRemote = hasPriorityRemote(gitlabRemotes, conf.PreferredDomains)
@@ -75,18 +75,18 @@ func selectUseRemote(ui ui.Ui, gitlabRemotes []git.RemoteInfo, conf *config.Conf
 	return gitlabRemote, nil
 }
 
-func hasPriorityRemote(remoteInfos []git.RemoteInfo, preferredDomains []string) *git.RemoteInfo {
+func hasPriorityRemote(remoteInfos []*git.RemoteInfo, preferredDomains []string) *git.RemoteInfo {
 	for _, preferredDomain := range preferredDomains {
 		for _, remoteInfo := range remoteInfos {
 			if preferredDomain == remoteInfo.Domain {
-				return &remoteInfo
+				return remoteInfo
 			}
 		}
 	}
 	return nil
 }
 
-func inputUseRemote(ui ui.Ui, remoteInfos []git.RemoteInfo) (*git.RemoteInfo, error) {
+func inputUseRemote(ui ui.Ui, remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	ui.Message("That repository existing multi gitlab remote repository.")
 	for i, remoteInfo := range remoteInfos {
@@ -106,7 +106,7 @@ func inputUseRemote(ui ui.Ui, remoteInfos []git.RemoteInfo) (*git.RemoteInfo, er
 		return nil, fmt.Errorf("Invalid numver. %d", choiceNumber)
 	}
 
-	gitLabRemote := &remoteInfos[choiceNumber-1]
+	gitLabRemote := remoteInfos[choiceNumber-1]
 	return gitLabRemote, nil
 }
 

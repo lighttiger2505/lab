@@ -117,18 +117,18 @@ func GitCurrentBranch() (string, error) {
 	return currentBranch, nil
 }
 
-func GitRemotes() ([]RemoteInfo, error) {
+func GitRemotes() ([]*RemoteInfo, error) {
 	// Get remote repositorys
 	remotes := cmd.GitOutputs("git", []string{"remote"})
 	if len(remotes) == 0 {
 		return nil, errors.New("No remote setting in this repository")
 	}
 	// Extract domain, namespace, repository name from git remote url
-	var remoteInfos []RemoteInfo
+	var remoteInfos []*RemoteInfo
 	for _, remote := range remotes {
 		url := cmd.GitOutput("git", []string{"remote", "get-url", remote})
 		remoteInfo := NewRemoteInfo(url)
-		remoteInfos = append(remoteInfos, *remoteInfo)
+		remoteInfos = append(remoteInfos, remoteInfo)
 	}
 	return remoteInfos, nil
 }

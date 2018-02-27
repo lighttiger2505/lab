@@ -9,26 +9,26 @@ import (
 	"github.com/lighttiger2505/lab/ui"
 )
 
-var TestRemoteInfos = []git.RemoteInfo{
-	git.RemoteInfo{
+var TestRemoteInfos = []*git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlab.com",
 	},
-	git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlab.ssl.unknown.jp",
 	},
-	git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "github.com",
 	},
-	git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlao.com",
 	},
 }
 
-var TestRemoteInfoGitlab = []git.RemoteInfo{
-	git.RemoteInfo{
+var TestRemoteInfoGitlab = []*git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlab.com",
 	},
-	git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlab.ssl.unknown.jp",
 	},
 }

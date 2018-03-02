@@ -6,7 +6,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands"
+	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/git"
+	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/mitchellh/cli"
 )
@@ -38,16 +42,45 @@ func main() {
 
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {
-			return &commands.BrowseCommand{Ui: ui}, nil
+			return &commands.BrowseCommand{
+				Ui:           ui,
+				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				GitClient:    &git.GitClient{},
+				Cmd:          cmd.NewBasicCmd(""),
+				Config:       config.NewConfigManager(),
+			}, nil
 		},
 		"issue": func() (cli.Command, error) {
-			return &commands.IssueCommand{Ui: ui}, nil
+			return &commands.IssueCommand{
+				Ui:           ui,
+				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				LabClient:    &gitlab.LabClient{},
+				Config:       config.NewConfigManager(),
+			}, nil
 		},
 		"add-issue": func() (cli.Command, error) {
-			return &commands.AddIssueCommand{Ui: ui}, nil
+			return &commands.AddIssueCommand{
+				Ui:           ui,
+				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				LabClient:    &gitlab.LabClient{},
+				Config:       config.NewConfigManager(),
+			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
-			return &commands.MergeRequestCommand{Ui: ui}, nil
+			return &commands.MergeRequestCommand{
+				Ui:           ui,
+				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				LabClient:    &gitlab.LabClient{},
+				Config:       config.NewConfigManager(),
+			}, nil
+		},
+		"add-merge-request": func() (cli.Command, error) {
+			return &commands.AddMergeReqeustCommand{
+				Ui:           ui,
+				RemoteFilter: &gitlab.GitlabRemoteFilter{},
+				LabClient:    &gitlab.LabClient{},
+				Config:       config.NewConfigManager(),
+			}, nil
 		},
 	}
 

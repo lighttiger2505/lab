@@ -16,7 +16,15 @@ ensure: dep
 
 .PHONY: test
 test:
-	go test -v -cover github.com/lighttiger2505/lab/...
+	go test github.com/lighttiger2505/lab/...
+
+.PHONY: build
+build:
+	go build
+
+.PHONY: install
+install:
+	go install
 
 .PHONY: coverage
 coverage:

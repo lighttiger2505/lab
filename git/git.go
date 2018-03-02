@@ -13,6 +13,38 @@ import (
 	"github.com/lighttiger2505/lab/cmd"
 )
 
+type Client interface {
+	RemoteInfos() ([]*RemoteInfo, error)
+	CurrentBranch() (string, error)
+}
+
+type GitClient struct {
+	Client
+}
+
+func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
+	return GitRemotes()
+}
+
+func (g *GitClient) CurrentBranch() (string, error) {
+	// Get remote repositorys
+	branches := cmd.GitOutputs("git", []string{"branch"})
+
+	currentPrefix := "*"
+	currentBranch := ""
+	for _, branch := range branches {
+		if strings.HasPrefix(branch, currentPrefix) {
+			trimPrefix := strings.TrimPrefix(branch, currentPrefix)
+			currentBranch = strings.Trim(trimPrefix, " ")
+		}
+	}
+
+	if currentBranch == "" {
+		return "", errors.New("Not found current branch")
+	}
+	return currentBranch, nil
+}
+
 type RemoteInfo struct {
 	Domain     string
 	NameSpace  string
@@ -40,6 +72,10 @@ func (r *RemoteInfo) RepositoryUrl() string {
 	return strings.Join([]string{r.BaseUrl(), r.RepositoryFullName()}, "/")
 }
 
+func (r *RemoteInfo) BranchUrl(branch string) string {
+	return strings.Join([]string{r.BaseUrl(), r.RepositoryFullName(), "tree", branch}, "/")
+}
+
 func (r *RemoteInfo) IssueUrl() string {
 	return strings.Join([]string{r.RepositoryUrl(), "issues"}, "/")
 }
@@ -56,22 +92,49 @@ func (r *RemoteInfo) MergeRequestDetailUrl(mergeRequestNo int) string {
 	return strings.Join([]string{r.MergeRequestUrl(), fmt.Sprintf("%d", mergeRequestNo)}, "/")
 }
 
+func (r *RemoteInfo) PipeLineUrl() string {
+	return strings.Join([]string{r.RepositoryUrl(), "pipelines"}, "/")
+}
+
+func (r *RemoteInfo) PipeLineDetailUrl(iid int) string {
+	return strings.Join([]string{r.PipeLineUrl(), fmt.Sprintf("%d", iid)}, "/")
+}
+
 func (r *RemoteInfo) ApiUrl() string {
 	return strings.Join([]string{r.BaseUrl(), "api", "v4"}, "/")
 }
 
-func GitRemotes() ([]RemoteInfo, error) {
+func GitCurrentBranch() (string, error) {
+	// Get remote repositorys
+	branches := cmd.GitOutputs("git", []string{"branch"})
+
+	currentPrefix := "*"
+	currentBranch := ""
+	for _, branch := range branches {
+		if strings.HasPrefix(branch, currentPrefix) {
+			trimPrefix := strings.TrimPrefix(branch, currentPrefix)
+			currentBranch = strings.Trim(trimPrefix, " ")
+		}
+	}
+
+	if currentBranch == "" {
+		return "", errors.New("Not found current branch")
+	}
+	return currentBranch, nil
+}
+
+func GitRemotes() ([]*RemoteInfo, error) {
 	// Get remote repositorys
 	remotes := cmd.GitOutputs("git", []string{"remote"})
 	if len(remotes) == 0 {
 		return nil, errors.New("No remote setting in this repository")
 	}
 	// Extract domain, namespace, repository name from git remote url
-	var remoteInfos []RemoteInfo
+	var remoteInfos []*RemoteInfo
 	for _, remote := range remotes {
 		url := cmd.GitOutput("git", []string{"remote", "get-url", remote})
 		remoteInfo := NewRemoteInfo(url)
-		remoteInfos = append(remoteInfos, *remoteInfo)
+		remoteInfos = append(remoteInfos, remoteInfo)
 	}
 	return remoteInfos, nil
 }
@@ -140,8 +203,8 @@ func gitOutput(input ...string) (outputs []string, err error) {
 	return outputs, err
 }
 
-func gitCmd(args ...string) *cmd.Cmd {
-	cmd := cmd.NewCmd("git")
+func gitCmd(args ...string) *cmd.BasicCmd {
+	cmd := cmd.NewBasicCmd("git")
 
 	for _, v := range GlobalFlags {
 		cmd.WithArg(v)
@@ -191,4 +254,19 @@ func gitGetConfig(args ...string) (string, error) {
 func gitConfigCommand(args []string) []string {
 	cmd := []string{"config"}
 	return append(cmd, args...)
+}
+
+type MockClient struct {
+	MockRemoteInfos   func() ([]*RemoteInfo, error)
+	MockCurrentBranch func() (string, error)
+}
+
+func (m *MockClient) RemoteInfos() ([]*RemoteInfo, error) {
+	// return []*RemoteInfo{}, nil
+	return m.MockRemoteInfos()
+}
+
+func (m *MockClient) CurrentBranch() (string, error) {
+	// return "currentBranch", nil
+	return m.MockCurrentBranch()
 }

@@ -3,13 +3,13 @@ package commands
 import (
 	"bytes"
 	"fmt"
+
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	gitlabc "github.com/xanzy/go-gitlab"
-	"strings"
 )
 
 var createIssueFlags CreateIssueFlags
@@ -25,7 +25,10 @@ type CreateIssueFlags struct {
 }
 
 type AddIssueCommand struct {
-	Ui ui.Ui
+	Ui           ui.Ui
+	RemoteFilter gitlab.RemoteFilter
+	LabClient    gitlab.Client
+	Config       *config.ConfigManager
 }
 
 func (c *AddIssueCommand) Synopsis() string {
@@ -49,8 +52,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 	var description string
 
 	if createIssueFlags.Title == "" || createIssueFlags.Description == "" {
-		cs := git.CommentChar()
-		message := createMessage(createIssueFlags.Title, createIssueFlags.Description, cs)
+		message := createIssueMessage(createIssueFlags.Title, createIssueFlags.Description)
 
 		editor, err := git.NewEditor("ISSUE", "issue", message)
 		if err != nil {
@@ -72,35 +74,38 @@ func (c *AddIssueCommand) Run(args []string) int {
 		description = createIssueFlags.Description
 	}
 
-	conf, err := config.NewConfig()
+	if title == "" {
+		return ExitCodeOK
+	}
+
+	// Load config
+	if err := c.Config.Init(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	conf, err := c.Config.Load()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := gitlab.GitlabRemote(c.Ui, conf)
+	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	client, err := gitlab.GitlabClient(c.Ui, gitlabRemote, conf)
+	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	createIssueOptions := &gitlabc.CreateIssueOptions{
-		Title:       gitlabc.String(title),
-		Description: gitlabc.String(description),
-		AssigneeID:  nil,
-		MilestoneID: nil,
-		Labels:      []string{},
-	}
-
-	issue, _, err := client.Issues.CreateIssue(
+	issue, err := c.LabClient.CreateIssue(
+		gitlabRemote.BaseUrl(),
+		token,
+		makeCreateIssueOptions(title, description),
 		gitlabRemote.RepositoryFullName(),
-		createIssueOptions,
 	)
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -112,14 +117,24 @@ func (c *AddIssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func createMessage(title, description, cs string) string {
-	message := strings.Replace(`%s
-# Creating an issue
+func makeCreateIssueOptions(title, description string) *gitlabc.CreateIssueOptions {
+	opt := &gitlabc.CreateIssueOptions{
+		Title:       gitlabc.String(title),
+		Description: gitlabc.String(description),
+		AssigneeID:  nil,
+		MilestoneID: nil,
+		Labels:      []string{},
+	}
+	return opt
+}
 
-# Write a message for this issue. The first block of
-# text is the title and the rest is the description.
+func createIssueMessage(title, description string) string {
+	message := `<!-- Write a message for this issue. The first block of text is the title -->
 %s
-`, "#", cs, -1)
+
+<!-- the rest is the description.  -->
+%s
+`
 	message = fmt.Sprintf(message, title, description)
 	return message
 }

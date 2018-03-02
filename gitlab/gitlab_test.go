@@ -9,37 +9,37 @@ import (
 	"github.com/lighttiger2505/lab/ui"
 )
 
-var TestRemoteInfos = []git.RemoteInfo{
-	git.RemoteInfo{
+var TestRemoteInfos = []*git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlab.com",
 	},
-	git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlab.ssl.unknown.jp",
 	},
-	git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "github.com",
 	},
-	git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlao.com",
 	},
 }
 
-var TestRemoteInfoGitlab = []git.RemoteInfo{
-	git.RemoteInfo{
+var TestRemoteInfoGitlab = []*git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlab.com",
 	},
-	git.RemoteInfo{
+	&git.RemoteInfo{
 		Domain: "gitlab.ssl.unknown.jp",
 	},
 }
 
 func TestFilterHasGitlabDomain(t *testing.T) {
 	got := filterHasGitlabDomain(TestRemoteInfos)
-	want := []git.RemoteInfo{
-		git.RemoteInfo{
+	want := []*git.RemoteInfo{
+		&git.RemoteInfo{
 			Domain: "gitlab.com",
 		},
-		git.RemoteInfo{
+		&git.RemoteInfo{
 			Domain: "gitlab.ssl.unknown.jp",
 		},
 	}
@@ -120,5 +120,13 @@ func TestInputUseRemote_InvalidValue_Upper(t *testing.T) {
 	_, err := inputUseRemote(mockUI, TestRemoteInfoGitlab)
 	if err == nil {
 		t.Fail()
+	}
+}
+
+func TestParceRepositoryFullName(t *testing.T) {
+	got := ParceRepositoryFullName("https://gitlab.ssl.iridge.jp/proj/repo/issues/12")
+	want := "proj/repo"
+	if want != got {
+		t.Errorf("bad return value want %#v got %#v", want, got)
 	}
 }

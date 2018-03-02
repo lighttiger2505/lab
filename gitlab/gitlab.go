@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,22 +8,29 @@ import (
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/ui"
-	"github.com/xanzy/go-gitlab"
 )
 
-func GitlabRemote(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+type RemoteFilter interface {
+	Filter(ui.Ui, *config.Config) (*git.RemoteInfo, error)
+}
+
+type GitlabRemoteFilter struct {
+}
+
+func (g *GitlabRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
 	// Get remote urls
 	gitRemotes, err := git.GitRemotes()
 	if err != nil {
 		return nil, err
 	}
+
 	// Filtering only gitlab remote info
 	gitlabRemotes := filterHasGitlabDomain(gitRemotes)
 
 	// Filter gitlab remote url only
 	var gitlabRemote *git.RemoteInfo
 	if len(gitlabRemotes) == 1 {
-		gitlabRemote = &gitlabRemotes[0]
+		gitlabRemote = gitlabRemotes[0]
 	} else if len(gitlabRemotes) > 1 {
 		var err error
 		gitlabRemote, err = selectUseRemote(ui, gitlabRemotes, conf)
@@ -32,13 +38,14 @@ func GitlabRemote(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
 			return nil, fmt.Errorf("Failed select multi remote repository. %v", err.Error())
 		}
 	} else {
-		return nil, errors.New("Not a cloned repository from gitlab")
+		// Current directory is not git repository
+		return nil, fmt.Errorf("Not found gitlab remote repository")
 	}
 	return gitlabRemote, nil
 }
 
-func filterHasGitlabDomain(remoteInfos []git.RemoteInfo) []git.RemoteInfo {
-	var gitlabRemotes []git.RemoteInfo
+func filterHasGitlabDomain(remoteInfos []*git.RemoteInfo) []*git.RemoteInfo {
+	var gitlabRemotes []*git.RemoteInfo
 	for _, remoteInfo := range remoteInfos {
 		if strings.HasPrefix(remoteInfo.Domain, "gitlab") {
 			gitlabRemotes = append(gitlabRemotes, remoteInfo)
@@ -47,7 +54,7 @@ func filterHasGitlabDomain(remoteInfos []git.RemoteInfo) []git.RemoteInfo {
 	return gitlabRemotes
 }
 
-func selectUseRemote(ui ui.Ui, gitlabRemotes []git.RemoteInfo, conf *config.Config) (*git.RemoteInfo, error) {
+func selectUseRemote(ui ui.Ui, gitlabRemotes []*git.RemoteInfo, conf *config.Config) (*git.RemoteInfo, error) {
 	// Search for remote repositorie whose selection is prioritized in the config
 	var gitlabRemote *git.RemoteInfo
 	gitlabRemote = hasPriorityRemote(gitlabRemotes, conf.PreferredDomains)
@@ -68,18 +75,18 @@ func selectUseRemote(ui ui.Ui, gitlabRemotes []git.RemoteInfo, conf *config.Conf
 	return gitlabRemote, nil
 }
 
-func hasPriorityRemote(remoteInfos []git.RemoteInfo, preferredDomains []string) *git.RemoteInfo {
+func hasPriorityRemote(remoteInfos []*git.RemoteInfo, preferredDomains []string) *git.RemoteInfo {
 	for _, preferredDomain := range preferredDomains {
 		for _, remoteInfo := range remoteInfos {
 			if preferredDomain == remoteInfo.Domain {
-				return &remoteInfo
+				return remoteInfo
 			}
 		}
 	}
 	return nil
 }
 
-func inputUseRemote(ui ui.Ui, remoteInfos []git.RemoteInfo) (*git.RemoteInfo, error) {
+func inputUseRemote(ui ui.Ui, remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	ui.Message("That repository existing multi gitlab remote repository.")
 	for i, remoteInfo := range remoteInfos {
@@ -99,42 +106,19 @@ func inputUseRemote(ui ui.Ui, remoteInfos []git.RemoteInfo) (*git.RemoteInfo, er
 		return nil, fmt.Errorf("Invalid numver. %d", choiceNumber)
 	}
 
-	gitLabRemote := &remoteInfos[choiceNumber-1]
+	gitLabRemote := remoteInfos[choiceNumber-1]
 	return gitLabRemote, nil
 }
 
-func GitlabClient(ui ui.Ui, gitlabRemote *git.RemoteInfo, conf *config.Config) (*gitlab.Client, error) {
-	token, err := getPrivateToken(ui, gitlabRemote.Domain, conf)
-	if err != nil {
-		return nil, fmt.Errorf("Failed getting private token. %s", err.Error())
-	}
-
-	// Create client
-	client := gitlab.NewClient(nil, token)
-	if err := client.SetBaseURL(gitlabRemote.ApiUrl()); err != nil {
-		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
-	}
-	return client, nil
+func ParceRepositoryFullName(webURL string) string {
+	sp := strings.Split(webURL, "/")
+	return strings.Join([]string{sp[3], sp[4]}, "/")
 }
 
-func getPrivateToken(ui ui.Ui, domain string, conf *config.Config) (string, error) {
-	token := ""
-	for _, mapItem := range conf.Tokens {
-		if mapItem.Key.(string) == domain {
-			token = mapItem.Value.(string)
-		}
-	}
+type MockRemoteFilter struct {
+	MockFilter func(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error)
+}
 
-	if token == "" {
-		token, err := ui.Ask("Please input GitLab private token :")
-		if err != nil {
-			return "", fmt.Errorf("Failed input private token. %s", err.Error())
-		}
-
-		conf.AddToken(domain, token)
-		if err := conf.Write(); err != nil {
-			return "", fmt.Errorf("Failed update config of private token. %s", err.Error())
-		}
-	}
-	return token, nil
+func (m *MockRemoteFilter) Filter(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+	return m.MockFilter(ui, conf)
 }

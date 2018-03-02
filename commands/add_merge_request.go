@@ -1,0 +1,155 @@
+package commands
+
+import (
+	"bytes"
+	"fmt"
+
+	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/git"
+	"github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/ui"
+	gitlabc "github.com/xanzy/go-gitlab"
+)
+
+var createMergeReqeustFlags CreateMergeReqeustFlags
+var createMergeReqeustParser = flags.NewParser(&createMergeReqeustFlags, flags.Default)
+
+type CreateMergeReqeustFlags struct {
+	Title        string `short:"t" long:"title" description:"The title of an merge request"`
+	Description  string `short:"d" long:"description" description:"The description of an merge request"`
+	SourceBranch string `short:"s" long:"source" description:"The source branch"`
+	TargetBranch string `short:"g" long:"target" description:"The target branch"`
+	AssigneeID   int    `short:"a" long:"assignee_id" description:"The ID of a user to assign merge request"`
+	MilestoneID  int    `short:"m" long:"milestone_id" description:"The ID of a milestone to assign merge request"`
+
+	Labels string `short:"l" long:"labels" description:"Comma-separated label names for an merge request"`
+}
+
+type AddMergeReqeustCommand struct {
+	Ui           ui.Ui
+	RemoteFilter gitlab.RemoteFilter
+	LabClient    gitlab.Client
+	Config       *config.ConfigManager
+}
+
+func (c *AddMergeReqeustCommand) Synopsis() string {
+	return "Add merge request"
+}
+
+func (c *AddMergeReqeustCommand) Help() string {
+	buf := &bytes.Buffer{}
+	createMergeReqeustParser.Usage = "add-merge-request [options]"
+	createMergeReqeustParser.WriteHelp(buf)
+	return buf.String()
+}
+
+func (c *AddMergeReqeustCommand) Run(args []string) int {
+	if _, err := createMergeReqeustParser.Parse(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	// Get merge request title and description
+	// launch vim when non specific flags
+	var title string
+	var description string
+	if createMergeReqeustFlags.Title == "" || createMergeReqeustFlags.Description == "" {
+		message := createMergeRequestMessage(createMergeReqeustFlags.Title, createMergeReqeustFlags.Description)
+
+		editor, err := git.NewEditor("MERGE_REQUEST", "merge-request", message)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		title, description, err = editor.EditTitleAndDescription()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		if editor != nil {
+			defer editor.DeleteFile()
+		}
+	} else {
+		title = createMergeReqeustFlags.Title
+		description = createMergeReqeustFlags.Description
+	}
+
+	if title == "" {
+		return ExitCodeOK
+	}
+
+	// Get source branch
+	// current branch from local repository when non specific flags
+	currentBranch, err := git.GitCurrentBranch()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	if createMergeReqeustFlags.SourceBranch != "" {
+		currentBranch = createMergeReqeustFlags.SourceBranch
+	}
+
+	// Load config
+	if err := c.Config.Init(); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+	conf, err := c.Config.Load()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	mergeRequest, err := c.LabClient.CreateMergeRequest(
+		gitlabRemote.BaseUrl(),
+		token,
+		makeCreateMergeRequestOptios(title, description, currentBranch),
+		gitlabRemote.RepositoryFullName(),
+	)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	c.Ui.Message(fmt.Sprintf("#%d", mergeRequest.IID))
+
+	return ExitCodeOK
+}
+
+func makeCreateMergeRequestOptios(title, description, branch string) *gitlabc.CreateMergeRequestOptions {
+	opt := &gitlabc.CreateMergeRequestOptions{
+		Title:           gitlabc.String(title),
+		Description:     gitlabc.String(description),
+		SourceBranch:    gitlabc.String(branch),
+		TargetBranch:    gitlabc.String(createMergeReqeustFlags.TargetBranch),
+		AssigneeID:      nil,
+		TargetProjectID: nil,
+	}
+	return opt
+}
+
+func createMergeRequestMessage(title, description string) string {
+	message := `<!-- Write a message for this merge request. The first block of text is the title -->
+%s
+
+<!-- the rest is the description.  -->
+%s
+`
+	message = fmt.Sprintf(message, title, description)
+	return message
+}

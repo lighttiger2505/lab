@@ -35,11 +35,11 @@ var TestRemoteInfoGitlab = []*git.RemoteInfo{
 
 func TestFilterHasGitlabDomain(t *testing.T) {
 	got := filterHasGitlabDomain(TestRemoteInfos)
-	want := []git.RemoteInfo{
-		git.RemoteInfo{
+	want := []*git.RemoteInfo{
+		&git.RemoteInfo{
 			Domain: "gitlab.com",
 		},
-		git.RemoteInfo{
+		&git.RemoteInfo{
 			Domain: "gitlab.ssl.unknown.jp",
 		},
 	}

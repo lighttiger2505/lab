@@ -261,10 +261,6 @@ type MockClient struct {
 	MockCurrentBranch func() (string, error)
 }
 
-// func NewMockClient() *MockClient {
-// 	return &MockClient{}
-// }
-
 func (m *MockClient) RemoteInfos() ([]*RemoteInfo, error) {
 	// return []*RemoteInfo{}, nil
 	return m.MockRemoteInfos()

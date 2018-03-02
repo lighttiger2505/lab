@@ -88,8 +88,6 @@ func (c *IssueCommand) Run(args []string) int {
 		gitlabRemote.Repository = project
 	}
 
-	fmt.Println(gitlabRemote.Domain)
-
 	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
 	if err != nil {
 		c.Ui.Error(err.Error())

@@ -14,10 +14,16 @@ import (
 )
 
 type Client interface {
+	RemoteInfos() ([]*RemoteInfo, error)
 	CurrentBranch() (string, error)
 }
 
 type GitClient struct {
+	Client
+}
+
+func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
+	return GitRemotes()
 }
 
 func (g *GitClient) CurrentBranch() (string, error) {
@@ -248,4 +254,23 @@ func gitGetConfig(args ...string) (string, error) {
 func gitConfigCommand(args []string) []string {
 	cmd := []string{"config"}
 	return append(cmd, args...)
+}
+
+type MockClient struct {
+	MockRemoteInfos   func() ([]*RemoteInfo, error)
+	MockCurrentBranch func() (string, error)
+}
+
+// func NewMockClient() *MockClient {
+// 	return &MockClient{}
+// }
+
+func (m *MockClient) RemoteInfos() ([]*RemoteInfo, error) {
+	// return []*RemoteInfo{}, nil
+	return m.MockRemoteInfos()
+}
+
+func (m *MockClient) CurrentBranch() (string, error) {
+	// return "currentBranch", nil
+	return m.MockCurrentBranch()
 }

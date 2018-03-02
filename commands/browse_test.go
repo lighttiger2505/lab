@@ -24,6 +24,12 @@ var mockBrwoseRemoteFilter = &gitlab.MockRemoteFilter{
 	},
 }
 
+var mockGitClient = &git.MockClient{
+	MockCurrentBranch: func() (string, error) {
+		return "currentBranch", nil
+	},
+}
+
 func TestBrowseCommandRun(t *testing.T) {
 	ui := ui.NewMockUi()
 
@@ -37,7 +43,7 @@ func TestBrowseCommandRun(t *testing.T) {
 	c := BrowseCommand{
 		Ui:           ui,
 		RemoteFilter: mockBrwoseRemoteFilter,
-		GitClient:    git.NewMockClient(),
+		GitClient:    mockGitClient,
 		Cmd:          cmd.NewMockCmd("browse"),
 		Config:       conf,
 	}

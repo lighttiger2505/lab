@@ -53,7 +53,7 @@ func newBrowseOptionParser(browseOpt *BrowseOpt) *flags.Parser {
 
 type BrowseCommand struct {
 	Ui        ui.Ui
-	Provider  *gitlab.Provider
+	Provider  gitlab.Provider
 	GitClient git.Client
 	Cmd       cmd.Cmd
 }

@@ -35,7 +35,7 @@ func newIssueOptionParser(issueOpt *IssueOpt) *flags.Parser {
 
 type IssueCommand struct {
 	Ui       ui.Ui
-	Provider *gitlab.Provider
+	Provider gitlab.Provider
 }
 
 func (c *IssueCommand) Synopsis() string {

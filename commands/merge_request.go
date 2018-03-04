@@ -35,7 +35,7 @@ func newMergeRequestOptionParser(mrOpt *MergeRequestOpt) *flags.Parser {
 
 type MergeRequestCommand struct {
 	Ui       ui.Ui
-	Provider *gitlab.Provider
+	Provider gitlab.Provider
 }
 
 func (c *MergeRequestCommand) Synopsis() string {

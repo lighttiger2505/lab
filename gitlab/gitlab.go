@@ -11,21 +11,28 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-type Provider struct {
+type Provider interface {
+	Init() error
+	GetSpecificRemote(namespace, project string) *git.RemoteInfo
+	GetCurrentRemote() (*git.RemoteInfo, error)
+	GetClient(remote *git.RemoteInfo) (Client, error)
+}
+
+type GitlabProvider struct {
 	UI            ui.Ui
 	GitClient     git.Client
 	ConfigManager *config.ConfigManager
 }
 
-func NewProvider(ui ui.Ui, gitClient git.Client, configManager *config.ConfigManager) *Provider {
-	return &Provider{
+func NewProvider(ui ui.Ui, gitClient git.Client, configManager *config.ConfigManager) *GitlabProvider {
+	return &GitlabProvider{
 		UI:            ui,
 		GitClient:     gitClient,
 		ConfigManager: configManager,
 	}
 }
 
-func (p *Provider) Init() error {
+func (p *GitlabProvider) Init() error {
 	// Load config
 	if err := p.ConfigManager.Init(); err != nil {
 		return err
@@ -37,7 +44,7 @@ func (p *Provider) Init() error {
 	return nil
 }
 
-func (p *Provider) GetSpecificRemote(namespace, project string) *git.RemoteInfo {
+func (p *GitlabProvider) GetSpecificRemote(namespace, project string) *git.RemoteInfo {
 	domain := p.ConfigManager.GetTopDomain()
 	return &git.RemoteInfo{
 		Domain:     domain,
@@ -46,7 +53,7 @@ func (p *Provider) GetSpecificRemote(namespace, project string) *git.RemoteInfo 
 	}
 }
 
-func (p *Provider) GetCurrentRemote() (*git.RemoteInfo, error) {
+func (p *GitlabProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
 	// Get remote urls
 	gitRemotes, err := p.GitClient.RemoteInfos()
 	if err != nil {
@@ -83,7 +90,7 @@ func (p *Provider) GetCurrentRemote() (*git.RemoteInfo, error) {
 	return gitlabRemote, nil
 }
 
-func (p *Provider) GetClient(remote *git.RemoteInfo) (Client, error) {
+func (p *GitlabProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
 	token := p.ConfigManager.GetTokenOnly(remote.Domain)
 
 	if token == "" {
@@ -104,7 +111,7 @@ func (p *Provider) GetClient(remote *git.RemoteInfo) (Client, error) {
 	return NewLabClient(client), nil
 }
 
-func (p *Provider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {
+func (p *GitlabProvider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	p.UI.Message("That repository existing multi gitlab remote repository.")
 	for i, remoteInfo := range remoteInfos {
@@ -151,4 +158,28 @@ func registedDomainRemote(remoteInfos []*git.RemoteInfo, resistedDomains []strin
 func ParceRepositoryFullName(webURL string) string {
 	sp := strings.Split(webURL, "/")
 	return strings.Join([]string{sp[3], sp[4]}, "/")
+}
+
+type MockProvider struct {
+	Provider
+	MockInit              func() error
+	MockGetSpecificRemote func(namespace, project string) *git.RemoteInfo
+	MockGetCurrentRemote  func() (*git.RemoteInfo, error)
+	MockGetClient         func(remote *git.RemoteInfo) (Client, error)
+}
+
+func (m *MockProvider) Init() error {
+	return m.MockInit()
+}
+
+func (m *MockProvider) GetSpecificRemote(namespace, project string) *git.RemoteInfo {
+	return m.MockGetSpecificRemote(namespace, project)
+}
+
+func (m *MockProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
+	return m.MockGetCurrentRemote()
+}
+
+func (m *MockProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
+	return m.MockGetClient(remote)
 }

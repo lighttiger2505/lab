@@ -27,7 +27,7 @@ type CreateMergeReqeustFlags struct {
 
 type AddMergeReqeustCommand struct {
 	Ui       ui.Ui
-	Provider *gitlab.Provider
+	Provider gitlab.Provider
 }
 
 func (c *AddMergeReqeustCommand) Synopsis() string {

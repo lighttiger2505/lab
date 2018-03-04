@@ -41,7 +41,7 @@ func main() {
 	log.SetOutput(ioutil.Discard)
 
 	configManager := config.NewConfigManager()
-	provider := gitlab.NewProvider(ui, configManager)
+	provider := gitlab.NewProvider(ui, git.NewGitClient(), configManager)
 
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {

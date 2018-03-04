@@ -14,42 +14,44 @@ import (
 	"github.com/lighttiger2505/lab/ui"
 )
 
-var mockBrwoseRemoteFilter = &gitlab.MockRemoteFilter{
-	MockFilter: func(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
-		return &git.RemoteInfo{
-			Domain:     "gitlab.ssl.domain1.jp",
-			NameSpace:  "namespace",
-			Repository: "project",
+var mockGitClient = &git.MockClient{
+	MockRemoteInfos: func() ([]*git.RemoteInfo, error) {
+		return []*git.RemoteInfo{
+			&git.RemoteInfo{
+				Domain:     "gitlab.ssl.domain1.jp",
+				NameSpace:  "namespace",
+				Repository: "project",
+			},
 		}, nil
 	},
-}
-
-var mockGitClient = &git.MockClient{
 	MockCurrentBranch: func() (string, error) {
 		return "currentBranch", nil
 	},
 }
 
 func TestBrowseCommandRun(t *testing.T) {
-	ui := ui.NewMockUi()
+	mockUI := ui.NewMockUi()
 
 	f, _ := ioutil.TempFile("", "test")
 	tmppath := f.Name()
 	f.Write([]byte(config.ConfigDataTest))
 	f.Close()
 	defer os.Remove(tmppath)
-	conf := config.NewConfigManagerPath(tmppath)
+	configManager := config.NewConfigManagerPath(tmppath)
+
+	// Initialize provider
+	provider := gitlab.NewProvider(mockUI, mockGitClient, configManager)
+	provider.Init()
 
 	c := BrowseCommand{
-		Ui:           ui,
-		RemoteFilter: mockBrwoseRemoteFilter,
-		GitClient:    mockGitClient,
-		Cmd:          cmd.NewMockCmd("browse"),
-		Config:       conf,
+		Ui:        mockUI,
+		Provider:  provider,
+		GitClient: mockGitClient,
+		Cmd:       cmd.NewMockCmd("browse"),
 	}
 	args := []string{}
 	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", ui.ErrorWriter.String())
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
 	}
 }
 

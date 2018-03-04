@@ -80,34 +80,34 @@ func (l *LabClient) CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions, re
 }
 
 type MockLabClient struct {
-	MockIssues              func(baseurl, token string, opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error)
-	MockProjectIssues       func(baseurl, token string, opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)
-	MockMergeRequest        func(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
-	MockProjectMergeRequest func(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
-	MockCreateIssue         func(baseurl, token string, opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error)
-	MockCreateMergeRequest  func(baseurl, token string, opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error)
+	MockIssues              func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error)
+	MockProjectIssues       func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)
+	MockMergeRequest        func(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
+	MockProjectMergeRequest func(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
+	MockCreateIssue         func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error)
+	MockCreateMergeRequest  func(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error)
 }
 
-func (m *MockLabClient) Issues(baseurl, token string, opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
-	return m.MockIssues(baseurl, token, opt)
+func (m *MockLabClient) Issues(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
+	return m.MockIssues(opt)
 }
 
-func (m *MockLabClient) ProjectIssues(baseurl, token string, opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
-	return m.MockProjectIssues(baseurl, token, opt, repositoryName)
+func (m *MockLabClient) ProjectIssues(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
+	return m.MockProjectIssues(opt, repositoryName)
 }
 
-func (m *MockLabClient) MergeRequest(baseurl, token string, opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
-	return m.MockMergeRequest(baseurl, token, opt)
+func (m *MockLabClient) MergeRequest(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
+	return m.MockMergeRequest(opt)
 }
 
-func (m *MockLabClient) ProjectMergeRequest(baseurl, token string, opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
-	return m.MockProjectMergeRequest(baseurl, token, opt, repositoryName)
+func (m *MockLabClient) ProjectMergeRequest(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
+	return m.MockProjectMergeRequest(opt, repositoryName)
 }
 
-func (m *MockLabClient) CreateIssue(baseurl, token string, opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
-	return m.MockCreateIssue(baseurl, token, opt, repositoryName)
+func (m *MockLabClient) CreateIssue(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
+	return m.MockCreateIssue(opt, repositoryName)
 }
 
-func (m *MockLabClient) CreateMergeRequest(baseurl, token string, opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error) {
-	return m.MockCreateMergeRequest(baseurl, token, opt, repositoryName)
+func (m *MockLabClient) CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error) {
+	return m.MockCreateMergeRequest(opt, repositoryName)
 }

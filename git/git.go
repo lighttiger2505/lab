@@ -22,6 +22,10 @@ type GitClient struct {
 	Client
 }
 
+func NewGitClient() Client {
+	return &GitClient{}
+}
+
 func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return GitRemotes()
 }

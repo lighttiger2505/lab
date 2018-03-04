@@ -13,12 +13,14 @@ import (
 
 type Provider struct {
 	UI            ui.Ui
+	GitClient     git.Client
 	ConfigManager *config.ConfigManager
 }
 
-func NewProvider(ui ui.Ui, configManager *config.ConfigManager) *Provider {
+func NewProvider(ui ui.Ui, gitClient git.Client, configManager *config.ConfigManager) *Provider {
 	return &Provider{
 		UI:            ui,
+		GitClient:     gitClient,
 		ConfigManager: configManager,
 	}
 }
@@ -46,7 +48,7 @@ func (p *Provider) GetSpecificRemote(namespace, project string) *git.RemoteInfo 
 
 func (p *Provider) GetCurrentRemote() (*git.RemoteInfo, error) {
 	// Get remote urls
-	gitRemotes, err := git.GitRemotes()
+	gitRemotes, err := p.GitClient.RemoteInfos()
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +66,7 @@ func (p *Provider) GetCurrentRemote() (*git.RemoteInfo, error) {
 		return nil, fmt.Errorf("Not found gitlab remote repository")
 	}
 
-	gitlabRemote := p.priorityRemote(gitlabRemotes)
+	gitlabRemote := registedDomainRemote(gitlabRemotes, p.ConfigManager.Config.PreferredDomains)
 	if gitlabRemote == nil {
 		// Get remote repository selected by user input
 		var err error
@@ -102,17 +104,6 @@ func (p *Provider) GetClient(remote *git.RemoteInfo) (Client, error) {
 	return NewLabClient(client), nil
 }
 
-func (p *Provider) priorityRemote(remoteInfos []*git.RemoteInfo) *git.RemoteInfo {
-	for _, preferredDomain := range p.ConfigManager.Config.PreferredDomains {
-		for _, remoteInfo := range remoteInfos {
-			if preferredDomain == remoteInfo.Domain {
-				return remoteInfo
-			}
-		}
-	}
-	return nil
-}
-
 func (p *Provider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	p.UI.Message("That repository existing multi gitlab remote repository.")
@@ -127,10 +118,10 @@ func (p *Provider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.Remot
 	// Check valid number
 	choiceNumber, err := strconv.Atoi(text)
 	if err != nil {
-		return nil, fmt.Errorf("Failed parse number. %v", err.Error())
+		return nil, fmt.Errorf("Failed parse number. Error: %s", err.Error())
 	}
 	if choiceNumber < 1 || choiceNumber > len(remoteInfos) {
-		return nil, fmt.Errorf("Invalid numver. %d", choiceNumber)
+		return nil, fmt.Errorf("Invalid number. Input: %d", choiceNumber)
 	}
 
 	return remoteInfos[choiceNumber-1], nil
@@ -144,6 +135,17 @@ func filterHasGitlabDomain(remoteInfos []*git.RemoteInfo) []*git.RemoteInfo {
 		}
 	}
 	return gitlabRemotes
+}
+
+func registedDomainRemote(remoteInfos []*git.RemoteInfo, resistedDomains []string) *git.RemoteInfo {
+	for _, preferredDomain := range resistedDomains {
+		for _, remoteInfo := range remoteInfos {
+			if preferredDomain == remoteInfo.Domain {
+				return remoteInfo
+			}
+		}
+	}
+	return nil
 }
 
 func ParceRepositoryFullName(webURL string) string {

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/config"
+	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
@@ -34,10 +34,8 @@ func newIssueOptionParser(issueOpt *IssueOpt) *flags.Parser {
 }
 
 type IssueCommand struct {
-	Ui           ui.Ui
-	RemoteFilter gitlab.RemoteFilter
-	LabClient    gitlab.Client
-	Config       *config.ConfigManager
+	Ui       ui.Ui
+	Provider *gitlab.Provider
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -62,33 +60,27 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Load config
-	if err := c.Config.Init(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-	conf, err := c.Config.Load()
-	if err != nil {
+	// Initialize provider
+	if err := c.Provider.Init(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
+	// Getting git remote info
+	var gitlabRemote *git.RemoteInfo
+	if globalOpt.Repository != "" {
+		namespace, project := globalOpt.NameSpaceAndProject()
+		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
+	} else {
+		var err error
+		gitlabRemote, err = c.Provider.GetCurrentRemote()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
 	}
 
-	// Replace specific repository
-	domain := c.Config.GetTopDomain()
-	if issueOpt.GlobalOpt.Repository != "" {
-		namespace, project := issueOpt.GlobalOpt.NameSpaceAndProject()
-		gitlabRemote.Domain = domain
-		gitlabRemote.NameSpace = namespace
-		gitlabRemote.Repository = project
-	}
-
-	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
+	client, err := c.Provider.GetClient(gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -96,11 +88,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 	var datas []string
 	if issueOpt.SearchOpt.AllRepository {
-		issues, err := c.LabClient.Issues(
-			gitlabRemote.ApiUrl(),
-			token,
-			makeIssueOption(issueOpt.SearchOpt),
-		)
+		issues, err := client.Issues(makeIssueOption(issueOpt.SearchOpt))
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -108,12 +96,7 @@ func (c *IssueCommand) Run(args []string) int {
 		datas = issueOutput(issues)
 
 	} else {
-		issues, err := c.LabClient.ProjectIssues(
-			gitlabRemote.ApiUrl(),
-			token,
-			makeProjectIssueOption(issueOpt.SearchOpt),
-			gitlabRemote.RepositoryFullName(),
-		)
+		issues, err := client.ProjectIssues(makeProjectIssueOption(issueOpt.SearchOpt), gitlabRemote.RepositoryFullName())
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError

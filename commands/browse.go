@@ -11,7 +11,6 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
-	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -53,11 +52,10 @@ func newBrowseOptionParser(browseOpt *BrowseOpt) *flags.Parser {
 }
 
 type BrowseCommand struct {
-	Ui           ui.Ui
-	RemoteFilter gitlab.RemoteFilter
-	GitClient    git.Client
-	Cmd          cmd.Cmd
-	Config       *config.ConfigManager
+	Ui        ui.Ui
+	Provider  *gitlab.Provider
+	GitClient git.Client
+	Cmd       cmd.Cmd
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -91,29 +89,20 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Load config
-	if err := c.Config.Init(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-	conf, err := c.Config.Load()
-	if err != nil {
+	// Initialize provider
+	if err := c.Provider.Init(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	domain := c.Config.GetTopDomain()
 	if globalOpt.Repository != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
-		gitlabRemote = &git.RemoteInfo{
-			Domain:     domain,
-			NameSpace:  namespace,
-			Repository: project,
-		}
+		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
 	} else {
-		gitlabRemote, err = c.RemoteFilter.Filter(c.Ui, conf)
+		var err error
+		gitlabRemote, err = c.Provider.GetCurrentRemote()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -123,7 +112,7 @@ func (c *BrowseCommand) Run(args []string) int {
 	// Getting browse repository
 	var url = ""
 	if globalOpt.Repository != "" {
-		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, domain)
+		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, gitlabRemote.Domain)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError

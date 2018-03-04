@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -35,10 +34,8 @@ func newMergeRequestOptionParser(mrOpt *MergeRequestOpt) *flags.Parser {
 }
 
 type MergeRequestCommand struct {
-	Ui           ui.Ui
-	RemoteFilter gitlab.RemoteFilter
-	LabClient    gitlab.Client
-	Config       *config.ConfigManager
+	Ui       ui.Ui
+	Provider *gitlab.Provider
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
@@ -63,36 +60,27 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Load config
-	if err := c.Config.Init(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-	conf, err := c.Config.Load()
-	if err != nil {
+	// Initialize provider
+	if err := c.Provider.Init(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	domain := c.Config.GetTopDomain()
 	if globalOpt.Repository != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
-		gitlabRemote = &git.RemoteInfo{
-			Domain:     domain,
-			NameSpace:  namespace,
-			Repository: project,
-		}
+		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
 	} else {
-		gitlabRemote, err = c.RemoteFilter.Filter(c.Ui, conf)
+		var err error
+		gitlabRemote, err = c.Provider.GetCurrentRemote()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
 	}
 
-	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
+	client, err := c.Provider.GetClient(gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -100,9 +88,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 	var outputs []string
 	if mergeRequestOpt.SearchOpt.AllRepository {
-		mergeRequests, err := c.LabClient.MergeRequest(
-			gitlabRemote.ApiUrl(),
-			token,
+		mergeRequests, err := client.MergeRequest(
 			makeMergeRequestOption(mergeRequestOpt.SearchOpt),
 		)
 		if err != nil {
@@ -111,9 +97,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		}
 		outputs = outMergeRequest(mergeRequests)
 	} else {
-		mergeRequests, err := c.LabClient.ProjectMergeRequest(
-			gitlabRemote.ApiUrl(),
-			token,
+		mergeRequests, err := client.ProjectMergeRequest(
 			makeProjectMergeRequestOption(mergeRequestOpt.SearchOpt),
 			gitlabRemote.RepositoryFullName(),
 		)

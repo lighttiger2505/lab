@@ -147,6 +147,26 @@ func (c *ConfigManager) write(writer io.Writer) error {
 	return nil
 }
 
+func (c *ConfigManager) SavePreferredDomain(domain string) error {
+	c.Config.addPreferredDomain(domain)
+	if err := c.Save(); err != nil {
+		return fmt.Errorf("Failed save domain. Error: %s", err.Error())
+	}
+	return nil
+}
+
+func (c *ConfigManager) SaveToken(domain, token string) error {
+	c.Config.addToken(domain, token)
+	if err := c.Save(); err != nil {
+		return fmt.Errorf("Failed save token. Error: %s", err.Error())
+	}
+	return nil
+}
+
+func (c *ConfigManager) GetTokenOnly(domain string) string {
+	return c.Config.getToken(domain)
+}
+
 func (c *ConfigManager) GetToken(ui ui.Ui, domain string) (string, error) {
 	token := c.Config.getToken(domain)
 	if token == "" {
@@ -304,4 +324,8 @@ func (c *Config) addToken(domain string, token string) {
 
 func (c *Config) AddRepository(repository string) {
 	c.PreferredDomains = append(c.PreferredDomains, repository)
+}
+
+func (c *Config) addPreferredDomain(domain string) {
+	c.PreferredDomains = append(c.PreferredDomains, domain)
 }

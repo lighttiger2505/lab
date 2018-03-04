@@ -40,46 +40,40 @@ func main() {
 	// Disable logging here
 	log.SetOutput(ioutil.Discard)
 
+	configManager := config.NewConfigManager()
+	provider := gitlab.NewProvider(ui, configManager)
+
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {
 			return &commands.BrowseCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				GitClient:    &git.GitClient{},
-				Cmd:          cmd.NewBasicCmd(""),
-				Config:       config.NewConfigManager(),
+				Ui:        ui,
+				Provider:  provider,
+				GitClient: &git.GitClient{},
+				Cmd:       cmd.NewBasicCmd(""),
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {
 			return &commands.IssueCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				LabClient:    &gitlab.LabClient{},
-				Config:       config.NewConfigManager(),
+				Ui:       ui,
+				Provider: provider,
 			}, nil
 		},
 		"add-issue": func() (cli.Command, error) {
 			return &commands.AddIssueCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				LabClient:    &gitlab.LabClient{},
-				Config:       config.NewConfigManager(),
+				Ui:       ui,
+				Provider: provider,
 			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &commands.MergeRequestCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				LabClient:    &gitlab.LabClient{},
-				Config:       config.NewConfigManager(),
+				Ui:       ui,
+				Provider: provider,
 			}, nil
 		},
 		"add-merge-request": func() (cli.Command, error) {
 			return &commands.AddMergeReqeustCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				LabClient:    &gitlab.LabClient{},
-				Config:       config.NewConfigManager(),
+				Ui:       ui,
+				Provider: provider,
 			}, nil
 		},
 	}

@@ -25,7 +25,7 @@ type CreateIssueFlags struct {
 
 type AddIssueCommand struct {
 	Ui       ui.Ui
-	Provider *gitlab.GitlabProvider
+	Provider gitlab.Provider
 }
 
 func (c *AddIssueCommand) Synopsis() string {

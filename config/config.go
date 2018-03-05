@@ -267,27 +267,6 @@ func createConfigFile(filePath string) error {
 	return nil
 }
 
-func (c *Config) Write() error {
-	filePath := getConfigPath()
-	file, err := os.OpenFile(filePath, os.O_WRONLY, 0666)
-	if err != nil {
-		return fmt.Errorf("Failed open config file: %s", err.Error())
-	}
-	defer file.Close()
-
-	out, err := yaml.Marshal(&c)
-	if err != nil {
-		return fmt.Errorf("Failed marshal config: %v", err.Error())
-	}
-
-	_, err = file.Write(out)
-	if err != nil {
-		return fmt.Errorf("Failed write config file: %s", err.Error())
-	}
-
-	return nil
-}
-
 func (c *Config) getToken(domain string) (token string) {
 	for _, mapItem := range c.Tokens {
 		if mapItem.Key.(string) == domain {

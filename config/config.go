@@ -60,7 +60,7 @@ func (c *ConfigManager) Init() error {
 
 	path := getConfigPath()
 	if !fileExists(path) {
-		if err := MakeConfig(path); err != nil {
+		if err := createConfigFile(path); err != nil {
 			return fmt.Errorf("Not exist config: %s", path)
 		}
 	}
@@ -245,7 +245,7 @@ func fileExists(filename string) bool {
 	return true
 }
 
-func MakeConfig(filePath string) error {
+func createConfigFile(filePath string) error {
 	config := Config{}
 
 	file, err := os.Create(filePath)

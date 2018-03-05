@@ -22,6 +22,10 @@ type GitClient struct {
 	Client
 }
 
+func NewGitClient() Client {
+	return &GitClient{}
+}
+
 func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return GitRemotes()
 }
@@ -262,11 +266,9 @@ type MockClient struct {
 }
 
 func (m *MockClient) RemoteInfos() ([]*RemoteInfo, error) {
-	// return []*RemoteInfo{}, nil
 	return m.MockRemoteInfos()
 }
 
 func (m *MockClient) CurrentBranch() (string, error) {
-	// return "currentBranch", nil
 	return m.MockCurrentBranch()
 }

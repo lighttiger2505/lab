@@ -60,7 +60,7 @@ func (c *ConfigManager) Init() error {
 
 	path := getConfigPath()
 	if !fileExists(path) {
-		if err := MakeConfig(path); err != nil {
+		if err := createConfigFile(path); err != nil {
 			return fmt.Errorf("Not exist config: %s", path)
 		}
 	}
@@ -147,6 +147,26 @@ func (c *ConfigManager) write(writer io.Writer) error {
 	return nil
 }
 
+func (c *ConfigManager) SavePreferredDomain(domain string) error {
+	c.Config.addPreferredDomain(domain)
+	if err := c.Save(); err != nil {
+		return fmt.Errorf("Failed save domain. Error: %s", err.Error())
+	}
+	return nil
+}
+
+func (c *ConfigManager) SaveToken(domain, token string) error {
+	c.Config.addToken(domain, token)
+	if err := c.Save(); err != nil {
+		return fmt.Errorf("Failed save token. Error: %s", err.Error())
+	}
+	return nil
+}
+
+func (c *ConfigManager) GetTokenOnly(domain string) string {
+	return c.Config.getToken(domain)
+}
+
 func (c *ConfigManager) GetToken(ui ui.Ui, domain string) (string, error) {
 	token := c.Config.getToken(domain)
 	if token == "" {
@@ -225,7 +245,7 @@ func fileExists(filename string) bool {
 	return true
 }
 
-func MakeConfig(filePath string) error {
+func createConfigFile(filePath string) error {
 	config := Config{}
 
 	file, err := os.Create(filePath)
@@ -235,27 +255,6 @@ func MakeConfig(filePath string) error {
 	defer file.Close()
 
 	out, err := yaml.Marshal(&config)
-	if err != nil {
-		return fmt.Errorf("Failed marshal config: %v", err.Error())
-	}
-
-	_, err = file.Write(out)
-	if err != nil {
-		return fmt.Errorf("Failed write config file: %s", err.Error())
-	}
-
-	return nil
-}
-
-func (c *Config) Write() error {
-	filePath := getConfigPath()
-	file, err := os.OpenFile(filePath, os.O_WRONLY, 0666)
-	if err != nil {
-		return fmt.Errorf("Failed open config file: %s", err.Error())
-	}
-	defer file.Close()
-
-	out, err := yaml.Marshal(&c)
 	if err != nil {
 		return fmt.Errorf("Failed marshal config: %v", err.Error())
 	}
@@ -304,4 +303,8 @@ func (c *Config) addToken(domain string, token string) {
 
 func (c *Config) AddRepository(repository string) {
 	c.PreferredDomains = append(c.PreferredDomains, repository)
+}
+
+func (c *Config) addPreferredDomain(domain string) {
+	c.PreferredDomains = append(c.PreferredDomains, domain)
 }

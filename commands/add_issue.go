@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -25,10 +24,8 @@ type CreateIssueFlags struct {
 }
 
 type AddIssueCommand struct {
-	Ui           ui.Ui
-	RemoteFilter gitlab.RemoteFilter
-	LabClient    gitlab.Client
-	Config       *config.ConfigManager
+	Ui       ui.Ui
+	Provider gitlab.Provider
 }
 
 func (c *AddIssueCommand) Synopsis() string {
@@ -78,32 +75,26 @@ func (c *AddIssueCommand) Run(args []string) int {
 		return ExitCodeOK
 	}
 
-	// Load config
-	if err := c.Config.Init(); err != nil {
+	// Initialize provider
+	if err := c.Provider.Init(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-	conf, err := c.Config.Load()
+
+	// Getting git remote info
+	gitlabRemote, err := c.Provider.GetCurrentRemote()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
+	client, err := c.Provider.GetClient(gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	issue, err := c.LabClient.CreateIssue(
-		gitlabRemote.BaseUrl(),
-		token,
+	issue, err := client.CreateIssue(
 		makeCreateIssueOptions(title, description),
 		gitlabRemote.RepositoryFullName(),
 	)

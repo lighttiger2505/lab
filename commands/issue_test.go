@@ -1,13 +1,9 @@
 package commands
 
 import (
-	"bytes"
-	"io/ioutil"
-	"os"
 	"reflect"
 	"testing"
 
-	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -19,48 +15,49 @@ var issues = []*gitlabc.Issue{
 	&gitlabc.Issue{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
 }
 
-var mockLabIssueClient = &gitlab.MockLabClient{
-	MockIssues: func(baseurl, token string, opt *gitlabc.ListIssuesOptions) ([]*gitlabc.Issue, error) {
+var mockGitlabIssueClient = &gitlab.MockLabClient{
+	MockIssues: func(opt *gitlabc.ListIssuesOptions) ([]*gitlabc.Issue, error) {
 		return issues, nil
 	},
-	MockProjectIssues: func(baseurl, token string, opt *gitlabc.ListProjectIssuesOptions, repositoryName string) ([]*gitlabc.Issue, error) {
+	MockProjectIssues: func(opt *gitlabc.ListProjectIssuesOptions, repositoryName string) ([]*gitlabc.Issue, error) {
 		return issues, nil
 	},
 }
 
-var mockIssueRemoteFilter = &gitlab.MockRemoteFilter{
-	MockFilter: func(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+var mockIssueProvider = &gitlab.MockProvider{
+	MockInit: func() error { return nil },
+	MockGetSpecificRemote: func(namespace, project string) *git.RemoteInfo {
 		return &git.RemoteInfo{
-			Domain:     "gitlab.ssl.domain1.jp",
+			Domain:     "domain",
 			NameSpace:  "namespace",
-			Repository: "project",
+			Repository: "repository",
+		}
+	},
+	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
+		return &git.RemoteInfo{
+			Domain:     "domain",
+			NameSpace:  "namespace",
+			Repository: "repository",
 		}, nil
+	},
+	MockGetClient: func(remote *git.RemoteInfo) (gitlab.Client, error) {
+		return mockGitlabIssueClient, nil
 	},
 }
 
 func TestIssueCommandRun_Issue(t *testing.T) {
-	mockUi := ui.NewMockUi()
-
-	f, _ := ioutil.TempFile("", "test")
-	tmppath := f.Name()
-	f.Write([]byte(config.ConfigDataTest))
-	f.Close()
-	defer os.Remove(tmppath)
-	conf := config.NewConfigManagerPath(tmppath)
-
+	mockUI := ui.NewMockUi()
 	c := IssueCommand{
-		Ui:           mockUi,
-		RemoteFilter: mockIssueRemoteFilter,
-		LabClient:    mockLabIssueClient,
-		Config:       conf,
+		Ui:       mockUI,
+		Provider: mockIssueProvider,
 	}
 
 	args := []string{}
 	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUi.ErrorWriter.String())
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
 	}
 
-	got := mockUi.Writer.String()
+	got := mockUI.Writer.String()
 	want := "#12  Title12\n#13  Title13\n"
 
 	if got != want {
@@ -69,29 +66,18 @@ func TestIssueCommandRun_Issue(t *testing.T) {
 }
 
 func TestIssueCommandRun_ProjectIssue(t *testing.T) {
-	mockUi := ui.NewMockUi()
-	mockUi.Reader = bytes.NewBufferString("token\n")
-
-	f, _ := ioutil.TempFile("", "test")
-	tmppath := f.Name()
-	f.Write([]byte(config.ConfigDataTest))
-	f.Close()
-	defer os.Remove(tmppath)
-	conf := config.NewConfigManagerPath(tmppath)
-
+	mockUI := ui.NewMockUi()
 	c := IssueCommand{
-		Ui:           mockUi,
-		RemoteFilter: mockIssueRemoteFilter,
-		LabClient:    mockLabIssueClient,
-		Config:       conf,
+		Ui:       mockUI,
+		Provider: mockIssueProvider,
 	}
 
 	args := []string{"-a"}
 	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUi.ErrorWriter.String())
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
 	}
 
-	got := mockUi.Writer.String()
+	got := mockUI.Writer.String()
 	want := "#12  namespace/repo12  Title12\n#13  namespace/repo13  Title13\n"
 
 	if got != want {

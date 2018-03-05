@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -22,11 +23,13 @@ const (
 )
 
 func main() {
-	c := cli.NewCLI("app", "1.0.0")
-	c.Args = os.Args[1:]
+	os.Exit(realMain(os.Stdout))
+}
 
-	// ui := &cli.BasicUi{Writer: os.Stdout}
-	ui := ui.NewBasicUi()
+func realMain(writer io.Writer) int {
+	c := cli.NewCLI("app", "0.1.0")
+	c.Args = os.Args[1:]
+	c.HelpWriter = writer
 
 	// Determine where logs should go in general (requested by the user)
 	logWriter, err := logOutput()
@@ -40,46 +43,41 @@ func main() {
 	// Disable logging here
 	log.SetOutput(ioutil.Discard)
 
+	ui := ui.NewBasicUi()
+	configManager := config.NewConfigManager()
+	provider := gitlab.NewProvider(ui, git.NewGitClient(), configManager)
+
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {
 			return &commands.BrowseCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				GitClient:    &git.GitClient{},
-				Cmd:          cmd.NewBasicCmd(""),
-				Config:       config.NewConfigManager(),
+				Ui:        ui,
+				Provider:  provider,
+				GitClient: &git.GitClient{},
+				Cmd:       cmd.NewBasicCmd(""),
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {
 			return &commands.IssueCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				LabClient:    &gitlab.LabClient{},
-				Config:       config.NewConfigManager(),
+				Ui:       ui,
+				Provider: provider,
 			}, nil
 		},
 		"add-issue": func() (cli.Command, error) {
 			return &commands.AddIssueCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				LabClient:    &gitlab.LabClient{},
-				Config:       config.NewConfigManager(),
+				Ui:       ui,
+				Provider: provider,
 			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &commands.MergeRequestCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				LabClient:    &gitlab.LabClient{},
-				Config:       config.NewConfigManager(),
+				Ui:       ui,
+				Provider: provider,
 			}, nil
 		},
 		"add-merge-request": func() (cli.Command, error) {
 			return &commands.AddMergeReqeustCommand{
-				Ui:           ui,
-				RemoteFilter: &gitlab.GitlabRemoteFilter{},
-				LabClient:    &gitlab.LabClient{},
-				Config:       config.NewConfigManager(),
+				Ui:       ui,
+				Provider: provider,
 			}, nil
 		},
 	}
@@ -88,6 +86,5 @@ func main() {
 	if err != nil {
 		ui.Error(err.Error())
 	}
-
-	os.Exit(exitStatus)
+	return exitStatus
 }

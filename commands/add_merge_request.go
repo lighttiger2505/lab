@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -27,10 +26,8 @@ type CreateMergeReqeustFlags struct {
 }
 
 type AddMergeReqeustCommand struct {
-	Ui           ui.Ui
-	RemoteFilter gitlab.RemoteFilter
-	LabClient    gitlab.Client
-	Config       *config.ConfigManager
+	Ui       ui.Ui
+	Provider gitlab.Provider
 }
 
 func (c *AddMergeReqeustCommand) Synopsis() string {
@@ -92,32 +89,26 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		currentBranch = createMergeReqeustFlags.SourceBranch
 	}
 
-	// Load config
-	if err := c.Config.Init(); err != nil {
+	// Initialize provider
+	if err := c.Provider.Init(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-	conf, err := c.Config.Load()
+
+	// Getting git remote info
+	gitlabRemote, err := c.Provider.GetCurrentRemote()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := c.RemoteFilter.Filter(c.Ui, conf)
+	client, err := c.Provider.GetClient(gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Config.GetToken(c.Ui, gitlabRemote.Domain)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	mergeRequest, err := c.LabClient.CreateMergeRequest(
-		gitlabRemote.BaseUrl(),
-		token,
+	mergeRequest, err := client.CreateMergeRequest(
 		makeCreateMergeRequestOptios(title, description, currentBranch),
 		gitlabRemote.RepositoryFullName(),
 	)

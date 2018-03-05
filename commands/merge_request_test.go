@@ -1,12 +1,8 @@
 package commands
 
 import (
-	"bytes"
-	"io/ioutil"
-	"os"
 	"testing"
 
-	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -18,49 +14,49 @@ var mergeRequests []*gitlabc.MergeRequest = []*gitlabc.MergeRequest{
 	&gitlabc.MergeRequest{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
 }
 
-var mockLabMergeRequestClient *gitlab.MockLabClient = &gitlab.MockLabClient{
-	MockMergeRequest: func(baseurl, token string, opt *gitlabc.ListMergeRequestsOptions) ([]*gitlabc.MergeRequest, error) {
+var mockGitlabMergeRequestClient *gitlab.MockLabClient = &gitlab.MockLabClient{
+	MockMergeRequest: func(opt *gitlabc.ListMergeRequestsOptions) ([]*gitlabc.MergeRequest, error) {
 		return mergeRequests, nil
 	},
-	MockProjectMergeRequest: func(baseurl, token string, opt *gitlabc.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlabc.MergeRequest, error) {
+	MockProjectMergeRequest: func(opt *gitlabc.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlabc.MergeRequest, error) {
 		return mergeRequests, nil
 	},
 }
 
-var mockMergeReqeustRemoteFilter = &gitlab.MockRemoteFilter{
-	MockFilter: func(ui ui.Ui, conf *config.Config) (*git.RemoteInfo, error) {
+var mockMergeRequestProvider = &gitlab.MockProvider{
+	MockInit: func() error { return nil },
+	MockGetSpecificRemote: func(namespace, project string) *git.RemoteInfo {
 		return &git.RemoteInfo{
-			Domain:     "gitlab.ssl.domain1.jp",
+			Domain:     "domain",
 			NameSpace:  "namespace",
-			Repository: "project",
+			Repository: "repository",
+		}
+	},
+	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
+		return &git.RemoteInfo{
+			Domain:     "domain",
+			NameSpace:  "namespace",
+			Repository: "repository",
 		}, nil
+	},
+	MockGetClient: func(remote *git.RemoteInfo) (gitlab.Client, error) {
+		return mockGitlabMergeRequestClient, nil
 	},
 }
 
 func TestMergeRequestCommandRun(t *testing.T) {
-	mockUi := ui.NewMockUi()
-	mockUi.Reader = bytes.NewBufferString("token\n")
-
-	f, _ := ioutil.TempFile("", "test")
-	tmppath := f.Name()
-	f.Write([]byte(config.ConfigDataTest))
-	f.Close()
-	defer os.Remove(tmppath)
-	conf := config.NewConfigManagerPath(tmppath)
-
+	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:           mockUi,
-		RemoteFilter: mockMergeReqeustRemoteFilter,
-		LabClient:    mockLabMergeRequestClient,
-		Config:       conf,
+		Ui:       mockUI,
+		Provider: mockMergeRequestProvider,
 	}
 
 	args := []string{}
 	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUi.ErrorWriter.String())
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
 	}
 
-	got := mockUi.Writer.String()
+	got := mockUI.Writer.String()
 	want := "!12  Title12\n!13  Title13\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
@@ -68,29 +64,18 @@ func TestMergeRequestCommandRun(t *testing.T) {
 }
 
 func TestMergeRequestCommandRun_AllProjectOption(t *testing.T) {
-	mockUi := ui.NewMockUi()
-	mockUi.Reader = bytes.NewBufferString("token\n")
-
-	f, _ := ioutil.TempFile("", "test")
-	tmppath := f.Name()
-	f.Write([]byte(config.ConfigDataTest))
-	f.Close()
-	defer os.Remove(tmppath)
-	conf := config.NewConfigManagerPath(tmppath)
-
+	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:           mockUi,
-		RemoteFilter: mockMergeReqeustRemoteFilter,
-		LabClient:    mockLabMergeRequestClient,
-		Config:       conf,
+		Ui:       mockUI,
+		Provider: mockMergeRequestProvider,
 	}
 
 	args := []string{"-a"}
 	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUi.ErrorWriter.String())
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
 	}
 
-	got := mockUi.Writer.String()
+	got := mockUI.Writer.String()
 	want := "!12  namespace/repo12  Title12\n!13  namespace/repo13  Title13\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)

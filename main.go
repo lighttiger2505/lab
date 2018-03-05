@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -22,12 +23,13 @@ const (
 )
 
 func main() {
-	c := cli.NewCLI("app", "1.0.0")
-	c.Args = os.Args[1:]
+	os.Exit(realMain(os.Stdout))
+}
 
-	// ui := &cli.BasicUi{Writer: os.Stdout}
-	ui := ui.NewBasicUi()
+func realMain(writer io.Writer) int {
 	c := cli.NewCLI("app", "0.1.0")
+	c.Args = os.Args[1:]
+	c.HelpWriter = writer
 
 	// Determine where logs should go in general (requested by the user)
 	logWriter, err := logOutput()
@@ -41,6 +43,7 @@ func main() {
 	// Disable logging here
 	log.SetOutput(ioutil.Discard)
 
+	ui := ui.NewBasicUi()
 	configManager := config.NewConfigManager()
 	provider := gitlab.NewProvider(ui, git.NewGitClient(), configManager)
 
@@ -83,6 +86,5 @@ func main() {
 	if err != nil {
 		ui.Error(err.Error())
 	}
-
-	os.Exit(exitStatus)
+	return exitStatus
 }

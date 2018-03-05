@@ -27,6 +27,7 @@ func main() {
 
 	// ui := &cli.BasicUi{Writer: os.Stdout}
 	ui := ui.NewBasicUi()
+	c := cli.NewCLI("app", "0.1.0")
 
 	// Determine where logs should go in general (requested by the user)
 	logWriter, err := logOutput()

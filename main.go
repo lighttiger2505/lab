@@ -82,7 +82,8 @@ func realMain(writer io.Writer) int {
 		},
 		"project": func() (cli.Command, error) {
 			return &commands.ProjectCommand{
-				UI: ui,
+				UI:       ui,
+				Provider: provider,
 			}, nil
 		},
 	}

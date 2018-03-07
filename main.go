@@ -80,6 +80,11 @@ func realMain(writer io.Writer) int {
 				Provider: provider,
 			}, nil
 		},
+		"project": func() (cli.Command, error) {
+			return &commands.ProjectCommand{
+				UI: ui,
+			}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

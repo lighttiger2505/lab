@@ -1,5 +1,5 @@
 NAME := lab
-VERSION := v0.0.1
+VERSION := v0.1.0
 REVISION := $(shell git rev-parse --short HEAD)
 LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
 DIST_DIRS := find * -type d -exec

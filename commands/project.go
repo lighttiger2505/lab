@@ -71,16 +71,7 @@ func (c *ProjectCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	var datas []string
-	for _, project := range projects {
-		data := strings.Join([]string{
-			fmt.Sprintf("%s/%s", project.Namespace.Name, project.Name),
-			removeLineBreak(project.Description),
-		}, "|")
-		datas = append(datas, data)
-	}
-
-	result := columnize.SimpleFormat(datas)
+	result := columnize.SimpleFormat(projectOutput(projects))
 	c.UI.Message(result)
 
 	return ExitCodeOK
@@ -108,4 +99,16 @@ func removeLineBreak(value string) string {
 	value = strings.Replace(value, "\r", "", -1)
 	value = strings.Replace(value, "\n", "", -1)
 	return value
+}
+
+func projectOutput(projects []*gitlabc.Project) []string {
+	var outputs []string
+	for _, project := range projects {
+		output := strings.Join([]string{
+			fmt.Sprintf("%s/%s", project.Namespace.Name, project.Name),
+			removeLineBreak(project.Description),
+		}, "|")
+		outputs = append(outputs, output)
+	}
+	return outputs
 }

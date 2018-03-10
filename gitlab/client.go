@@ -13,6 +13,7 @@ type Client interface {
 	ProjectMergeRequest(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
 	CreateIssue(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error)
 	CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error)
+	Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error)
 }
 
 type LabClient struct {
@@ -79,13 +80,23 @@ func (l *LabClient) CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions, re
 	return mergeRequest, nil
 }
 
+func (l *LabClient) Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {
+	projects, _, err := l.Client.Projects.ListProjects(opt)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list projects. Error: %s", err.Error())
+	}
+	return projects, nil
+}
+
 type MockLabClient struct {
+	Client
 	MockIssues              func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error)
 	MockProjectIssues       func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)
 	MockMergeRequest        func(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
 	MockProjectMergeRequest func(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
 	MockCreateIssue         func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error)
 	MockCreateMergeRequest  func(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error)
+	MockProjects            func(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error)
 }
 
 func (m *MockLabClient) Issues(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
@@ -110,4 +121,8 @@ func (m *MockLabClient) CreateIssue(opt *gitlab.CreateIssueOptions, repositoryNa
 
 func (m *MockLabClient) CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error) {
 	return m.MockCreateMergeRequest(opt, repositoryName)
+}
+
+func (m *MockLabClient) Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {
+	return m.MockProjects(opt)
 }

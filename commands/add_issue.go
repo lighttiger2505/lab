@@ -112,7 +112,6 @@ func makeCreateIssueOptions(title, description string) *gitlabc.CreateIssueOptio
 	opt := &gitlabc.CreateIssueOptions{
 		Title:       gitlabc.String(title),
 		Description: gitlabc.String(description),
-		AssigneeID:  nil,
 		MilestoneID: nil,
 		Labels:      []string{},
 	}

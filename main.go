@@ -16,6 +16,11 @@ import (
 	"github.com/mitchellh/cli"
 )
 
+var (
+	version  string
+	revision string
+)
+
 const (
 	ExitCodeOK        int = iota //0
 	ExitCodeError     int = iota //1
@@ -23,11 +28,11 @@ const (
 )
 
 func main() {
-	os.Exit(realMain(os.Stdout))
+	os.Exit(realMain(os.Stdout, version, revision))
 }
 
-func realMain(writer io.Writer) int {
-	c := cli.NewCLI("app", "0.1.0")
+func realMain(writer io.Writer, ver, rev string) int {
+	c := cli.NewCLI("app", fmt.Sprintf("ver: %s rev: %s", ver, rev))
 	c.Args = os.Args[1:]
 	c.HelpWriter = writer
 

@@ -41,7 +41,7 @@ func (c *ProjectCommand) Help() string {
 
 func (c *ProjectCommand) Run(args []string) int {
 	// Parse flags
-	if _, err := projectParser.Parse(); err != nil {
+	if _, err := projectParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}

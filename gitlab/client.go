@@ -15,6 +15,7 @@ type Client interface {
 	CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error)
 	Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error)
 	ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error)
+	Lint(content string) (*gitlab.LintResult, error)
 }
 
 type LabClient struct {
@@ -95,6 +96,14 @@ func (l *LabClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProj
 		return nil, fmt.Errorf("Failed list pipelines. Error: %s", err.Error())
 	}
 	return pipelines, nil
+}
+
+func (l *LabClient) Lint(content string) (*gitlab.LintResult, error) {
+	lintResult, _, err := l.Client.Validate.Lint(content)
+	if err != nil {
+		return nil, fmt.Errorf("Failed lint. Error: %s", err.Error())
+	}
+	return lintResult, nil
 }
 
 type MockLabClient struct {

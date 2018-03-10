@@ -1,7 +1,10 @@
 NAME := lab
-VERSION := v0.1.0
+VERSION := 0.1.0
 REVISION := $(shell git rev-parse --short HEAD)
-LDFLAGS := -ldflags="-s -w -X \"main.Version=$(VERSION)\" -X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
+GOVERSION := $(go version)
+
+SRCS := $(shell find . -type f -name '*.go')
+LDFLAGS := -ldflags="-s -w -X \"main.version=$(VERSION)\" -X \"main.revision=$(REVISION)\" -X \"main.goversion=$(GOVERSION)\" "
 DIST_DIRS := find * -type d -exec
 
 .PHONY: dep
@@ -19,12 +22,12 @@ test:
 	go test github.com/lighttiger2505/lab/...
 
 .PHONY: build
-build:
-	go build
+build: $(SRCS)
+	go build $(LDFLAGS) -o bin/$(NAME)
 
 .PHONY: install
-install:
-	go install
+install: $(SRCS)
+	go install $(LDFLAGS)
 
 .PHONY: coverage
 coverage:
@@ -36,7 +39,7 @@ coverage:
 cross-build: ensure
 	for os in darwin linux windows; do \
 		for arch in amd64 386; do \
-			GOOS=$$os GOARCH=$$arch CGO_ENABLED=0 go build -a -tags netgo -installsuffix netgo $(LDFLAGS) -o dist/$$os-$$arch/$(NAME); \
+			GOOS=$$os GOARCH=$$arch CGO_ENABLED=0 go build $(LDFLAGS) -o dist/$$os-$$arch/$(NAME); \
 		done; \
 	done
 

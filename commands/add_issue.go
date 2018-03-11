@@ -12,19 +12,19 @@ import (
 )
 
 var createIssueCommandOption CreateIssueCommandOption
-var createIssueOptionParser *flags.Parser = newCreateIssueOptionParser(&createIssueCommandOption)
+var createIssueCommandParser *flags.Parser = newCreateIssueCommandParser(&createIssueCommandOption)
 
 type CreateIssueCommandOption struct {
-	GlobalOpt *GlobalOpt        `group:"Global Options"`
-	CreateOpt *CreateIssueFlags `group:"Create Issue Options"`
+	GlobalOpt *GlobalOption      `group:"Global Options"`
+	CreateOpt *CreateIssueOption `group:"Create Options"`
 }
 
-func newCreateIssueOptionParser(opt *CreateIssueCommandOption) *flags.Parser {
+func newCreateIssueCommandParser(opt *CreateIssueCommandOption) *flags.Parser {
 	global := flags.NewNamedParser("lab", flags.Default)
-	global.AddGroup("Global Options", "", &GlobalOpt{})
+	global.AddGroup("Global Options", "", &GlobalOption{})
 
 	create := flags.NewNamedParser("lab", flags.Default)
-	create.AddGroup("Create Issue Options", "", &CreateIssueFlags{})
+	create.AddGroup("Create Issue Options", "", &CreateIssueOption{})
 
 	opt.GlobalOpt = newGlobalOption()
 	opt.CreateOpt = newCreateIssueOption()
@@ -34,7 +34,7 @@ func newCreateIssueOptionParser(opt *CreateIssueCommandOption) *flags.Parser {
 	return parser
 }
 
-type CreateIssueFlags struct {
+type CreateIssueOption struct {
 	Title       string `short:"t" long:"title" description:"The title of an issue"`
 	Description string `short:"d" long:"description" description:"The description of an issue"`
 	AssigneeID  int    `short:"a" long:"assignee_id" description:"The ID of a user to assign issue"`
@@ -42,8 +42,8 @@ type CreateIssueFlags struct {
 	Labels      string `short:"l" long:"labels" description:"Comma-separated label names for an issue"`
 }
 
-func newCreateIssueOption() *CreateIssueFlags {
-	return &CreateIssueFlags{}
+func newCreateIssueOption() *CreateIssueOption {
+	return &CreateIssueOption{}
 }
 
 type AddIssueCommand struct {
@@ -57,13 +57,12 @@ func (c *AddIssueCommand) Synopsis() string {
 
 func (c *AddIssueCommand) Help() string {
 	buf := &bytes.Buffer{}
-	createIssueOptionParser.Usage = "add-issue [options]"
-	createIssueOptionParser.WriteHelp(buf)
+	createIssueCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *AddIssueCommand) Run(args []string) int {
-	if _, err := createIssueOptionParser.Parse(); err != nil {
+	if _, err := createIssueCommandParser.Parse(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}

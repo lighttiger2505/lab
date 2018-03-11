@@ -17,16 +17,16 @@ var mergeRequestOpt MergeRequestOpt
 var mergeRequestParser *flags.Parser = newMergeRequestOptionParser(&mergeRequestOpt)
 
 type MergeRequestOpt struct {
-	GlobalOpt *GlobalOpt `group:"Global Options"`
-	SearchOpt *SearchOpt `group:"Search Options"`
+	GlobalOpt *GlobalOption `group:"Global Options"`
+	SearchOpt *SearchOpt    `group:"Search Options"`
 }
 
 func newMergeRequestOptionParser(mrOpt *MergeRequestOpt) *flags.Parser {
 	globalParser := flags.NewParser(&globalOpt, flags.Default)
-	globalParser.AddGroup("Global Options", "", &GlobalOpt{})
+	globalParser.AddGroup("Global Options", "", &GlobalOption{})
 
 	searchParser := flags.NewParser(&searchOptions, flags.Default)
-	searchParser.AddGroup("Search Options", "", &GlobalOpt{})
+	searchParser.AddGroup("Search Options", "", &GlobalOption{})
 
 	parser := flags.NewParser(mrOpt, flags.Default)
 	parser.Usage = "merge-request [options]"

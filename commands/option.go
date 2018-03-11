@@ -9,17 +9,17 @@ type OptionValidator interface {
 	IsValid(error)
 }
 
-var globalOpt GlobalOpt
+var globalOpt GlobalOption
 
-type GlobalOpt struct {
+type GlobalOption struct {
 	Repository string `short:"p" long:"repository" description:"target specific repository"`
 }
 
-func newGlobalOption() *GlobalOpt {
-	return &GlobalOpt{}
+func newGlobalOption() *GlobalOption {
+	return &GlobalOption{}
 }
 
-func (g *GlobalOpt) IsValid() error {
+func (g *GlobalOption) IsValid() error {
 	var errMsg []string
 	var tmpErr error
 
@@ -42,7 +42,7 @@ func validRepository(value string) error {
 	return nil
 }
 
-func (g *GlobalOpt) NameSpaceAndProject() (namespace, project string) {
+func (g *GlobalOption) NameSpaceAndProject() (namespace, project string) {
 	splited := strings.Split(g.Repository, "/")
 	namespace = splited[0]
 	project = splited[1]

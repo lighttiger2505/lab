@@ -17,16 +17,16 @@ var issueOpt IssueOpt
 var issueOptionParser *flags.Parser = newIssueOptionParser(&issueOpt)
 
 type IssueOpt struct {
-	GlobalOpt *GlobalOpt `group:"Global Options"`
-	SearchOpt *SearchOpt `group:"Search Options"`
+	GlobalOpt *GlobalOption `group:"Global Options"`
+	SearchOpt *SearchOpt    `group:"Search Options"`
 }
 
 func newIssueOptionParser(issueOpt *IssueOpt) *flags.Parser {
 	globalParser := flags.NewParser(&globalOpt, flags.Default)
-	globalParser.AddGroup("Global Options", "", &GlobalOpt{})
+	globalParser.AddGroup("Global Options", "", &GlobalOption{})
 
 	searchParser := flags.NewParser(&searchOptions, flags.Default)
-	searchParser.AddGroup("Search Options", "", &GlobalOpt{})
+	searchParser.AddGroup("Search Options", "", &GlobalOption{})
 
 	parser := flags.NewParser(issueOpt, flags.Default)
 	parser.Usage = "issue [options]"

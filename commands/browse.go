@@ -39,12 +39,12 @@ var browseOpt BrowseOpt
 var browseOptionParser *flags.Parser = newBrowseOptionParser(&browseOpt)
 
 type BrowseOpt struct {
-	GlobalOpt *GlobalOpt `group:"Global Options"`
+	GlobalOpt *GlobalOption `group:"Global Options"`
 }
 
 func newBrowseOptionParser(browseOpt *BrowseOpt) *flags.Parser {
 	globalParser := flags.NewParser(&globalOpt, flags.Default)
-	globalParser.AddGroup("Global Options", "", &GlobalOpt{})
+	globalParser.AddGroup("Global Options", "", &GlobalOption{})
 
 	parser := flags.NewParser(browseOpt, flags.Default)
 	parser.Usage = "issue [options]"

@@ -12,7 +12,7 @@ type OptionValidator interface {
 }
 
 type GlobalOption struct {
-	Project string `short:"p" long:"repository" description:"command target specific project"`
+	Project string `short:"p" long:"project" description:"command target specific project"`
 }
 
 func newGlobalOption() *GlobalOption {

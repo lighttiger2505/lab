@@ -12,16 +12,33 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-type PipelineOpt struct {
-	Line    int    `short:"n" long:"line" default:"20" default-mask:"20" description:"output the NUM lines"`
+var pipelineCommandOption PipelineCommandOption
+var pipelineCommandParser = newPipelineCommandParser(&pipelineCommandOption)
+
+type PipelineCommandOption struct {
+	PipelineOption *PipelineOption `group:"Pipeline Options"`
+	OutputOption   *OutputOption   `group:"Output Options"`
+}
+
+func newPipelineCommandParser(opt *PipelineCommandOption) *flags.Parser {
+	opt.PipelineOption = newPipelineOption()
+	opt.OutputOption = newOutputOption()
+	parser := flags.NewParser(opt, flags.Default)
+	parser.Usage = "pipeline [options]"
+	return parser
+}
+
+type PipelineOption struct {
 	Scope   string `short:"c" long:"scope" description:"The scope of pipelines, one of: running, pending, finished, branches, tags"`
 	States  string `short:"t" long:"states" description:" The status of pipelines, one of: running, pending, success, failed, canceled, skipped"`
 	OrderBy string `short:"o" long:"orderby" default:"id" default-mask:"id" description:"Order pipelines by id, status, ref, or user_id"`
-	Sort    string `short:"s" long:"sort" default:"desc" default-mask:"desc" description:"sorted in asc or desc order"`
 }
 
-var pipelineOptions PipelineOpt
-var pipelineParser = flags.NewParser(&pipelineOptions, flags.Default)
+func newPipelineOption() *PipelineOption {
+	pipeline := flags.NewNamedParser("lab", flags.Default)
+	pipeline.AddGroup("Pipeline Options", "", &PipelineOption{})
+	return &PipelineOption{}
+}
 
 type PipelineCommand struct {
 	UI       ui.Ui
@@ -34,14 +51,13 @@ func (c *PipelineCommand) Synopsis() string {
 
 func (c *PipelineCommand) Help() string {
 	buf := &bytes.Buffer{}
-	pipelineParser.Usage = "pipeline [options]"
-	pipelineParser.WriteHelp(buf)
+	pipelineCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *PipelineCommand) Run(args []string) int {
 	// Parse flags
-	if _, err := pipelineParser.ParseArgs(args); err != nil {
+	if _, err := pipelineCommandParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
@@ -67,7 +83,7 @@ func (c *PipelineCommand) Run(args []string) int {
 
 	pipelines, err := client.ProjectPipelines(
 		gitlabRemote.RepositoryFullName(),
-		makePipelineOptions(pipelineOptions),
+		makePipelineOptions(pipelineCommandOption.PipelineOption, pipelineCommandOption.OutputOption),
 	)
 	if err != nil {
 		c.UI.Error(err.Error())
@@ -80,25 +96,30 @@ func (c *PipelineCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makePipelineOptions(opt PipelineOpt) *gitlabc.ListProjectPipelinesOptions {
+func makePipelineOptions(pipelineOption *PipelineOption, outputOption *OutputOption) *gitlabc.ListProjectPipelinesOptions {
 	var scope *string
-	if opt.Scope != "" {
-		scope = gitlabc.String(opt.Scope)
+	if pipelineOption.Scope != "" {
+		scope = gitlabc.String(pipelineOption.Scope)
 	}
 	var status *gitlabc.BuildStateValue
-	if opt.States != "" {
-		v := gitlabc.BuildStateValue(opt.States)
+	if pipelineOption.States != "" {
+		v := gitlabc.BuildStateValue(pipelineOption.States)
 		status = &v
 	}
+	listOption := &gitlabc.ListOptions{
+		Page:    1,
+		PerPage: outputOption.Line,
+	}
 	listPipelinesOptions := &gitlabc.ListProjectPipelinesOptions{
-		Scope:      scope,
-		Status:     status,
-		Ref:        gitlabc.String(""),
-		YamlErrors: gitlabc.Bool(false),
-		Name:       gitlabc.String(""),
-		Username:   gitlabc.String(""),
-		OrderBy:    gitlabc.OrderBy(gitlabc.OrderByValue(opt.OrderBy)),
-		Sort:       gitlabc.String(opt.Sort),
+		Scope:       scope,
+		Status:      status,
+		Ref:         gitlabc.String(""),
+		YamlErrors:  gitlabc.Bool(false),
+		Name:        gitlabc.String(""),
+		Username:    gitlabc.String(""),
+		OrderBy:     gitlabc.OrderBy(gitlabc.OrderByValue(pipelineOption.OrderBy)),
+		Sort:        gitlabc.String(outputOption.Sort),
+		ListOptions: *listOption,
 	}
 	return listPipelinesOptions
 }

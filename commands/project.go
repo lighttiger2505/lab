@@ -12,16 +12,33 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-type ProjectOpt struct {
-	Line       int    `short:"n" long:"line" default:"20" default-mask:"20" description:"output the NUM lines"`
+var projectCommandOption ProjectCommnadOption
+var projectCommandParser = newIssueCommandParser(&projectCommandOption)
+
+type ProjectCommnadOption struct {
+	ProjectOption *ProjectOption `group:"Project Options"`
+	OutputOption  *OutputOption  `group:"Output Options"`
+}
+
+func newIssueCommandParser(opt *ProjectCommnadOption) *flags.Parser {
+	opt.ProjectOption = newProjectOption()
+	opt.OutputOption = newOutputOption()
+	parser := flags.NewParser(opt, flags.Default)
+	parser.Usage = "project [options]"
+	return parser
+}
+
+type ProjectOption struct {
 	OrderBy    string `short:"o" long:"orderby" default:"updated_at" default-mask:"updated_at" description:"ordered by id, name, path, created_at, updated_at, or last_activity_at fields"`
-	Sort       string `short:"s" long:"sort" default:"desc" default-mask:"desc" description:"sorted in asc or desc order"`
 	Owned      bool   `short:"w" long:"owned" description:"Limit by projects owned by the current user"`
 	Membership bool   `short:"m" long:"member-ship" description:"Limit by projects that the current user is a member of"`
 }
 
-var projectOptions ProjectOpt
-var projectParser = flags.NewParser(&projectOptions, flags.Default)
+func newProjectOption() *ProjectOption {
+	project := flags.NewNamedParser("lab", flags.Default)
+	project.AddGroup("Project Options", "", &ProjectOption{})
+	return &ProjectOption{}
+}
 
 type ProjectCommand struct {
 	UI       ui.Ui
@@ -34,14 +51,13 @@ func (c *ProjectCommand) Synopsis() string {
 
 func (c *ProjectCommand) Help() string {
 	buf := &bytes.Buffer{}
-	projectParser.Usage = "project [options]"
-	projectParser.WriteHelp(buf)
+	projectCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *ProjectCommand) Run(args []string) int {
 	// Parse flags
-	if _, err := projectParser.ParseArgs(args); err != nil {
+	if _, err := projectCommandParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
@@ -65,7 +81,9 @@ func (c *ProjectCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	projects, err := client.Projects(makeProjectOptions(projectOptions))
+	projects, err := client.Projects(
+		makeProjectOptions(projectCommandOption.ProjectOption, projectCommandOption.OutputOption),
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
@@ -77,19 +95,23 @@ func (c *ProjectCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeProjectOptions(opt ProjectOpt) *gitlabc.ListProjectsOptions {
-	fmt.Println(opt.OrderBy)
+func makeProjectOptions(projectOption *ProjectOption, outputOption *OutputOption) *gitlabc.ListProjectsOptions {
+	listOption := &gitlabc.ListOptions{
+		Page:    1,
+		PerPage: outputOption.Line,
+	}
 	listProjectsOptions := &gitlabc.ListProjectsOptions{
-		Archived:   gitlabc.Bool(false),
-		OrderBy:    gitlabc.String(opt.OrderBy),
-		Sort:       gitlabc.String(opt.Sort),
-		Search:     gitlabc.String(""),
-		Simple:     gitlabc.Bool(false),
-		Owned:      gitlabc.Bool(opt.Owned),
-		Membership: gitlabc.Bool(opt.Membership),
-		Starred:    gitlabc.Bool(false),
-		Statistics: gitlabc.Bool(false),
-		Visibility: gitlabc.Visibility("private"),
+		Archived:    gitlabc.Bool(false),
+		OrderBy:     gitlabc.String(projectOption.OrderBy),
+		Sort:        gitlabc.String(outputOption.Sort),
+		Search:      gitlabc.String(""),
+		Simple:      gitlabc.Bool(false),
+		Owned:       gitlabc.Bool(projectOption.Owned),
+		Membership:  gitlabc.Bool(projectOption.Membership),
+		Starred:     gitlabc.Bool(false),
+		Statistics:  gitlabc.Bool(false),
+		Visibility:  gitlabc.Visibility("private"),
+		ListOptions: *listOption,
 	}
 	return listProjectsOptions
 }

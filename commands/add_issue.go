@@ -45,34 +45,11 @@ func (c *AddIssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	var title string
-	var description string
-
-	if createIssueFlags.Title == "" || createIssueFlags.Description == "" {
-		message := createIssueMessage(createIssueFlags.Title, createIssueFlags.Description)
-
-		editor, err := git.NewEditor("ISSUE", "issue", message)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		title, description, err = editor.EditTitleAndDescription()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		if editor != nil {
-			defer editor.DeleteFile()
-		}
-	} else {
-		title = createIssueFlags.Title
-		description = createIssueFlags.Description
-	}
-
-	if title == "" {
-		return ExitCodeOK
+	createOpt := createIssueCommandOption.CreateOpt
+	title, description, err := getTitleAndDesc(createOpt.Title, createOpt.Description)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
 	}
 
 	// Initialize provider
@@ -127,4 +104,34 @@ func createIssueMessage(title, description string) string {
 `
 	message = fmt.Sprintf(message, title, description)
 	return message
+}
+
+func getTitleAndDesc(titleIn, descIn string) (string, string, error) {
+	var title, description string
+	if titleIn == "" || descIn == "" {
+		message := createIssueMessage(titleIn, descIn)
+
+		editor, err := git.NewEditor("ISSUE", "issue", message)
+		if err != nil {
+			return "", "", err
+		}
+
+		title, description, err = editor.EditTitleAndDescription()
+		if err != nil {
+			return "", "", err
+		}
+
+		if editor != nil {
+			defer editor.DeleteFile()
+		}
+	} else {
+		title = titleIn
+		description = descIn
+	}
+
+	if title == "" {
+		return "", "", fmt.Errorf("Title is requeired")
+	}
+
+	return title, description, nil
 }

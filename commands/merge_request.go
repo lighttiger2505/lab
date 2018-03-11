@@ -91,7 +91,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 	var outputs []string
 	searchOption := mergeRequestCommandOption.SearchOption
-	if searchOption.AllRepository {
+	if searchOption.AllProject {
 		mergeRequests, err := client.MergeRequest(
 			makeMergeRequestOption(searchOption),
 		)

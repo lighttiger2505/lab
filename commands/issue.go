@@ -91,7 +91,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 	var datas []string
 	searchOption := issueCommandOption.SearchOption
-	if searchOption.AllRepository {
+	if searchOption.AllProject {
 		issues, err := client.Issues(makeIssueOption(searchOption))
 		if err != nil {
 			c.Ui.Error(err.Error())

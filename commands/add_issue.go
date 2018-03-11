@@ -16,7 +16,7 @@ var createIssueCommandParser *flags.Parser = newCreateIssueCommandParser(&create
 
 type CreateIssueCommandOption struct {
 	GlobalOption *GlobalOption      `group:"Global Options"`
-	CreateOpt    *CreateIssueOption `group:"Create Options"`
+	CreateOption *CreateIssueOption `group:"Create Options"`
 }
 
 func newCreateIssueCommandParser(opt *CreateIssueCommandOption) *flags.Parser {
@@ -29,6 +29,7 @@ func newCreateIssueCommandParser(opt *CreateIssueCommandOption) *flags.Parser {
 	opt.GlobalOption = newGlobalOption()
 	opt.CreateOpt = newCreateIssueOption()
 
+	opt.CreateOption = newCreateIssueOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "add-issue [options]"
 	return parser
@@ -67,8 +68,8 @@ func (c *AddIssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	createOpt := createIssueCommandOption.CreateOpt
-	title, description, err := getIssueTitleAndDesc(createOpt.Title, createOpt.Description)
+	createOption := createIssueCommandOption.CreateOption
+	title, description, err := getIssueTitleAndDesc(createOption.Title, createOption.Description)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

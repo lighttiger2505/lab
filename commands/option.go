@@ -15,6 +15,10 @@ type GlobalOpt struct {
 	Repository string `short:"p" long:"repository" description:"target specific repository"`
 }
 
+func newGlobalOption() *GlobalOpt {
+	return &GlobalOpt{}
+}
+
 func (g *GlobalOpt) IsValid() error {
 	var errMsg []string
 	var tmpErr error

@@ -11,16 +11,39 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var createIssueFlags CreateIssueFlags
-var createIssueParser = flags.NewParser(&createIssueFlags, flags.Default)
+var createIssueCommandOption CreateIssueCommandOption
+var createIssueOptionParser *flags.Parser = newCreateIssueOptionParser(&createIssueCommandOption)
+
+type CreateIssueCommandOption struct {
+	GlobalOpt *GlobalOpt        `group:"Global Options"`
+	CreateOpt *CreateIssueFlags `group:"Create Issue Options"`
+}
+
+func newCreateIssueOptionParser(opt *CreateIssueCommandOption) *flags.Parser {
+	global := flags.NewNamedParser("lab", flags.Default)
+	global.AddGroup("Global Options", "", &GlobalOpt{})
+
+	create := flags.NewNamedParser("lab", flags.Default)
+	create.AddGroup("Create Issue Options", "", &CreateIssueFlags{})
+
+	opt.GlobalOpt = newGlobalOption()
+	opt.CreateOpt = newCreateIssueOption()
+
+	parser := flags.NewParser(opt, flags.Default)
+	parser.Usage = "add-issue [options]"
+	return parser
+}
 
 type CreateIssueFlags struct {
 	Title       string `short:"t" long:"title" description:"The title of an issue"`
 	Description string `short:"d" long:"description" description:"The description of an issue"`
 	AssigneeID  int    `short:"a" long:"assignee_id" description:"The ID of a user to assign issue"`
 	MilestoneID int    `short:"m" long:"milestone_id" description:"The ID of a milestone to assign issue"`
+	Labels      string `short:"l" long:"labels" description:"Comma-separated label names for an issue"`
+}
 
-	Labels string `short:"l" long:"labels" description:"Comma-separated label names for an issue"`
+func newCreateIssueOption() *CreateIssueFlags {
+	return &CreateIssueFlags{}
 }
 
 type AddIssueCommand struct {
@@ -34,13 +57,13 @@ func (c *AddIssueCommand) Synopsis() string {
 
 func (c *AddIssueCommand) Help() string {
 	buf := &bytes.Buffer{}
-	createIssueParser.Usage = "add-issue [options]"
-	createIssueParser.WriteHelp(buf)
+	createIssueOptionParser.Usage = "add-issue [options]"
+	createIssueOptionParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *AddIssueCommand) Run(args []string) int {
-	if _, err := createIssueParser.Parse(); err != nil {
+	if _, err := createIssueOptionParser.Parse(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
@@ -59,10 +82,18 @@ func (c *AddIssueCommand) Run(args []string) int {
 	}
 
 	// Getting git remote info
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
+	var gitlabRemote *git.RemoteInfo
+	gOpt := issueOpt.GlobalOpt
+	if gOpt.Repository != "" {
+		namespace, project := gOpt.NameSpaceAndProject()
+		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
+	} else {
+		var err error
+		gitlabRemote, err = c.Provider.GetCurrentRemote()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
 	}
 
 	client, err := c.Provider.GetClient(gitlabRemote)

@@ -68,7 +68,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 	}
 
 	createOpt := createIssueCommandOption.CreateOpt
-	title, description, err := getTitleAndDesc(createOpt.Title, createOpt.Description)
+	title, description, err := getIssueTitleAndDesc(createOpt.Title, createOpt.Description)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -136,7 +136,7 @@ func createIssueMessage(title, description string) string {
 	return message
 }
 
-func getTitleAndDesc(titleIn, descIn string) (string, string, error) {
+func getIssueTitleAndDesc(titleIn, descIn string) (string, string, error) {
 	var title, description string
 	if titleIn == "" || descIn == "" {
 		message := createIssueMessage(titleIn, descIn)

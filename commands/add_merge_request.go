@@ -11,18 +11,41 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var createMergeReqeustFlags CreateMergeReqeustFlags
-var createMergeReqeustParser = flags.NewParser(&createMergeReqeustFlags, flags.Default)
+var createMergeRequestCommandOption CreateMergeRequestCommandOption
+var createMergeRequestCommandParser *flags.Parser = newCreateMergeRequestCommandParser(&createMergeRequestCommandOption)
 
-type CreateMergeReqeustFlags struct {
+type CreateMergeRequestCommandOption struct {
+	GlobalOpt *GlobalOption             `group:"Global Options"`
+	CreateOpt *CreateMergeRequestOption `group:"Create Options"`
+}
+
+func newCreateMergeRequestCommandParser(opt *CreateMergeRequestCommandOption) *flags.Parser {
+	global := flags.NewNamedParser("lab", flags.Default)
+	global.AddGroup("Global Options", "", &GlobalOption{})
+
+	create := flags.NewNamedParser("lab", flags.Default)
+	create.AddGroup("Create MergeRequest Options", "", &CreateMergeRequestOption{})
+
+	opt.GlobalOpt = newGlobalOption()
+	opt.CreateOpt = newCreateMergeRequestOption()
+
+	parser := flags.NewParser(opt, flags.Default)
+	parser.Usage = "add-merge-request [options]"
+	return parser
+}
+
+type CreateMergeRequestOption struct {
 	Title        string `short:"t" long:"title" description:"The title of an merge request"`
 	Description  string `short:"d" long:"description" description:"The description of an merge request"`
 	SourceBranch string `short:"s" long:"source" description:"The source branch"`
 	TargetBranch string `short:"g" long:"target" description:"The target branch"`
 	AssigneeID   int    `short:"a" long:"assignee_id" description:"The ID of a user to assign merge request"`
 	MilestoneID  int    `short:"m" long:"milestone_id" description:"The ID of a milestone to assign merge request"`
+	Labels       string `short:"l" long:"labels" description:"Comma-separated label names for an merge request"`
+}
 
-	Labels string `short:"l" long:"labels" description:"Comma-separated label names for an merge request"`
+func newCreateMergeRequestOption() *CreateMergeRequestOption {
+	return &CreateMergeRequestOption{}
 }
 
 type AddMergeReqeustCommand struct {
@@ -36,46 +59,24 @@ func (c *AddMergeReqeustCommand) Synopsis() string {
 
 func (c *AddMergeReqeustCommand) Help() string {
 	buf := &bytes.Buffer{}
-	createMergeReqeustParser.Usage = "add-merge-request [options]"
-	createMergeReqeustParser.WriteHelp(buf)
+	createMergeRequestCommandParser.Usage = "add-merge-request [options]"
+	createMergeRequestCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *AddMergeReqeustCommand) Run(args []string) int {
-	if _, err := createMergeReqeustParser.Parse(); err != nil {
+	if _, err := createMergeRequestCommandParser.Parse(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
 	// Get merge request title and description
 	// launch vim when non specific flags
-	var title string
-	var description string
-	if createMergeReqeustFlags.Title == "" || createMergeReqeustFlags.Description == "" {
-		message := createMergeRequestMessage(createMergeReqeustFlags.Title, createMergeReqeustFlags.Description)
-
-		editor, err := git.NewEditor("MERGE_REQUEST", "merge-request", message)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		title, description, err = editor.EditTitleAndDescription()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		if editor != nil {
-			defer editor.DeleteFile()
-		}
-	} else {
-		title = createMergeReqeustFlags.Title
-		description = createMergeReqeustFlags.Description
-	}
-
-	if title == "" {
-		return ExitCodeOK
+	createOpt := createMergeRequestCommandOption.CreateOpt
+	title, description, err := getIssueTitleAndDesc(createOpt.Title, createOpt.Description)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
 	}
 
 	// Get source branch
@@ -85,8 +86,8 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-	if createMergeReqeustFlags.SourceBranch != "" {
-		currentBranch = createMergeReqeustFlags.SourceBranch
+	if createOpt.SourceBranch != "" {
+		currentBranch = createOpt.SourceBranch
 	}
 
 	// Initialize provider
@@ -109,7 +110,7 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 	}
 
 	mergeRequest, err := client.CreateMergeRequest(
-		makeCreateMergeRequestOptios(title, description, currentBranch),
+		makeCreateMergeRequestOptios(createOpt, title, description, currentBranch),
 		gitlabRemote.RepositoryFullName(),
 	)
 	if err != nil {
@@ -122,16 +123,16 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeCreateMergeRequestOptios(title, description, branch string) *gitlabc.CreateMergeRequestOptions {
-	opt := &gitlabc.CreateMergeRequestOptions{
+func makeCreateMergeRequestOptios(opt *CreateMergeRequestOption, title, description, branch string) *gitlabc.CreateMergeRequestOptions {
+	createMergeRequestOption := &gitlabc.CreateMergeRequestOptions{
 		Title:           gitlabc.String(title),
 		Description:     gitlabc.String(description),
 		SourceBranch:    gitlabc.String(branch),
-		TargetBranch:    gitlabc.String(createMergeReqeustFlags.TargetBranch),
+		TargetBranch:    gitlabc.String(opt.TargetBranch),
 		AssigneeID:      nil,
 		TargetProjectID: nil,
 	}
-	return opt
+	return createMergeRequestOption
 }
 
 func createMergeRequestMessage(title, description string) string {
@@ -143,4 +144,34 @@ func createMergeRequestMessage(title, description string) string {
 `
 	message = fmt.Sprintf(message, title, description)
 	return message
+}
+
+func getMergeRequestTitleAndDesc(titleIn, descIn string) (string, string, error) {
+	var title, description string
+	if titleIn == "" || descIn == "" {
+		message := createMergeRequestMessage(titleIn, descIn)
+
+		editor, err := git.NewEditor("ISSUE", "issue", message)
+		if err != nil {
+			return "", "", err
+		}
+
+		title, description, err = editor.EditTitleAndDescription()
+		if err != nil {
+			return "", "", err
+		}
+
+		if editor != nil {
+			defer editor.DeleteFile()
+		}
+	} else {
+		title = titleIn
+		description = descIn
+	}
+
+	if title == "" {
+		return "", "", fmt.Errorf("Title is requeired")
+	}
+
+	return title, description, nil
 }

@@ -78,7 +78,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
 	globalOption := issueCommandOption.GlobalOption
-	if globalOption.Repository != "" {
+	if globalOption.Project != "" {
 		namespace, project := globalOption.NameSpaceAndProject()
 		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
 	} else {

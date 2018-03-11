@@ -95,7 +95,7 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	if globalOpt.Repository != "" {
+	if globalOpt.Project != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
 		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
 	} else {
@@ -109,7 +109,7 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	// Getting browse repository
 	var url = ""
-	if globalOpt.Repository != "" {
+	if globalOpt.Project != "" {
 		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, gitlabRemote.Domain)
 		if err != nil {
 			c.Ui.Error(err.Error())

@@ -12,7 +12,7 @@ type OptionValidator interface {
 }
 
 type GlobalOption struct {
-	Repository string `short:"p" long:"repository" description:"target specific repository"`
+	Project string `short:"p" long:"repository" description:"command target specific project"`
 }
 
 func newGlobalOption() *GlobalOption {
@@ -25,7 +25,7 @@ func (g *GlobalOption) IsValid() error {
 	var errMsg []string
 	var tmpErr error
 
-	tmpErr = validRepository(g.Repository)
+	tmpErr = validRepository(g.Project)
 	if tmpErr != nil {
 		errMsg = append(errMsg, tmpErr.Error())
 	}
@@ -45,7 +45,7 @@ func validRepository(value string) error {
 }
 
 func (g *GlobalOption) NameSpaceAndProject() (namespace, project string) {
-	splited := strings.Split(g.Repository, "/")
+	splited := strings.Split(g.Project, "/")
 	namespace = splited[0]
 	project = splited[1]
 	return

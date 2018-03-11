@@ -9,8 +9,6 @@ type OptionValidator interface {
 	IsValid(error)
 }
 
-var globalOpt GlobalOption
-
 type GlobalOption struct {
 	Repository string `short:"p" long:"repository" description:"target specific repository"`
 }
@@ -49,9 +47,7 @@ func (g *GlobalOption) NameSpaceAndProject() (namespace, project string) {
 	return
 }
 
-var searchOptions SearchOpt
-
-type SearchOpt struct {
+type SearchOption struct {
 	Line          int    `short:"n" long:"line" default:"20" default-mask:"20" description:"output the NUM lines"`
 	State         string `short:"t" long:"state" default:"all" default-mask:"all" description:"just those that are opened, closed or all"`
 	Scope         string `short:"c" long:"scope" default:"all" default-mask:"all" description:"given scope: created-by-me, assigned-to-me or all."`
@@ -64,7 +60,11 @@ type SearchOpt struct {
 	AllRepository bool   `short:"a" long:"all-repository" description:"search target all repository"`
 }
 
-func (s *SearchOpt) GetState() string {
+func newSearchOption() *SearchOption {
+	return &SearchOption{}
+}
+
+func (s *SearchOption) GetState() string {
 	if s.Opened {
 		return "opened"
 	}
@@ -74,7 +74,7 @@ func (s *SearchOpt) GetState() string {
 	return s.State
 }
 
-func (s *SearchOpt) GetScope() string {
+func (s *SearchOption) GetScope() string {
 	if s.CreatedMe {
 		return "created-by-me"
 	}

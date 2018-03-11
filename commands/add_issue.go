@@ -15,8 +15,8 @@ var createIssueCommandOption CreateIssueCommandOption
 var createIssueCommandParser *flags.Parser = newCreateIssueCommandParser(&createIssueCommandOption)
 
 type CreateIssueCommandOption struct {
-	GlobalOpt *GlobalOption      `group:"Global Options"`
-	CreateOpt *CreateIssueOption `group:"Create Options"`
+	GlobalOption *GlobalOption      `group:"Global Options"`
+	CreateOpt    *CreateIssueOption `group:"Create Options"`
 }
 
 func newCreateIssueCommandParser(opt *CreateIssueCommandOption) *flags.Parser {
@@ -26,7 +26,7 @@ func newCreateIssueCommandParser(opt *CreateIssueCommandOption) *flags.Parser {
 	create := flags.NewNamedParser("lab", flags.Default)
 	create.AddGroup("Create Issue Options", "", &CreateIssueOption{})
 
-	opt.GlobalOpt = newGlobalOption()
+	opt.GlobalOption = newGlobalOption()
 	opt.CreateOpt = newCreateIssueOption()
 
 	parser := flags.NewParser(opt, flags.Default)
@@ -82,9 +82,9 @@ func (c *AddIssueCommand) Run(args []string) int {
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	gOpt := issueOpt.GlobalOpt
-	if gOpt.Repository != "" {
-		namespace, project := gOpt.NameSpaceAndProject()
+	globalOption := issueCommandOption.GlobalOption
+	if globalOption.Repository != "" {
+		namespace, project := globalOption.NameSpaceAndProject()
 		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
 	} else {
 		var err error

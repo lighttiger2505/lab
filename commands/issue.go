@@ -13,23 +13,26 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var issueOpt IssueOpt
-var issueOptionParser *flags.Parser = newIssueOptionParser(&issueOpt)
+var issueCommandOption IssueCommnadOption
+var issueCommnadParser *flags.Parser = newIssueOptionParser(&issueCommandOption)
 
-type IssueOpt struct {
-	GlobalOpt *GlobalOption `group:"Global Options"`
-	SearchOpt *SearchOpt    `group:"Search Options"`
+type IssueCommnadOption struct {
+	GlobalOption *GlobalOption `group:"Global Options"`
+	SearchOption *SearchOption `group:"Search Options"`
 }
 
-func newIssueOptionParser(issueOpt *IssueOpt) *flags.Parser {
-	globalParser := flags.NewParser(&globalOpt, flags.Default)
-	globalParser.AddGroup("Global Options", "", &GlobalOption{})
+func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
+	global := flags.NewNamedParser("lab", flags.Default)
+	global.AddGroup("Global Options", "", &GlobalOption{})
 
-	searchParser := flags.NewParser(&searchOptions, flags.Default)
-	searchParser.AddGroup("Search Options", "", &GlobalOption{})
+	search := flags.NewNamedParser("lab", flags.Default)
+	search.AddGroup("Search Options", "", &SearchOption{})
 
-	parser := flags.NewParser(issueOpt, flags.Default)
-	parser.Usage = "issue [options]"
+	opt.GlobalOption = newGlobalOption()
+	opt.SearchOption = newSearchOption()
+
+	parser := flags.NewParser(opt, flags.Default)
+	parser.Usage = "add-issue [options]"
 	return parser
 }
 
@@ -44,18 +47,18 @@ func (c *IssueCommand) Synopsis() string {
 
 func (c *IssueCommand) Help() string {
 	buf := &bytes.Buffer{}
-	issueOptionParser.WriteHelp(buf)
+	issueCommnadParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *IssueCommand) Run(args []string) int {
-	if _, err := issueOptionParser.ParseArgs(args); err != nil {
+	if _, err := issueCommnadParser.ParseArgs(args); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	opt := issueOpt.GlobalOpt
-	if err := opt.IsValid(); err != nil {
+	globalOption := issueCommandOption.GlobalOption
+	if err := globalOption.IsValid(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
@@ -68,8 +71,8 @@ func (c *IssueCommand) Run(args []string) int {
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	if globalOpt.Repository != "" {
-		namespace, project := globalOpt.NameSpaceAndProject()
+	if globalOption.Repository != "" {
+		namespace, project := globalOption.NameSpaceAndProject()
 		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
 	} else {
 		var err error
@@ -87,8 +90,9 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	var datas []string
-	if issueOpt.SearchOpt.AllRepository {
-		issues, err := client.Issues(makeIssueOption(issueOpt.SearchOpt))
+	searchOption := issueCommandOption.SearchOption
+	if searchOption.AllRepository {
+		issues, err := client.Issues(makeIssueOption(searchOption))
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -96,7 +100,7 @@ func (c *IssueCommand) Run(args []string) int {
 		datas = issueOutput(issues)
 
 	} else {
-		issues, err := client.ProjectIssues(makeProjectIssueOption(issueOpt.SearchOpt), gitlabRemote.RepositoryFullName())
+		issues, err := client.ProjectIssues(makeProjectIssueOption(searchOption), gitlabRemote.RepositoryFullName())
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -110,7 +114,7 @@ func (c *IssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeProjectIssueOption(opt *SearchOpt) *gitlabc.ListProjectIssuesOptions {
+func makeProjectIssueOption(opt *SearchOption) *gitlabc.ListProjectIssuesOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: opt.Line,
@@ -125,7 +129,7 @@ func makeProjectIssueOption(opt *SearchOpt) *gitlabc.ListProjectIssuesOptions {
 	return listProjectIssuesOptions
 }
 
-func makeIssueOption(opt *SearchOpt) *gitlabc.ListIssuesOptions {
+func makeIssueOption(opt *SearchOption) *gitlabc.ListIssuesOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: opt.Line,

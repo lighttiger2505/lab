@@ -13,22 +13,25 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var mergeRequestOpt MergeRequestOpt
-var mergeRequestParser *flags.Parser = newMergeRequestOptionParser(&mergeRequestOpt)
+var mergeRequestCommandOption MergeRequestCommandOption
+var mergeRequestCommandParser *flags.Parser = newMergeRequestOptionParser(&mergeRequestCommandOption)
 
-type MergeRequestOpt struct {
-	GlobalOpt *GlobalOption `group:"Global Options"`
-	SearchOpt *SearchOpt    `group:"Search Options"`
+type MergeRequestCommandOption struct {
+	GlobalOption *GlobalOption `group:"Global Options"`
+	SearchOption *SearchOption `group:"Search Options"`
 }
 
-func newMergeRequestOptionParser(mrOpt *MergeRequestOpt) *flags.Parser {
-	globalParser := flags.NewParser(&globalOpt, flags.Default)
-	globalParser.AddGroup("Global Options", "", &GlobalOption{})
+func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
+	global := flags.NewNamedParser("lab", flags.Default)
+	global.AddGroup("Global Options", "", &GlobalOption{})
 
-	searchParser := flags.NewParser(&searchOptions, flags.Default)
-	searchParser.AddGroup("Search Options", "", &GlobalOption{})
+	search := flags.NewNamedParser("lab", flags.Default)
+	search.AddGroup("Search Options", "", &SearchOption{})
 
-	parser := flags.NewParser(mrOpt, flags.Default)
+	opt.GlobalOption = newGlobalOption()
+	opt.SearchOption = newSearchOption()
+
+	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "merge-request [options]"
 	return parser
 }
@@ -44,18 +47,18 @@ func (c *MergeRequestCommand) Synopsis() string {
 
 func (c *MergeRequestCommand) Help() string {
 	buf := &bytes.Buffer{}
-	mergeRequestParser.WriteHelp(buf)
+	mergeRequestCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *MergeRequestCommand) Run(args []string) int {
-	if _, err := mergeRequestParser.ParseArgs(args); err != nil {
+	if _, err := mergeRequestCommandParser.ParseArgs(args); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	globalOpt := browseOpt.GlobalOpt
-	if err := globalOpt.IsValid(); err != nil {
+	globalOption := mergeRequestCommandOption.GlobalOption
+	if err := globalOption.IsValid(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
@@ -68,8 +71,8 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	if globalOpt.Repository != "" {
-		namespace, project := globalOpt.NameSpaceAndProject()
+	if globalOption.Repository != "" {
+		namespace, project := globalOption.NameSpaceAndProject()
 		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
 	} else {
 		var err error
@@ -87,9 +90,10 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	}
 
 	var outputs []string
-	if mergeRequestOpt.SearchOpt.AllRepository {
+	searchOption := mergeRequestCommandOption.SearchOption
+	if searchOption.AllRepository {
 		mergeRequests, err := client.MergeRequest(
-			makeMergeRequestOption(mergeRequestOpt.SearchOpt),
+			makeMergeRequestOption(searchOption),
 		)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -98,7 +102,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		outputs = outMergeRequest(mergeRequests)
 	} else {
 		mergeRequests, err := client.ProjectMergeRequest(
-			makeProjectMergeRequestOption(mergeRequestOpt.SearchOpt),
+			makeProjectMergeRequestOption(mergeRequestCommandOption.SearchOption),
 			gitlabRemote.RepositoryFullName(),
 		)
 		if err != nil {
@@ -114,7 +118,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeMergeRequestOption(opt *SearchOpt) *gitlabc.ListMergeRequestsOptions {
+func makeMergeRequestOption(opt *SearchOption) *gitlabc.ListMergeRequestsOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: opt.Line,
@@ -129,7 +133,7 @@ func makeMergeRequestOption(opt *SearchOpt) *gitlabc.ListMergeRequestsOptions {
 	return listRequestsOptions
 }
 
-func makeProjectMergeRequestOption(opt *SearchOpt) *gitlabc.ListProjectMergeRequestsOptions {
+func makeProjectMergeRequestOption(opt *SearchOption) *gitlabc.ListProjectMergeRequestsOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: opt.Line,

@@ -35,19 +35,21 @@ var browseTypePrefix = map[string]BrowseType{
 	"P": PipeLine,
 }
 
-var browseOpt BrowseOpt
-var browseOptionParser *flags.Parser = newBrowseOptionParser(&browseOpt)
+var browseCommnadOption BrowseCommandOption
+var browseOptionParser *flags.Parser = newBrowseOptionParser(&browseCommnadOption)
 
-type BrowseOpt struct {
+type BrowseCommandOption struct {
 	GlobalOpt *GlobalOption `group:"Global Options"`
 }
 
-func newBrowseOptionParser(browseOpt *BrowseOpt) *flags.Parser {
-	globalParser := flags.NewParser(&globalOpt, flags.Default)
-	globalParser.AddGroup("Global Options", "", &GlobalOption{})
+func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
+	global := flags.NewNamedParser("lab", flags.Default)
+	global.AddGroup("Global Options", "", &GlobalOption{})
 
-	parser := flags.NewParser(browseOpt, flags.Default)
-	parser.Usage = "issue [options]"
+	opt.GlobalOpt = newGlobalOption()
+
+	parser := flags.NewParser(opt, flags.Default)
+	parser.Usage = "browse [options]"
 	return parser
 }
 
@@ -76,7 +78,7 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	// Validate option
-	globalOpt := browseOpt.GlobalOpt
+	globalOpt := browseCommnadOption.GlobalOpt
 	if err := globalOpt.IsValid(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

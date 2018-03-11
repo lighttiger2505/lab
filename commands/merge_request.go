@@ -19,11 +19,13 @@ var mergeRequestCommandParser *flags.Parser = newMergeRequestOptionParser(&merge
 type MergeRequestCommandOption struct {
 	GlobalOption *GlobalOption `group:"Global Options"`
 	SearchOption *SearchOption `group:"Search Options"`
+	OutputOption *OutputOption `group:"Output Options"`
 }
 
 func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
 	opt.GlobalOption = newGlobalOption()
 	opt.SearchOption = newSearchOption()
+	opt.OutputOption = newOutputOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "merge-request [options]"
 	return parser
@@ -84,9 +86,10 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 	var outputs []string
 	searchOption := mergeRequestCommandOption.SearchOption
+	outputOption := mergeRequestCommandOption.OutputOption
 	if searchOption.AllProject {
 		mergeRequests, err := client.MergeRequest(
-			makeMergeRequestOption(searchOption),
+			makeMergeRequestOption(searchOption, outputOption),
 		)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -95,7 +98,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		outputs = outMergeRequest(mergeRequests)
 	} else {
 		mergeRequests, err := client.ProjectMergeRequest(
-			makeProjectMergeRequestOption(mergeRequestCommandOption.SearchOption),
+			makeProjectMergeRequestOption(searchOption, outputOption),
 			gitlabRemote.RepositoryFullName(),
 		)
 		if err != nil {
@@ -111,31 +114,31 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeMergeRequestOption(opt *SearchOption) *gitlabc.ListMergeRequestsOptions {
+func makeMergeRequestOption(searchOption *SearchOption, outputOption *OutputOption) *gitlabc.ListMergeRequestsOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
-		PerPage: opt.Line,
+		PerPage: outputOption.Line,
 	}
 	listRequestsOptions := &gitlabc.ListMergeRequestsOptions{
-		State:       gitlabc.String(opt.GetState()),
-		Scope:       gitlabc.String(opt.GetScope()),
-		OrderBy:     gitlabc.String(opt.OrderBy),
-		Sort:        gitlabc.String(opt.Sort),
+		State:       gitlabc.String(searchOption.GetState()),
+		Scope:       gitlabc.String(searchOption.GetScope()),
+		OrderBy:     gitlabc.String(searchOption.OrderBy),
+		Sort:        gitlabc.String(outputOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listRequestsOptions
 }
 
-func makeProjectMergeRequestOption(opt *SearchOption) *gitlabc.ListProjectMergeRequestsOptions {
+func makeProjectMergeRequestOption(searchOption *SearchOption, outputOption *OutputOption) *gitlabc.ListProjectMergeRequestsOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
-		PerPage: opt.Line,
+		PerPage: outputOption.Line,
 	}
 	listMergeRequestsOptions := &gitlabc.ListProjectMergeRequestsOptions{
-		State:       gitlabc.String(opt.GetState()),
-		Scope:       gitlabc.String(opt.GetScope()),
-		OrderBy:     gitlabc.String(opt.OrderBy),
-		Sort:        gitlabc.String(opt.Sort),
+		State:       gitlabc.String(searchOption.GetState()),
+		Scope:       gitlabc.String(searchOption.GetScope()),
+		OrderBy:     gitlabc.String(searchOption.OrderBy),
+		Sort:        gitlabc.String(outputOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listMergeRequestsOptions

@@ -52,11 +52,9 @@ func (g *GlobalOption) NameSpaceAndProject() (namespace, project string) {
 }
 
 type SearchOption struct {
-	Line       int    `short:"n" long:"line" default:"20" default-mask:"20" description:"output the NUM lines"`
 	State      string `short:"t" long:"state" default:"all" default-mask:"all" description:"just those that are opened, closed or all"`
 	Scope      string `short:"c" long:"scope" default:"all" default-mask:"all" description:"given scope: created-by-me, assigned-to-me or all."`
 	OrderBy    string `short:"o" long:"orderby" default:"updated_at" default-mask:"updated_at" description:"ordered by created_at or updated_at fields."`
-	Sort       string `short:"s" long:"sort" default:"desc" default-mask:"desc" description:"sorted in asc or desc order."`
 	Opened     bool   `short:"e" long:"opened" description:"search state opened"`
 	Closed     bool   `short:"l" long:"closed" description:"search scope closed"`
 	CreatedMe  bool   `short:"r" long:"created-me" description:"search scope created-by-me"`
@@ -88,4 +86,15 @@ func (s *SearchOption) GetScope() string {
 		return "assigned-to-me"
 	}
 	return s.Scope
+}
+
+type OutputOption struct {
+	Line int    `short:"n" long:"line" default:"20" default-mask:"20" description:"output the NUM lines"`
+	Sort string `short:"s" long:"sort" default:"desc" default-mask:"desc" description:"sorted in asc or desc order."`
+}
+
+func newOutputOption() *OutputOption {
+	output := flags.NewNamedParser("lab", flags.Default)
+	output.AddGroup("Output Options", "", &OutputOption{})
+	return &OutputOption{}
 }

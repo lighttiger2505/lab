@@ -19,11 +19,13 @@ var issueCommnadParser *flags.Parser = newIssueOptionParser(&issueCommandOption)
 type IssueCommnadOption struct {
 	GlobalOption *GlobalOption `group:"Global Options"`
 	SearchOption *SearchOption `group:"Search Options"`
+	OutputOption *OutputOption `group:"Output Options"`
 }
 
 func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
 	opt.GlobalOption = newGlobalOption()
 	opt.SearchOption = newSearchOption()
+	opt.OutputOption = newOutputOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "add-issue [options]"
 	return parser
@@ -84,8 +86,9 @@ func (c *IssueCommand) Run(args []string) int {
 
 	var datas []string
 	searchOption := issueCommandOption.SearchOption
+	outputOption := issueCommandOption.OutputOption
 	if searchOption.AllProject {
-		issues, err := client.Issues(makeIssueOption(searchOption))
+		issues, err := client.Issues(makeIssueOption(searchOption, outputOption))
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -93,7 +96,10 @@ func (c *IssueCommand) Run(args []string) int {
 		datas = issueOutput(issues)
 
 	} else {
-		issues, err := client.ProjectIssues(makeProjectIssueOption(searchOption), gitlabRemote.RepositoryFullName())
+		issues, err := client.ProjectIssues(
+			makeProjectIssueOption(searchOption, outputOption),
+			gitlabRemote.RepositoryFullName(),
+		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -107,31 +113,31 @@ func (c *IssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeProjectIssueOption(opt *SearchOption) *gitlabc.ListProjectIssuesOptions {
+func makeProjectIssueOption(searchOption *SearchOption, outputOption *OutputOption) *gitlabc.ListProjectIssuesOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
-		PerPage: opt.Line,
+		PerPage: outputOption.Line,
 	}
 	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
-		State:       gitlabc.String(opt.GetState()),
-		Scope:       gitlabc.String(opt.GetScope()),
-		OrderBy:     gitlabc.String(opt.OrderBy),
-		Sort:        gitlabc.String(opt.Sort),
+		State:       gitlabc.String(searchOption.GetState()),
+		Scope:       gitlabc.String(searchOption.GetScope()),
+		OrderBy:     gitlabc.String(searchOption.OrderBy),
+		Sort:        gitlabc.String(outputOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listProjectIssuesOptions
 }
 
-func makeIssueOption(opt *SearchOption) *gitlabc.ListIssuesOptions {
+func makeIssueOption(searchOption *SearchOption, outputOption *OutputOption) *gitlabc.ListIssuesOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
-		PerPage: opt.Line,
+		PerPage: outputOption.Line,
 	}
 	listIssuesOptions := &gitlabc.ListIssuesOptions{
-		State:       gitlabc.String(opt.GetState()),
-		Scope:       gitlabc.String(opt.GetScope()),
-		OrderBy:     gitlabc.String(opt.OrderBy),
-		Sort:        gitlabc.String(opt.Sort),
+		State:       gitlabc.String(searchOption.GetState()),
+		Scope:       gitlabc.String(searchOption.GetScope()),
+		OrderBy:     gitlabc.String(searchOption.OrderBy),
+		Sort:        gitlabc.String(outputOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listIssuesOptions

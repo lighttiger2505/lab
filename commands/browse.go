@@ -43,11 +43,7 @@ type BrowseCommandOption struct {
 }
 
 func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
-	global := flags.NewNamedParser("lab", flags.Default)
-	global.AddGroup("Global Options", "", &GlobalOption{})
-
 	opt.GlobalOpt = newGlobalOption()
-
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "browse [options]"
 	return parser

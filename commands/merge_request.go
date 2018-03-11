@@ -22,15 +22,8 @@ type MergeRequestCommandOption struct {
 }
 
 func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
-	global := flags.NewNamedParser("lab", flags.Default)
-	global.AddGroup("Global Options", "", &GlobalOption{})
-
-	search := flags.NewNamedParser("lab", flags.Default)
-	search.AddGroup("Search Options", "", &SearchOption{})
-
 	opt.GlobalOption = newGlobalOption()
 	opt.SearchOption = newSearchOption()
-
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "merge-request [options]"
 	return parser

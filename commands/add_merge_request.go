@@ -20,15 +20,8 @@ type CreateMergeRequestCommandOption struct {
 }
 
 func newCreateMergeRequestCommandParser(opt *CreateMergeRequestCommandOption) *flags.Parser {
-	global := flags.NewNamedParser("lab", flags.Default)
-	global.AddGroup("Global Options", "", &GlobalOption{})
-
-	create := flags.NewNamedParser("lab", flags.Default)
-	create.AddGroup("Create MergeRequest Options", "", &CreateMergeRequestOption{})
-
 	opt.GlobalOpt = newGlobalOption()
 	opt.CreateOpt = newCreateMergeRequestOption()
-
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "add-merge-request [options]"
 	return parser
@@ -45,6 +38,8 @@ type CreateMergeRequestOption struct {
 }
 
 func newCreateMergeRequestOption() *CreateMergeRequestOption {
+	create := flags.NewNamedParser("lab", flags.Default)
+	create.AddGroup("Create MergeRequest Options", "", &CreateMergeRequestOption{})
 	return &CreateMergeRequestOption{}
 }
 

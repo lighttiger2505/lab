@@ -20,15 +20,7 @@ type CreateIssueCommandOption struct {
 }
 
 func newCreateIssueCommandParser(opt *CreateIssueCommandOption) *flags.Parser {
-	global := flags.NewNamedParser("lab", flags.Default)
-	global.AddGroup("Global Options", "", &GlobalOption{})
-
-	create := flags.NewNamedParser("lab", flags.Default)
-	create.AddGroup("Create Issue Options", "", &CreateIssueOption{})
-
 	opt.GlobalOption = newGlobalOption()
-	opt.CreateOpt = newCreateIssueOption()
-
 	opt.CreateOption = newCreateIssueOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "add-issue [options]"
@@ -44,6 +36,8 @@ type CreateIssueOption struct {
 }
 
 func newCreateIssueOption() *CreateIssueOption {
+	create := flags.NewNamedParser("lab", flags.Default)
+	create.AddGroup("Create Issue Options", "", &CreateIssueOption{})
 	return &CreateIssueOption{}
 }
 

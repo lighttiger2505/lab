@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 	"strings"
+
+	flags "github.com/jessevdk/go-flags"
 )
 
 type OptionValidator interface {
@@ -14,6 +16,8 @@ type GlobalOption struct {
 }
 
 func newGlobalOption() *GlobalOption {
+	global := flags.NewNamedParser("lab", flags.Default)
+	global.AddGroup("Global Options", "", &GlobalOption{})
 	return &GlobalOption{}
 }
 
@@ -61,6 +65,8 @@ type SearchOption struct {
 }
 
 func newSearchOption() *SearchOption {
+	search := flags.NewNamedParser("lab", flags.Default)
+	search.AddGroup("Search Options", "", &SearchOption{})
 	return &SearchOption{}
 }
 

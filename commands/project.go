@@ -12,9 +12,6 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var projectCommandOption ProjectCommnadOption
-var projectCommandParser = newIssueCommandParser(&projectCommandOption)
-
 type ProjectCommnadOption struct {
 	ProjectOption *ProjectOption `group:"Project Options"`
 	OutputOption  *OutputOption  `group:"Output Options"`
@@ -51,12 +48,16 @@ func (c *ProjectCommand) Synopsis() string {
 
 func (c *ProjectCommand) Help() string {
 	buf := &bytes.Buffer{}
+	var projectCommandOption ProjectCommnadOption
+	projectCommandParser := newIssueCommandParser(&projectCommandOption)
 	projectCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *ProjectCommand) Run(args []string) int {
 	// Parse flags
+	var projectCommandOption ProjectCommnadOption
+	projectCommandParser := newIssueCommandParser(&projectCommandOption)
 	if _, err := projectCommandParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError

@@ -35,9 +35,6 @@ var browseTypePrefix = map[string]BrowseType{
 	"P": PipeLine,
 }
 
-var browseCommnadOption BrowseCommandOption
-var browseOptionParser *flags.Parser = newBrowseOptionParser(&browseCommnadOption)
-
 type BrowseCommandOption struct {
 	GlobalOpt *GlobalOption `group:"Global Options"`
 }
@@ -62,11 +59,15 @@ func (c *BrowseCommand) Synopsis() string {
 
 func (c *BrowseCommand) Help() string {
 	buf := &bytes.Buffer{}
+	var browseCommnadOption BrowseCommandOption
+	browseOptionParser := newBrowseOptionParser(&browseCommnadOption)
 	browseOptionParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *BrowseCommand) Run(args []string) int {
+	var browseCommnadOption BrowseCommandOption
+	browseOptionParser := newBrowseOptionParser(&browseCommnadOption)
 	// Parse option
 	if _, err := browseOptionParser.ParseArgs(args); err != nil {
 		c.Ui.Error(err.Error())

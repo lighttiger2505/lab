@@ -12,9 +12,6 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var pipelineCommandOption PipelineCommandOption
-var pipelineCommandParser = newPipelineCommandParser(&pipelineCommandOption)
-
 type PipelineCommandOption struct {
 	PipelineOption *PipelineOption `group:"Pipeline Options"`
 	OutputOption   *OutputOption   `group:"Output Options"`
@@ -50,6 +47,8 @@ func (c *PipelineCommand) Synopsis() string {
 }
 
 func (c *PipelineCommand) Help() string {
+	var pipelineCommandOption PipelineCommandOption
+	pipelineCommandParser := newPipelineCommandParser(&pipelineCommandOption)
 	buf := &bytes.Buffer{}
 	pipelineCommandParser.WriteHelp(buf)
 	return buf.String()
@@ -57,6 +56,8 @@ func (c *PipelineCommand) Help() string {
 
 func (c *PipelineCommand) Run(args []string) int {
 	// Parse flags
+	var pipelineCommandOption PipelineCommandOption
+	pipelineCommandParser := newPipelineCommandParser(&pipelineCommandOption)
 	if _, err := pipelineCommandParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError

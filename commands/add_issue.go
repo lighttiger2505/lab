@@ -11,9 +11,6 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var createIssueCommandOption CreateIssueCommandOption
-var createIssueCommandParser *flags.Parser = newCreateIssueCommandParser(&createIssueCommandOption)
-
 type CreateIssueCommandOption struct {
 	GlobalOption *GlobalOption      `group:"Global Options"`
 	CreateOption *CreateIssueOption `group:"Create Options"`
@@ -51,12 +48,16 @@ func (c *AddIssueCommand) Synopsis() string {
 }
 
 func (c *AddIssueCommand) Help() string {
+	var createIssueCommandOption CreateIssueCommandOption
+	createIssueCommandParser := newCreateIssueCommandParser(&createIssueCommandOption)
 	buf := &bytes.Buffer{}
 	createIssueCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *AddIssueCommand) Run(args []string) int {
+	var createIssueCommandOption CreateIssueCommandOption
+	createIssueCommandParser := newCreateIssueCommandParser(&createIssueCommandOption)
 	if _, err := createIssueCommandParser.Parse(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -77,7 +78,7 @@ func (c *AddIssueCommand) Run(args []string) int {
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	globalOption := issueCommandOption.GlobalOption
+	globalOption := createIssueCommandOption.GlobalOption
 	if globalOption.Project != "" {
 		namespace, project := globalOption.NameSpaceAndProject()
 		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)

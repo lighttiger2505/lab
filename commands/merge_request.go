@@ -13,9 +13,6 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var mergeRequestCommandOption MergeRequestCommandOption
-var mergeRequestCommandParser *flags.Parser = newMergeRequestOptionParser(&mergeRequestCommandOption)
-
 type MergeRequestCommandOption struct {
 	GlobalOption *GlobalOption `group:"Global Options"`
 	SearchOption *SearchOption `group:"Search Options"`
@@ -42,11 +39,15 @@ func (c *MergeRequestCommand) Synopsis() string {
 
 func (c *MergeRequestCommand) Help() string {
 	buf := &bytes.Buffer{}
+	var mergeRequestCommandOption MergeRequestCommandOption
+	mergeRequestCommandParser := newMergeRequestOptionParser(&mergeRequestCommandOption)
 	mergeRequestCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *MergeRequestCommand) Run(args []string) int {
+	var mergeRequestCommandOption MergeRequestCommandOption
+	mergeRequestCommandParser := newMergeRequestOptionParser(&mergeRequestCommandOption)
 	if _, err := mergeRequestCommandParser.ParseArgs(args); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

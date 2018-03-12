@@ -13,9 +13,6 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-var issueCommandOption IssueCommnadOption
-var issueCommnadParser *flags.Parser = newIssueOptionParser(&issueCommandOption)
-
 type IssueCommnadOption struct {
 	GlobalOption *GlobalOption `group:"Global Options"`
 	SearchOption *SearchOption `group:"Search Options"`
@@ -42,11 +39,15 @@ func (c *IssueCommand) Synopsis() string {
 
 func (c *IssueCommand) Help() string {
 	buf := &bytes.Buffer{}
+	var issueCommandOption IssueCommnadOption
+	issueCommnadParser := newIssueOptionParser(&issueCommandOption)
 	issueCommnadParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *IssueCommand) Run(args []string) int {
+	var issueCommandOption IssueCommnadOption
+	issueCommnadParser := newIssueOptionParser(&issueCommandOption)
 	if _, err := issueCommnadParser.ParseArgs(args); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

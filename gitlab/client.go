@@ -115,6 +115,7 @@ type MockLabClient struct {
 	MockCreateIssue         func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error)
 	MockCreateMergeRequest  func(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error)
 	MockProjects            func(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error)
+	MockProjectPipelines    func(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error)
 }
 
 func (m *MockLabClient) Issues(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
@@ -143,4 +144,8 @@ func (m *MockLabClient) CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions
 
 func (m *MockLabClient) Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {
 	return m.MockProjects(opt)
+}
+
+func (m *MockLabClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error) {
+	return m.MockProjectPipelines(repositoryName, opt)
 }

@@ -158,7 +158,7 @@ func getMergeRequestTitleAndDesc(titleIn, descIn string) (string, string, error)
 	if titleIn == "" || descIn == "" {
 		message := createMergeRequestMessage(titleIn, descIn)
 
-		editor, err := git.NewEditor("ISSUE", "issue", message)
+		editor, err := git.NewEditor("MERGE_REQUEST", "issue", message)
 		if err != nil {
 			return "", "", err
 		}

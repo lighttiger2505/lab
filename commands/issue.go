@@ -14,8 +14,8 @@ import (
 )
 
 type IssueAddOption struct {
-	Title       string `short:"t" long:"title" description:"issue title"`
-	Description string `short:"d" long:"descript" description:"issue description"`
+	Add     bool   `short:"a" long:"add" description:"add issue"`
+	Message string `short:"m" long:"message" description:"issue description"`
 }
 
 func newIssueAddOption() *IssueAddOption {
@@ -74,7 +74,7 @@ func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
 	parser.Usage = `add-issue [options]
 
 Synopsis:
-    lab issue [-t <title>] [-d <description>]
+    lab issue -a <title> [-d <message>]
     lab issue [-n <num>] -l [--state <state>] [--scope <scope>]
               [--orderby <orderby>] [--sort <sort>] -o -c 
               -cm -am -al
@@ -103,7 +103,8 @@ func (c *IssueCommand) Help() string {
 func (c *IssueCommand) Run(args []string) int {
 	var issueCommandOption IssueCommnadOption
 	issueCommnadParser := newIssueOptionParser(&issueCommandOption)
-	if _, err := issueCommnadParser.ParseArgs(args); err != nil {
+	parseArgs, err := issueCommnadParser.ParseArgs(args)
+	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
@@ -140,6 +141,31 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	addOption := issueCommandOption.AddOption
+	if addOption.Add {
+		argsTitle := ""
+		if len(parseArgs) < 0 {
+			argsTitle = parseArgs[0]
+		}
+
+		title, message, err := getIssueTitleAndDesc(argsTitle, addOption.Message)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		issue, err := client.CreateIssue(
+			makeCreateIssueOptions(title, message),
+			gitlabRemote.RepositoryFullName(),
+		)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
+		return ExitCodeOK
+	}
+
 	var datas []string
 	listOption := issueCommandOption.ListOption
 	if listOption.AllProject {
@@ -161,7 +187,6 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 		datas = projectIssueOutput(issues)
 	}
-
 	result := columnize.SimpleFormat(datas)
 	c.Ui.Message(result)
 

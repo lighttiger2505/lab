@@ -13,18 +13,73 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
+type IssueAddOption struct {
+	Title       string `short:"t" long:"title" description:"issue title"`
+	Description string `short:"d" long:"descript" description:"issue description"`
+}
+
+func newIssueAddOption() *IssueAddOption {
+	return &IssueAddOption{}
+}
+
+type IssueListOption struct {
+	List       bool   `short:"l" long:"line" description:"show list"`
+	Num        int    `short:"n" long:"num"  default:"20" default-mask:"20" description:"show issue num"`
+	State      string `long:"state" default:"all" default-mask:"all" description:"just those that are opened, closed or all"`
+	Scope      string `long:"scope" default:"all" default-mask:"all" description:"given scope: created-by-me, assigned-to-me or all."`
+	OrderBy    string `long:"orderby" default:"updated_at" default-mask:"updated_at" description:"ordered by created_at or updated_at fields."`
+	Sort       string `long:"sort" default:"desc" default-mask:"desc" description:"sorted in asc or desc order."`
+	Opened     bool   `short:"o" long:"opened" description:"search state opened"`
+	Closed     bool   `short:"c" long:"closed" description:"search scope closed"`
+	CreatedMe  bool   `short:"r" long:"created-me" description:"search scope created-by-me"`
+	AssignedMe bool   `long:"s" long:"assigned-me" description:"search scope assigned-to-me"`
+	AllProject bool   `long:"a" long:"all-project" description:"search target all project"`
+}
+
+func (l *IssueListOption) GetState() string {
+	if l.Opened {
+		return "opened"
+	}
+	if l.Closed {
+		return "closed"
+	}
+	return l.State
+}
+
+func (l *IssueListOption) GetScope() string {
+	if l.CreatedMe {
+		return "created-by-me"
+	}
+	if l.AssignedMe {
+		return "assigned-to-me"
+	}
+	return l.Scope
+}
+
+func newIssueListOption() *IssueListOption {
+	return &IssueListOption{}
+}
+
 type IssueCommnadOption struct {
 	GlobalOption *GlobalOption `group:"Global Options"`
-	SearchOption *SearchOption `group:"Search Options"`
-	OutputOption *OutputOption `group:"Output Options"`
+	AddOption    *IssueAddOption
+	ListOption   *IssueListOption
 }
 
 func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
 	opt.GlobalOption = newGlobalOption()
-	opt.SearchOption = newSearchOption()
-	opt.OutputOption = newOutputOption()
+	opt.AddOption = newIssueAddOption()
+	opt.ListOption = newIssueListOption()
 	parser := flags.NewParser(opt, flags.Default)
-	parser.Usage = "add-issue [options]"
+	parser.Usage = `add-issue [options]
+
+Synopsis:
+    lab issue [-t <title>] [-d <description>]
+    lab issue [-n <num>] -l [--state <state>] [--scope <scope>]
+              [--orderby <orderby>] [--sort <sort>] -o -c 
+              -cm -am -al
+	lab issue [-t <title>] [-d <description>] <id>
+`
 	return parser
 }
 
@@ -86,10 +141,9 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	var datas []string
-	searchOption := issueCommandOption.SearchOption
-	outputOption := issueCommandOption.OutputOption
-	if searchOption.AllProject {
-		issues, err := client.Issues(makeIssueOption(searchOption, outputOption))
+	listOption := issueCommandOption.ListOption
+	if listOption.AllProject {
+		issues, err := client.Issues(makeIssueOption(listOption))
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -98,7 +152,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 	} else {
 		issues, err := client.ProjectIssues(
-			makeProjectIssueOption(searchOption, outputOption),
+			makeProjectIssueOption(listOption),
 			gitlabRemote.RepositoryFullName(),
 		)
 		if err != nil {
@@ -114,31 +168,31 @@ func (c *IssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeProjectIssueOption(searchOption *SearchOption, outputOption *OutputOption) *gitlabc.ListProjectIssuesOptions {
+func makeProjectIssueOption(issueListOption *IssueListOption) *gitlabc.ListProjectIssuesOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
-		PerPage: outputOption.Line,
+		PerPage: issueListOption.Num,
 	}
 	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
-		State:       gitlabc.String(searchOption.GetState()),
-		Scope:       gitlabc.String(searchOption.GetScope()),
-		OrderBy:     gitlabc.String(searchOption.OrderBy),
-		Sort:        gitlabc.String(outputOption.Sort),
+		State:       gitlabc.String(issueListOption.GetState()),
+		Scope:       gitlabc.String(issueListOption.GetScope()),
+		OrderBy:     gitlabc.String(issueListOption.OrderBy),
+		Sort:        gitlabc.String(issueListOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listProjectIssuesOptions
 }
 
-func makeIssueOption(searchOption *SearchOption, outputOption *OutputOption) *gitlabc.ListIssuesOptions {
+func makeIssueOption(issueListOption *IssueListOption) *gitlabc.ListIssuesOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
-		PerPage: outputOption.Line,
+		PerPage: issueListOption.Num,
 	}
 	listIssuesOptions := &gitlabc.ListIssuesOptions{
-		State:       gitlabc.String(searchOption.GetState()),
-		Scope:       gitlabc.String(searchOption.GetScope()),
-		OrderBy:     gitlabc.String(searchOption.OrderBy),
-		Sort:        gitlabc.String(outputOption.Sort),
+		State:       gitlabc.String(issueListOption.GetState()),
+		Scope:       gitlabc.String(issueListOption.GetScope()),
+		OrderBy:     gitlabc.String(issueListOption.OrderBy),
+		Sort:        gitlabc.String(issueListOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listIssuesOptions

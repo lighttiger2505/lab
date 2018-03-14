@@ -72,7 +72,7 @@ func TestIssueCommandRun_ProjectIssue(t *testing.T) {
 		Provider: mockIssueProvider,
 	}
 
-	args := []string{"-a"}
+	args := []string{"--all-project"}
 	if code := c.Run(args); code != 0 {
 		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
 	}

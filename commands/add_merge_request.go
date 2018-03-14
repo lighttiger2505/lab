@@ -130,6 +130,18 @@ func makeCreateMergeRequestOptios(opt *CreateMergeRequestOption, title, descript
 	return createMergeRequestOption
 }
 
+func makeCreateMergeRequestOption(opt *AddMergeRequestOption, title, description, branch string) *gitlabc.CreateMergeRequestOptions {
+	createMergeRequestOption := &gitlabc.CreateMergeRequestOptions{
+		Title:           gitlabc.String(title),
+		Description:     gitlabc.String(description),
+		SourceBranch:    gitlabc.String(branch),
+		TargetBranch:    gitlabc.String(opt.TargetBranch),
+		AssigneeID:      nil,
+		TargetProjectID: nil,
+	}
+	return createMergeRequestOption
+}
+
 func createMergeRequestMessage(title, description string) string {
 	message := `<!-- Write a message for this merge request. The first block of text is the title -->
 %s

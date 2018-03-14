@@ -73,12 +73,6 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Provider: provider,
 			}, nil
 		},
-		"add-merge-request": func() (cli.Command, error) {
-			return &commands.AddMergeReqeustCommand{
-				Ui:       ui,
-				Provider: provider,
-			}, nil
-		},
 		"project": func() (cli.Command, error) {
 			return &commands.ProjectCommand{
 				UI:       ui,

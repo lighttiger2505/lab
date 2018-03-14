@@ -13,16 +13,16 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-type IssueAddOption struct {
+type AddIssueOption struct {
 	Add     bool   `short:"a" long:"add" description:"add issue"`
 	Message string `short:"m" long:"message" description:"issue description"`
 }
 
-func newIssueAddOption() *IssueAddOption {
-	return &IssueAddOption{}
+func newAddIssueOption() *AddIssueOption {
+	return &AddIssueOption{}
 }
 
-type IssueListOption struct {
+type ListIssueOption struct {
 	List       bool   `short:"l" long:"line" description:"show list"`
 	Num        int    `short:"n" long:"num"  default:"20" default-mask:"20" description:"show issue num"`
 	State      string `long:"state" default:"all" default-mask:"all" description:"just those that are opened, closed or all"`
@@ -36,7 +36,7 @@ type IssueListOption struct {
 	AllProject bool   `long:"a" long:"all-project" description:"search target all project"`
 }
 
-func (l *IssueListOption) GetState() string {
+func (l *ListIssueOption) GetState() string {
 	if l.Opened {
 		return "opened"
 	}
@@ -46,7 +46,7 @@ func (l *IssueListOption) GetState() string {
 	return l.State
 }
 
-func (l *IssueListOption) GetScope() string {
+func (l *ListIssueOption) GetScope() string {
 	if l.CreatedMe {
 		return "created-by-me"
 	}
@@ -56,8 +56,8 @@ func (l *IssueListOption) GetScope() string {
 	return l.Scope
 }
 
-func newIssueListOption() *IssueListOption {
-	return &IssueListOption{}
+func newListIssueOption() *ListIssueOption {
+	return &ListIssueOption{}
 }
 
 type IssueCommnadOption struct {
@@ -68,8 +68,8 @@ type IssueCommnadOption struct {
 
 func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
 	opt.GlobalOption = newGlobalOption()
-	opt.AddOption = newIssueAddOption()
-	opt.ListOption = newIssueListOption()
+	opt.AddOption = newAddIssueOption()
+	opt.ListOption = newListIssueOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `add-issue [options]
 
@@ -193,7 +193,7 @@ func (c *IssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeProjectIssueOption(issueListOption *IssueListOption) *gitlabc.ListProjectIssuesOptions {
+func makeProjectIssueOption(issueListOption *ListIssueOption) *gitlabc.ListProjectIssuesOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: issueListOption.Num,
@@ -208,7 +208,7 @@ func makeProjectIssueOption(issueListOption *IssueListOption) *gitlabc.ListProje
 	return listProjectIssuesOptions
 }
 
-func makeIssueOption(issueListOption *IssueListOption) *gitlabc.ListIssuesOptions {
+func makeIssueOption(issueListOption *ListIssueOption) *gitlabc.ListIssuesOptions {
 	listOption := &gitlabc.ListOptions{
 		Page:    1,
 		PerPage: issueListOption.Num,

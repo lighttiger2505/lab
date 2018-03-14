@@ -67,20 +67,8 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Provider: provider,
 			}, nil
 		},
-		"add-issue": func() (cli.Command, error) {
-			return &commands.AddIssueCommand{
-				Ui:       ui,
-				Provider: provider,
-			}, nil
-		},
 		"merge-request": func() (cli.Command, error) {
 			return &commands.MergeRequestCommand{
-				Ui:       ui,
-				Provider: provider,
-			}, nil
-		},
-		"add-merge-request": func() (cli.Command, error) {
-			return &commands.AddMergeReqeustCommand{
 				Ui:       ui,
 				Provider: provider,
 			}, nil

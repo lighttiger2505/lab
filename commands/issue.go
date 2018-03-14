@@ -61,9 +61,9 @@ func newListIssueOption() *ListIssueOption {
 }
 
 type IssueCommnadOption struct {
-	GlobalOption *GlobalOption `group:"Global Options"`
-	AddOption    *IssueAddOption
-	ListOption   *IssueListOption
+	GlobalOption *GlobalOption    `group:"Global Options"`
+	AddOption    *AddIssueOption  `group:"Create Options"`
+	ListOption   *ListIssueOption `group:"List Options"`
 }
 
 func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {

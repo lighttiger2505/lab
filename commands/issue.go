@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
@@ -13,13 +14,14 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-type AddIssueOption struct {
-	Add     bool   `short:"a" long:"add" description:"add issue"`
-	Message string `short:"m" long:"message" description:"issue description"`
+type CreateUpdateIssueOption struct {
+	Edit    bool   `short:"e" long:"update" description:"edit issue"`
+	Title   string `short:"i" long:"title" description:"issue issue"`
+	Message string `short:"m" long:"message" description:"issue message"`
 }
 
-func newAddIssueOption() *AddIssueOption {
-	return &AddIssueOption{}
+func newAddIssueOption() *CreateUpdateIssueOption {
+	return &CreateUpdateIssueOption{}
 }
 
 type ListIssueOption struct {
@@ -61,14 +63,14 @@ func newListIssueOption() *ListIssueOption {
 }
 
 type IssueCommnadOption struct {
-	GlobalOption *GlobalOption    `group:"Global Options"`
-	AddOption    *AddIssueOption  `group:"Create Options"`
-	ListOption   *ListIssueOption `group:"List Options"`
+	GlobalOption       *GlobalOption            `group:"Global Options"`
+	CreateUpdateOption *CreateUpdateIssueOption `group:"Create, Update Options"`
+	ListOption         *ListIssueOption         `group:"List Options"`
 }
 
 func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
 	opt.GlobalOption = newGlobalOption()
-	opt.AddOption = newAddIssueOption()
+	opt.CreateUpdateOption = newAddIssueOption()
 	opt.ListOption = newListIssueOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `add-issue [options]
@@ -141,14 +143,51 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	addOption := issueCommandOption.AddOption
-	if addOption.Add {
+	createUpdateOption := issueCommandOption.CreateUpdateOption
+	if len(parseArgs) > 0 {
+		iid, err := strconv.Atoi(parseArgs[0])
+		if err != nil {
+			c.Ui.Error(fmt.Sprintf("Invalid issue iid. \"%s\"", parseArgs[0]))
+			return ExitCodeError
+		}
+
+		issue, err := client.GetIssue(iid, gitlabRemote.RepositoryFullName())
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		if createUpdateOption.Edit {
+			title, message, err := editIssueTitleAndDesc(issue.Title, issue.Description)
+			if err != nil {
+				c.Ui.Error(err.Error())
+				return ExitCodeError
+			}
+
+			issue, err := client.UpdateIssue(
+				makeUpdateIssueOption(title, message),
+				iid,
+				gitlabRemote.RepositoryFullName(),
+			)
+			if err != nil {
+				c.Ui.Error(err.Error())
+				return ExitCodeError
+			}
+			c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
+			return ExitCodeOK
+		} else {
+			c.Ui.Message(issueDetailOutput(issue))
+			return ExitCodeOK
+		}
+	}
+
+	if createUpdateOption.Edit {
 		argsTitle := ""
-		if len(parseArgs) < 0 {
+		if len(parseArgs) > 0 {
 			argsTitle = parseArgs[0]
 		}
 
-		title, message, err := getIssueTitleAndDesc(argsTitle, addOption.Message)
+		title, message, err := getIssueTitleAndDesc(argsTitle, createUpdateOption.Message)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -223,6 +262,22 @@ func makeIssueOption(issueListOption *ListIssueOption) *gitlabc.ListIssuesOption
 	return listIssuesOptions
 }
 
+func makeCreateIssueOptions(title, description string) *gitlabc.CreateIssueOptions {
+	opt := &gitlabc.CreateIssueOptions{
+		Title:       gitlabc.String(title),
+		Description: gitlabc.String(description),
+	}
+	return opt
+}
+
+func makeUpdateIssueOption(title, description string) *gitlabc.UpdateIssueOptions {
+	opt := &gitlabc.UpdateIssueOptions{
+		Title:       gitlabc.String(title),
+		Description: gitlabc.String(description),
+	}
+	return opt
+}
+
 func issueOutput(issues []*gitlabc.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
@@ -236,6 +291,28 @@ func issueOutput(issues []*gitlabc.Issue) []string {
 	return datas
 }
 
+func issueDetailOutput(issue *gitlabc.Issue) string {
+	base := `#%d
+Title: %s
+Assignee: %s
+Author: %s
+CreatedAt: %s
+UpdatedAt: %s
+
+%s`
+	detial := fmt.Sprintf(
+		base,
+		issue.IID,
+		issue.Title,
+		issue.Assignee.Name,
+		issue.Author.Name,
+		issue.CreatedAt.String(),
+		issue.UpdatedAt.String(),
+		issue.Description,
+	)
+	return detial
+}
+
 func projectIssueOutput(issues []*gitlabc.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
@@ -246,4 +323,68 @@ func projectIssueOutput(issues []*gitlabc.Issue) []string {
 		datas = append(datas, data)
 	}
 	return datas
+}
+
+func createIssueMessage(title, description string) string {
+	message := `<!-- Write a message for this issue. The first block of text is the title -->
+%s
+
+<!-- the rest is the description.  -->
+%s
+`
+	message = fmt.Sprintf(message, title, description)
+	return message
+}
+
+func getIssueTitleAndDesc(titleIn, descIn string) (string, string, error) {
+	var title, description string
+	if titleIn == "" || descIn == "" {
+		message := createIssueMessage(titleIn, descIn)
+
+		editor, err := git.NewEditor("ISSUE", "issue", message)
+		if err != nil {
+			return "", "", err
+		}
+
+		title, description, err = editor.EditTitleAndDescription()
+		if err != nil {
+			return "", "", err
+		}
+
+		if editor != nil {
+			defer editor.DeleteFile()
+		}
+	} else {
+		title = titleIn
+		description = descIn
+	}
+
+	if title == "" {
+		return "", "", fmt.Errorf("Title is requeired")
+	}
+
+	return title, description, nil
+}
+
+func editIssueTitleAndDesc(titleIn, descIn string) (string, string, error) {
+	message := createIssueMessage(titleIn, descIn)
+	editor, err := git.NewEditor("ISSUE", "issue", message)
+	if err != nil {
+		return "", "", err
+	}
+
+	title, description, err := editor.EditTitleAndDescription()
+	if err != nil {
+		return "", "", err
+	}
+
+	if editor != nil {
+		defer editor.DeleteFile()
+	}
+
+	if title == "" {
+		return "", "", fmt.Errorf("Title is requeired")
+	}
+
+	return title, description, nil
 }

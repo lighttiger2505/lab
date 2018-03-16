@@ -8,7 +8,6 @@ import (
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	gitlabc "github.com/xanzy/go-gitlab"
 )
 
 type CreateIssueCommandOption struct {
@@ -111,53 +110,76 @@ func (c *AddIssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeCreateIssueOptions(title, description string) *gitlabc.CreateIssueOptions {
-	opt := &gitlabc.CreateIssueOptions{
-		Title:       gitlabc.String(title),
-		Description: gitlabc.String(description),
-		MilestoneID: nil,
-		Labels:      []string{},
-	}
-	return opt
-}
+// func makeCreateIssueOptions(title, description string) *gitlabc.CreateIssueOptions {
+// 	opt := &gitlabc.CreateIssueOptions{
+// 		Title:       gitlabc.String(title),
+// 		Description: gitlabc.String(description),
+// 		MilestoneID: nil,
+// 		Labels:      []string{},
+// 	}
+// 	return opt
+// }
 
-func createIssueMessage(title, description string) string {
-	message := `<!-- Write a message for this issue. The first block of text is the title -->
-%s
-
-<!-- the rest is the description.  -->
-%s
-`
-	message = fmt.Sprintf(message, title, description)
-	return message
-}
-
-func getIssueTitleAndDesc(titleIn, descIn string) (string, string, error) {
-	var title, description string
-	if titleIn == "" || descIn == "" {
-		message := createIssueMessage(titleIn, descIn)
-
-		editor, err := git.NewEditor("ISSUE", "issue", message)
-		if err != nil {
-			return "", "", err
-		}
-
-		title, description, err = editor.EditTitleAndDescription()
-		if err != nil {
-			return "", "", err
-		}
-
-		if editor != nil {
-			defer editor.DeleteFile()
-		}
-	} else {
-		title = titleIn
-		description = descIn
-	}
-
-	if title == "" {
-		return "", "", fmt.Errorf("Title is requeired")
-	}
-
-	return title, description, nil
-}
+// func createIssueMessage(title, description string) string {
+// 	message := `<!-- Write a message for this issue. The first block of text is the title -->
+// %s
+//
+// <!-- the rest is the description.  -->
+// %s
+// `
+// 	message = fmt.Sprintf(message, title, description)
+// 	return message
+// }
+//
+// func getIssueTitleAndDesc(titleIn, descIn string) (string, string, error) {
+// 	var title, description string
+// 	if titleIn == "" || descIn == "" {
+// 		message := createIssueMessage(titleIn, descIn)
+//
+// 		editor, err := git.NewEditor("ISSUE", "issue", message)
+// 		if err != nil {
+// 			return "", "", err
+// 		}
+//
+// 		title, description, err = editor.EditTitleAndDescription()
+// 		if err != nil {
+// 			return "", "", err
+// 		}
+//
+// 		if editor != nil {
+// 			defer editor.DeleteFile()
+// 		}
+// 	} else {
+// 		title = titleIn
+// 		description = descIn
+// 	}
+//
+// 	if title == "" {
+// 		return "", "", fmt.Errorf("Title is requeired")
+// 	}
+//
+// 	return title, description, nil
+// }
+//
+// func editIssueTitleAndDesc(titleIn, descIn string) (string, string, error) {
+// 	message := createIssueMessage(titleIn, descIn)
+// 	editor, err := git.NewEditor("ISSUE", "issue", message)
+// 	if err != nil {
+// 		return "", "", err
+// 	}
+//
+// 	title, description, err := editor.EditTitleAndDescription()
+// 	if err != nil {
+// 		return "", "", err
+// 	}
+//
+// 	if editor != nil {
+// 		defer editor.DeleteFile()
+// 	}
+//
+// 	if title == "" {
+// 		return "", "", fmt.Errorf("Title is requeired")
+// 	}
+//
+// 	return title, description, nil
+// }

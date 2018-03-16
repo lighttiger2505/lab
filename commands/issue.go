@@ -73,14 +73,14 @@ func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
 	opt.CreateUpdateOption = newAddIssueOption()
 	opt.ListOption = newListIssueOption()
 	parser := flags.NewParser(opt, flags.Default)
-	parser.Usage = `add-issue [options]
+	parser.Usage = `issue - Create and Edit, list a issue
 
 Synopsis:
-    lab issue -a <title> [-d <message>]
-    lab issue [-n <num>] -l [--state <state>] [--scope <scope>]
-              [--orderby <orderby>] [--sort <sort>] -o -c 
+    lab issue [-e] [-i <title>] [-m <message>]
+    lab issue <issue IID> [-e] [-i <title>] [-m <message>] 
+    lab issue [-n <num>] -l [--state=<state>] [--scope=<scope>]
+              [--orderby=<orderby>] [--sort=<sort>] -o -c
               -cm -am -al
-	lab issue [-t <title>] [-d <description>] <id>
 `
 	return parser
 }

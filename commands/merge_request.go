@@ -63,13 +63,11 @@ func newListMergeRequestOption() *ListMergeRequestOption {
 }
 
 type MergeRequestCommandOption struct {
-	GlobalOption *GlobalOption           `group:"Global Options"`
 	AddOption  *CreateUpdateMergeRequestOption `group:"Create Options"`
 	ListOption *ListMergeRequestOption         `group:"List Options"`
 }
 
 func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
-	opt.GlobalOption = newGlobalOption()
 	opt.AddOption = newCreateUpdateMergeRequestOption()
 	opt.ListOption = newListMergeRequestOption()
 	parser := flags.NewParser(opt, flags.Default)
@@ -111,12 +109,6 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	globalOption := mergeRequestCommandOption.GlobalOption
-	if err := globalOption.IsValid(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
 	// Initialize provider
 	if err := c.Provider.Init(); err != nil {
 		c.Ui.Error(err.Error())
@@ -124,17 +116,10 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	}
 
 	// Getting git remote info
-	var gitlabRemote *git.RemoteInfo
-	if globalOption.Project != "" {
-		namespace, project := globalOption.NameSpaceAndProject()
-		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
-	} else {
-		var err error
-		gitlabRemote, err = c.Provider.GetCurrentRemote()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
+	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
 	}
 
 	client, err := c.Provider.GetClient(gitlabRemote)

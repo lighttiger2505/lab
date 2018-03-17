@@ -57,6 +57,18 @@ func (l *ListIssueOption) GetScope() string {
 	return l.Scope
 }
 
+type IssueOperation int
+
+const (
+	Create IssueOperation = iota
+	CreateOnEditor
+	Update
+	UpdateOnEditor
+	Show
+	List
+	ListAllProject
+)
+
 func newListIssueOption() *ListIssueOption {
 	return &ListIssueOption{}
 }
@@ -149,56 +161,101 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	createUpdateOption := issueCommandOption.CreateUpdateOption
-	if len(parseArgs) > 0 {
-		iid, err := strconv.Atoi(parseArgs[0])
-		if err != nil {
-			c.Ui.Error(fmt.Sprintf("Invalid issue iid. \"%s\"", parseArgs[0]))
-			return ExitCodeError
-		}
+	iid, err := validIID(parseArgs)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
 
+	// Do issue operation
+	operation := issueOperation(issueCommandOption, parseArgs)
+
+	switch operation {
+	case Update:
+		// Getting exist issue
 		issue, err := client.GetIssue(iid, gitlabRemote.RepositoryFullName())
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
 
-		if createUpdateOption.Edit {
-			title, message, err := editIssueTitleAndDesc(issue.Title, issue.Description)
-			if err != nil {
-				c.Ui.Error(err.Error())
-				return ExitCodeError
-			}
-
-			issue, err := client.UpdateIssue(
-				makeUpdateIssueOption(title, message),
-				iid,
-				gitlabRemote.RepositoryFullName(),
-			)
-			if err != nil {
-				c.Ui.Error(err.Error())
-				return ExitCodeError
-			}
-			c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
-			return ExitCodeOK
-		} else {
-			c.Ui.Message(issueDetailOutput(issue))
-			return ExitCodeOK
+		// Create new title or description
+		createUpdateOption := issueCommandOption.CreateUpdateOption
+		updatedTitle := issue.Title
+		updatedMessage := issue.Description
+		if createUpdateOption.Title != "" {
+			updatedTitle = createUpdateOption.Title
 		}
-	}
-
-	if createUpdateOption.Edit {
-		argsTitle := ""
-		if len(parseArgs) > 0 {
-			argsTitle = parseArgs[0]
+		if createUpdateOption.Message != "" {
+			updatedMessage = createUpdateOption.Message
 		}
 
-		title, message, err := getIssueTitleAndDesc(argsTitle, createUpdateOption.Message)
+		// Do update issue
+		updatedIssue, err := client.UpdateIssue(
+			makeUpdateIssueOption(updatedTitle, updatedMessage),
+			iid,
+			gitlabRemote.RepositoryFullName(),
+		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
 
+		// Print update Issue IID
+		c.Ui.Message(fmt.Sprintf("#%d", updatedIssue.IID))
+
+	case UpdateOnEditor:
+		// Getting exist issue
+		issue, err := client.GetIssue(iid, gitlabRemote.RepositoryFullName())
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		// Starting editor for edit title and description
+		title, message, err := editIssueTitleAndDesc(issue.Title, issue.Description)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		// Do update issue
+		updatedIssue, err := client.UpdateIssue(
+			makeUpdateIssueOption(title, message),
+			iid,
+			gitlabRemote.RepositoryFullName(),
+		)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		c.Ui.Message(fmt.Sprintf("#%d", updatedIssue.IID))
+
+	case Create:
+		// Do create issue
+		createUpdateOption := issueCommandOption.CreateUpdateOption
+		issue, err := client.CreateIssue(
+			makeCreateIssueOptions(createUpdateOption.Title, createUpdateOption.Message),
+			gitlabRemote.RepositoryFullName(),
+		)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		// Print created Issue IID
+		c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
+
+	case CreateOnEditor:
+		// Starting editor for edit title and description
+		createUpdateOption := issueCommandOption.CreateUpdateOption
+		title, message, err := editIssueTitleAndDesc(createUpdateOption.Title, createUpdateOption.Message)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		// Do create issue
 		issue, err := client.CreateIssue(
 			makeCreateIssueOptions(title, message),
 			gitlabRemote.RepositoryFullName(),
@@ -207,21 +264,23 @@ func (c *IssueCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
-		return ExitCodeOK
-	}
 
-	var datas []string
-	listOption := issueCommandOption.ListOption
-	if listOption.AllProject {
-		issues, err := client.Issues(makeIssueOption(listOption))
+		// Print created Issue IID
+		c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
+
+	case Show:
+		// Do get issue detail
+		issue, err := client.GetIssue(iid, gitlabRemote.RepositoryFullName())
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		datas = issueOutput(issues)
 
-	} else {
+		// Print issue detail
+		c.Ui.Message(issueDetailOutput(issue))
+
+	case List:
+		listOption := issueCommandOption.ListOption
 		issues, err := client.ProjectIssues(
 			makeProjectIssueOption(listOption),
 			gitlabRemote.RepositoryFullName(),
@@ -230,12 +289,73 @@ func (c *IssueCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		datas = projectIssueOutput(issues)
+
+		// Print issue list
+		output := projectIssueOutput(issues)
+		result := columnize.SimpleFormat(output)
+		c.Ui.Message(result)
+
+	case ListAllProject:
+		// Do get issue list
+		listOption := issueCommandOption.ListOption
+		issues, err := client.Issues(makeIssueOption(listOption))
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		// Print issue list
+		output := issueOutput(issues)
+		result := columnize.SimpleFormat(output)
+		c.Ui.Message(result)
+
+	default:
+		c.Ui.Error("Invalid issue operation")
+		return ExitCodeError
 	}
-	result := columnize.SimpleFormat(datas)
-	c.Ui.Message(result)
 
 	return ExitCodeOK
+}
+
+func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
+	createUpdateOption := opt.CreateUpdateOption
+	listOption := opt.ListOption
+
+	// Case of getting Issue IID
+	if len(args) > 0 {
+		if createUpdateOption.Edit {
+			return UpdateOnEditor
+		}
+		if createUpdateOption.Title != "" || createUpdateOption.Message != "" {
+			return Update
+		}
+		return Show
+	}
+
+	// Case of nothing Issue IID
+	if createUpdateOption.Edit {
+		return CreateOnEditor
+	}
+	if createUpdateOption.Title != "" {
+		return Create
+	}
+	if listOption.AllProject {
+		return ListAllProject
+	}
+
+	return List
+}
+
+func validIID(args []string) (int, error) {
+	if len(args) < 1 {
+		return 0, nil
+	}
+
+	iid, err := strconv.Atoi(args[0])
+	if err != nil {
+		return 0, fmt.Errorf("Invalid Issue IID. IID: %s", args[0])
+	}
+	return iid, nil
 }
 
 func makeProjectIssueOption(issueListOption *ListIssueOption) *gitlabc.ListProjectIssuesOptions {
@@ -342,39 +462,10 @@ func createIssueMessage(title, description string) string {
 	return message
 }
 
-func getIssueTitleAndDesc(titleIn, descIn string) (string, string, error) {
-	var title, description string
-	if titleIn == "" || descIn == "" {
-		message := createIssueMessage(titleIn, descIn)
+func editIssueTitleAndDesc(title, message string) (string, string, error) {
+	template := createIssueMessage(title, message)
 
-		editor, err := git.NewEditor("ISSUE", "issue", message)
-		if err != nil {
-			return "", "", err
-		}
-
-		title, description, err = editor.EditTitleAndDescription()
-		if err != nil {
-			return "", "", err
-		}
-
-		if editor != nil {
-			defer editor.DeleteFile()
-		}
-	} else {
-		title = titleIn
-		description = descIn
-	}
-
-	if title == "" {
-		return "", "", fmt.Errorf("Title is requeired")
-	}
-
-	return title, description, nil
-}
-
-func editIssueTitleAndDesc(titleIn, descIn string) (string, string, error) {
-	message := createIssueMessage(titleIn, descIn)
-	editor, err := git.NewEditor("ISSUE", "issue", message)
+	editor, err := git.NewEditor("ISSUE", "issue", template)
 	if err != nil {
 		return "", "", err
 	}
@@ -386,10 +477,6 @@ func editIssueTitleAndDesc(titleIn, descIn string) (string, string, error) {
 
 	if editor != nil {
 		defer editor.DeleteFile()
-	}
-
-	if title == "" {
-		return "", "", fmt.Errorf("Title is requeired")
 	}
 
 	return title, description, nil

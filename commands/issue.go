@@ -60,13 +60,13 @@ func (l *ListIssueOption) GetScope() string {
 type IssueOperation int
 
 const (
-	Create IssueOperation = iota
-	CreateOnEditor
-	Update
-	UpdateOnEditor
-	Show
-	List
-	ListAllProject
+	CreateIssue IssueOperation = iota
+	CreateIssueOnEditor
+	UpdateIssue
+	UpdateIssueOnEditor
+	ShowIssue
+	ListIssue
+	ListIssueAllProject
 )
 
 func newListIssueOption() *ListIssueOption {
@@ -154,7 +154,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 	// Do issue operation
 	switch issueOperation(issueCommandOption, parseArgs) {
-	case Update:
+	case UpdateIssue:
 		output, err := updateIssue(
 			client,
 			gitlabRemote.RepositoryFullName(),
@@ -167,7 +167,7 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 		c.Ui.Message(output)
 
-	case UpdateOnEditor:
+	case UpdateIssueOnEditor:
 		output, err := updateIssueOnEditor(
 			client,
 			gitlabRemote.RepositoryFullName(),
@@ -180,7 +180,7 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 		c.Ui.Message(output)
 
-	case Create:
+	case CreateIssue:
 		// Do create issue
 		createUpdateOption := issueCommandOption.CreateUpdateOption
 		issue, err := client.CreateIssue(
@@ -195,7 +195,7 @@ func (c *IssueCommand) Run(args []string) int {
 		// Print created Issue IID
 		c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
 
-	case CreateOnEditor:
+	case CreateIssueOnEditor:
 		// Starting editor for edit title and description
 		createUpdateOption := issueCommandOption.CreateUpdateOption
 		title, message, err := editIssueTitleAndDesc(createUpdateOption.Title, createUpdateOption.Message)
@@ -217,7 +217,7 @@ func (c *IssueCommand) Run(args []string) int {
 		// Print created Issue IID
 		c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
 
-	case Show:
+	case ShowIssue:
 		// Do get issue detail
 		issue, err := client.GetIssue(iid, gitlabRemote.RepositoryFullName())
 		if err != nil {
@@ -228,7 +228,7 @@ func (c *IssueCommand) Run(args []string) int {
 		// Print issue detail
 		c.Ui.Message(issueDetailOutput(issue))
 
-	case List:
+	case ListIssue:
 		listOption := issueCommandOption.ListOption
 		issues, err := client.ProjectIssues(
 			makeProjectIssueOption(listOption),
@@ -244,7 +244,7 @@ func (c *IssueCommand) Run(args []string) int {
 		result := columnize.SimpleFormat(output)
 		c.Ui.Message(result)
 
-	case ListAllProject:
+	case ListIssueAllProject:
 		// Do get issue list
 		listOption := issueCommandOption.ListOption
 		issues, err := client.Issues(makeIssueOption(listOption))
@@ -273,26 +273,26 @@ func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
 	// Case of getting Issue IID
 	if len(args) > 0 {
 		if createUpdateOption.Edit {
-			return UpdateOnEditor
+			return UpdateIssueOnEditor
 		}
 		if createUpdateOption.Title != "" || createUpdateOption.Message != "" {
-			return Update
+			return UpdateIssue
 		}
-		return Show
+		return ShowIssue
 	}
 
 	// Case of nothing Issue IID
 	if createUpdateOption.Edit {
-		return CreateOnEditor
+		return CreateIssueOnEditor
 	}
 	if createUpdateOption.Title != "" {
-		return Create
+		return CreateIssue
 	}
 	if listOption.AllProject {
-		return ListAllProject
+		return ListIssueAllProject
 	}
 
-	return List
+	return ListIssue
 }
 
 func validIID(args []string) (int, error) {

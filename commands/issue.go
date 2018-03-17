@@ -146,7 +146,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	iid, err := validIID(parseArgs)
+	iid, err := validIssueIID(parseArgs)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -198,7 +198,8 @@ func (c *IssueCommand) Run(args []string) int {
 	case CreateIssueOnEditor:
 		// Starting editor for edit title and description
 		createUpdateOption := issueCommandOption.CreateUpdateOption
-		title, message, err := editIssueTitleAndDesc(createUpdateOption.Title, createUpdateOption.Message)
+		template := editIssueMessage(createUpdateOption.Title, createUpdateOption.Message)
+		title, message, err := editIssueTitleAndDesc(template)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -295,7 +296,7 @@ func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
 	return ListIssue
 }
 
-func validIID(args []string) (int, error) {
+func validIssueIID(args []string) (int, error) {
 	if len(args) < 1 {
 		return 0, nil
 	}
@@ -346,7 +347,8 @@ func updateIssueOnEditor(client gitlab.Client, project string, iid int, opt *Cre
 	}
 
 	// Starting editor for edit title and description
-	title, message, err := editIssueTitleAndDesc(issue.Title, issue.Description)
+	template := editIssueMessage(issue.Title, issue.Description)
+	title, message, err := editIssueTitleAndDesc(template)
 	if err != nil {
 		return "", err
 	}
@@ -467,9 +469,7 @@ func editIssueMessage(title, description string) string {
 	return message
 }
 
-func editIssueTitleAndDesc(title, message string) (string, string, error) {
-	template := editIssueMessage(title, message)
-
+func editIssueTitleAndDesc(template string) (string, string, error) {
 	editor, err := git.NewEditor("ISSUE", "issue", template)
 	if err != nil {
 		return "", "", err

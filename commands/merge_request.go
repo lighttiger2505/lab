@@ -13,15 +13,15 @@ import (
 	gitlabc "github.com/xanzy/go-gitlab"
 )
 
-type AddMergeRequestOption struct {
+type CreateUpdateMergeRequestOption struct {
 	Add          bool   `short:"a" long:"add" description:"add issue"`
 	Message      string `short:"m" long:"message" description:"issue description"`
 	SourceBranch string `short:"s" long:"source" description:"The source branch"`
 	TargetBranch string `short:"g" long:"target" default:"master" default-mask:"master" description:"The target branch"`
 }
 
-func newAddMergeRequestOption() *AddMergeRequestOption {
-	return &AddMergeRequestOption{}
+func newCreateUpdateMergeRequestOption() *CreateUpdateMergeRequestOption {
+	return &CreateUpdateMergeRequestOption{}
 }
 
 type ListMergeRequestOption struct {
@@ -64,13 +64,13 @@ func newListMergeRequestOption() *ListMergeRequestOption {
 
 type MergeRequestCommandOption struct {
 	GlobalOption *GlobalOption           `group:"Global Options"`
-	AddOption    *AddMergeRequestOption  `group:"Create Options"`
-	ListOption   *ListMergeRequestOption `group:"List Options"`
+	AddOption  *CreateUpdateMergeRequestOption `group:"Create Options"`
+	ListOption *ListMergeRequestOption         `group:"List Options"`
 }
 
 func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
 	opt.GlobalOption = newGlobalOption()
-	opt.AddOption = newAddMergeRequestOption()
+	opt.AddOption = newCreateUpdateMergeRequestOption()
 	opt.ListOption = newListMergeRequestOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `merge-request [options]

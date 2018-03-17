@@ -11,6 +11,7 @@ type Client interface {
 	ProjectIssues(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)
 	MergeRequest(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
 	ProjectMergeRequest(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
+	GetMergeRequest(pid int, repositoryName string) (*gitlab.MergeRequest, error)
 	CreateIssue(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error)
 	UpdateIssue(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error)
 	GetIssue(pid int, repositoryName string) (*gitlab.Issue, error)
@@ -62,6 +63,13 @@ func (l *LabClient) ProjectMergeRequest(opt *gitlab.ListProjectMergeRequestsOpti
 	return mergeRequests, nil
 }
 
+func (l *LabClient) GetMergeRequest(pid int, repositoryName string) (*gitlab.MergeRequest, error) {
+	mergeRequest, _, err := l.Client.MergeRequests.GetMergeRequest(repositoryName, pid)
+	if err != nil {
+		return nil, fmt.Errorf("Failed get merge request. %s", err.Error())
+	}
+	return mergeRequest, nil
+}
 func (l *LabClient) CreateIssue(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
 	issue, _, err := l.Client.Issues.CreateIssue(
 		repositoryName,

@@ -78,7 +78,7 @@ func TestIssueCommandRun_ProjectIssue(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "#12  namespace/repo12  Title12\n#13  namespace/repo13  Title13\n"
+	want := "namespace/repo12  #12  Title12\nnamespace/repo13  #13  Title13\n"
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", got, want)
@@ -88,8 +88,8 @@ func TestIssueCommandRun_ProjectIssue(t *testing.T) {
 func TestIssueOutput(t *testing.T) {
 	got := issueOutput(issues)
 	want := []string{
-		"#12|namespace/repo12|Title12",
-		"#13|namespace/repo13|Title13",
+		"namespace/repo12|#12|Title12",
+		"namespace/repo13|#13|Title13",
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("bad return value \nwant %#v \ngot  %#v", got, want)
@@ -107,8 +107,8 @@ func TestProjectIssueOutput(t *testing.T) {
 	}
 }
 
-func TestCreateIssueMessage(t *testing.T) {
-	got := createIssueMessage("title", "description")
+func TestEditIssueMessage(t *testing.T) {
+	got := editIssueMessage("title", "description")
 	want := `<!-- Write a message for this issue. The first block of text is the title -->
 title
 

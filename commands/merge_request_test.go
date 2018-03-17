@@ -76,7 +76,7 @@ func TestMergeRequestCommandRun_AllProjectOption(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "!12  namespace/repo12  Title12\n!13  namespace/repo13  Title13\n"
+	want := "namespace/repo12  !12  Title12\nnamespace/repo13  !13  Title13\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}

@@ -34,7 +34,7 @@ type ListIssueOption struct {
 	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`
 	AssignedMe bool   `long:"s" long:"assigned-me" description:"Shorthand of the scope option for \"--scope=assigned-by-me\"."`
-	AllProject bool   `long:"A" long:"all-project" description:"Output the issue of all projects registed in highest priority GitLab server, determined by \"domains\" in \".labconfig.yml\""`
+	AllProject bool   `long:"A" long:"all-project" description:"Print the issue of all projects"`
 }
 
 func (l *ListIssueOption) GetState() string {

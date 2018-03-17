@@ -393,8 +393,8 @@ func issueOutput(issues []*gitlabc.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
-			fmt.Sprintf("#%d", issue.IID),
 			gitlab.ParceRepositoryFullName(issue.WebURL),
+			fmt.Sprintf("#%d", issue.IID),
 			issue.Title,
 		}, "|")
 		datas = append(datas, data)

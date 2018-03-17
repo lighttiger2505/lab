@@ -15,7 +15,7 @@ import (
 )
 
 type CreateUpdateIssueOption struct {
-	Edit    bool   `short:"e" long:"update" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
+	Edit    bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
 	Title   string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
 	Message string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
 }
@@ -33,8 +33,8 @@ type ListIssueOption struct {
 	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
 	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`
-	AssignedMe bool   `long:"s" long:"assigned-me" description:"Shorthand of the scope option for \"--scope=assigned-by-me\"."`
-	AllProject bool   `long:"A" long:"all-project" description:"Print the issue of all projects"`
+	AssignedMe bool   `short:"a" long:"assigned-me" description:"Shorthand of the scope option for \"--scope=assigned-by-me\"."`
+	AllProject bool   `short:"A" long:"all-project" description:"Print the issue of all projects"`
 }
 
 func (l *ListIssueOption) GetState() string {
@@ -85,18 +85,18 @@ func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
 	parser.Usage = `issue - Create and Edit, list a issue
 
 Synopsis:
-    # List issue
-    lab issue [-n <num>] [--state=<state> | -o | -c] [--scope=<scope> | -r | -s]
-              [--orderby=<orderby>] [--sort=<sort>] [-A]
+  # List issue
+  lab issue [-n <num>] [--state=<state> | -o | -c] [--scope=<scope> | -r | -s]
+            [--orderby=<orderby>] [--sort=<sort>] [-A]
 
-    # Create issue
-    lab issue [-e] [-i <title>] [-m <message>]
+  # Create issue
+  lab issue [-e] [-i <title>] [-m <message>]
 
-    # Update issue
-    lab issue <issue iid> [-e] [-i <title>] [-m <message>] 
+  # Update issue
+  lab issue <issue iid> [-e] [-i <title>] [-m <message>] 
 
-    # Show issue
-    lab issue <Issue iid>
+  # Show issue
+  lab issue <Issue iid>
 `
 	return parser
 }

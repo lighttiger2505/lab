@@ -14,10 +14,11 @@ import (
 )
 
 type CreateUpdateMergeRequestOption struct {
-	Add          bool   `short:"a" long:"add" description:"add issue"`
-	Message      string `short:"m" long:"message" description:"issue description"`
+	Edit         bool   `short:"e" long:"edit" description:"Edit the merge request on editor. Start the editor with the contents in the given title and message options."`
+	Title        string `short:"i" long:"title" value-name:"<title>" description:"The title of an merge request"`
+	Message      string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
 	SourceBranch string `short:"s" long:"source" description:"The source branch"`
-	TargetBranch string `short:"g" long:"target" default:"master" default-mask:"master" description:"The target branch"`
+	TargetBranch string `short:"t" long:"target" default:"master" default-mask:"master" description:"The target branch"`
 }
 
 func newCreateUpdateMergeRequestOption() *CreateUpdateMergeRequestOption {
@@ -25,17 +26,17 @@ func newCreateUpdateMergeRequestOption() *CreateUpdateMergeRequestOption {
 }
 
 type ListMergeRequestOption struct {
-	List       bool   `short:"l" long:"line" description:"show list"`
-	Num        int    `short:"n" long:"num"  default:"20" default-mask:"20" description:"show issue num"`
-	State      string `long:"state" default:"all" default-mask:"all" description:"those that are opened, closed, or merged"`
-	Scope      string `long:"scope" default:"all" default-mask:"all" description:"given scope: created-by-me, assigned-to-me or all."`
-	OrderBy    string `long:"orderby" default:"updated_at" default-mask:"updated_at" description:"ordered by created_at or updated_at fields."`
-	Sort       string `long:"sort" default:"desc" default-mask:"desc" description:"sorted in asc or desc order."`
-	Opened     bool   `short:"o" long:"opened" description:"search state opened"`
-	Closed     bool   `short:"c" long:"closed" description:"search scope closed"`
-	CreatedMe  bool   `short:"r" long:"created-me" description:"search scope created-by-me"`
-	AssignedMe bool   `long:"s" long:"assigned-me" description:"search scope assigned-to-me"`
-	AllProject bool   `long:"a" long:"all-project" description:"search target all project"`
+	Num        int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of merge request to output."`
+	State      string `long:"state" value-name:"<state>" default:"all" default-mask:"all" description:"Print only merge request of the state just those that are \"opened\", \"closed\", \"merged\" or \"all\""`
+	Scope      string `long:"scope" value-name:"<scope>" default:"all" default-mask:"all" description:"Print only given scope. \"created-by-me\", \"assigned-to-me\" or \"all\"."`
+	OrderBy    string `long:"orderby" value-name:"<orderby>" default:"updated_at" default-mask:"updated_at" description:"Print merge request ordered by \"created_at\" or \"updated_at\" fields."`
+	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print merge request ordered in \"asc\" or \"desc\" order."`
+	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
+	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
+	Merged     bool   `short:"g" long:"merged" description:"Shorthand of the state option for \"--state=merged\"."`
+	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`
+	AssignedMe bool   `short:"a" long:"assigned-me" description:"Shorthand of the scope option for \"--scope=assigned-by-me\"."`
+	AllProject bool   `short:"A" long:"all-project" description:"Print the merge request of all projects"`
 }
 
 func (l *ListMergeRequestOption) GetState() string {
@@ -44,6 +45,9 @@ func (l *ListMergeRequestOption) GetState() string {
 	}
 	if l.Closed {
 		return "closed"
+	}
+	if l.Merged {
+		return "merged"
 	}
 	return l.State
 }
@@ -63,12 +67,12 @@ func newListMergeRequestOption() *ListMergeRequestOption {
 }
 
 type MergeRequestCommandOption struct {
-	AddOption  *CreateUpdateMergeRequestOption `group:"Create Options"`
-	ListOption *ListMergeRequestOption         `group:"List Options"`
+	CreateUpdateOption *CreateUpdateMergeRequestOption `group:"Create, Update Options"`
+	ListOption         *ListMergeRequestOption         `group:"List Options"`
 }
 
 func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
-	opt.AddOption = newCreateUpdateMergeRequestOption()
+	opt.CreateUpdateOption = newCreateUpdateMergeRequestOption()
 	opt.ListOption = newListMergeRequestOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `merge-request [options]

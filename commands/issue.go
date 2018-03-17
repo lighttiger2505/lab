@@ -153,68 +153,32 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	// Do issue operation
-	operation := issueOperation(issueCommandOption, parseArgs)
-
-	switch operation {
+	switch issueOperation(issueCommandOption, parseArgs) {
 	case Update:
-		// Getting exist issue
-		issue, err := client.GetIssue(iid, gitlabRemote.RepositoryFullName())
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		// Create new title or description
-		createUpdateOption := issueCommandOption.CreateUpdateOption
-		updatedTitle := issue.Title
-		updatedMessage := issue.Description
-		if createUpdateOption.Title != "" {
-			updatedTitle = createUpdateOption.Title
-		}
-		if createUpdateOption.Message != "" {
-			updatedMessage = createUpdateOption.Message
-		}
-
-		// Do update issue
-		updatedIssue, err := client.UpdateIssue(
-			makeUpdateIssueOption(updatedTitle, updatedMessage),
-			iid,
+		output, err := updateIssue(
+			client,
 			gitlabRemote.RepositoryFullName(),
+			iid,
+			issueCommandOption.CreateUpdateOption,
 		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		// Print update Issue IID
-		c.Ui.Message(fmt.Sprintf("#%d", updatedIssue.IID))
+		c.Ui.Message(output)
 
 	case UpdateOnEditor:
-		// Getting exist issue
-		issue, err := client.GetIssue(iid, gitlabRemote.RepositoryFullName())
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		// Starting editor for edit title and description
-		title, message, err := editIssueTitleAndDesc(issue.Title, issue.Description)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		// Do update issue
-		updatedIssue, err := client.UpdateIssue(
-			makeUpdateIssueOption(title, message),
-			iid,
+		output, err := updateIssueOnEditor(
+			client,
 			gitlabRemote.RepositoryFullName(),
+			iid,
+			issueCommandOption.CreateUpdateOption,
 		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		c.Ui.Message(fmt.Sprintf("#%d", updatedIssue.IID))
+		c.Ui.Message(output)
 
 	case Create:
 		// Do create issue
@@ -341,6 +305,62 @@ func validIID(args []string) (int, error) {
 		return 0, fmt.Errorf("Invalid Issue IID. IID: %s", args[0])
 	}
 	return iid, nil
+}
+
+func updateIssue(client gitlab.Client, project string, iid int, opt *CreateUpdateIssueOption) (string, error) {
+	// Getting exist issue
+	issue, err := client.GetIssue(iid, project)
+	if err != nil {
+		return "", err
+	}
+
+	// Create new title or description
+	updatedTitle := issue.Title
+	updatedMessage := issue.Description
+	if opt.Title != "" {
+		updatedTitle = opt.Title
+	}
+	if opt.Message != "" {
+		updatedMessage = opt.Message
+	}
+
+	// Do update issue
+	updatedIssue, err := client.UpdateIssue(
+		makeUpdateIssueOption(updatedTitle, updatedMessage),
+		iid,
+		project,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	// Print update Issue IID
+	return fmt.Sprintf("#%d", updatedIssue.IID), nil
+}
+
+func updateIssueOnEditor(client gitlab.Client, project string, iid int, opt *CreateUpdateIssueOption) (string, error) {
+	// Getting exist issue
+	issue, err := client.GetIssue(iid, project)
+	if err != nil {
+		return "", err
+	}
+
+	// Starting editor for edit title and description
+	title, message, err := editIssueTitleAndDesc(issue.Title, issue.Description)
+	if err != nil {
+		return "", err
+	}
+
+	// Do update issue
+	updatedIssue, err := client.UpdateIssue(
+		makeUpdateIssueOption(title, message),
+		iid,
+		project,
+	)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("#%d", updatedIssue.IID), nil
 }
 
 func makeProjectIssueOption(issueListOption *ListIssueOption) *gitlabc.ListProjectIssuesOptions {

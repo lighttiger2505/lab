@@ -15,9 +15,9 @@ import (
 )
 
 type CreateUpdateIssueOption struct {
-	Edit    bool   `short:"e" long:"update" description:"edit issue"`
-	Title   string `short:"i" long:"title" description:"issue issue"`
-	Message string `short:"m" long:"message" description:"issue message"`
+	Edit    bool   `short:"e" long:"update" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
+	Title   string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
+	Message string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
 }
 
 func newAddIssueOption() *CreateUpdateIssueOption {
@@ -25,17 +25,16 @@ func newAddIssueOption() *CreateUpdateIssueOption {
 }
 
 type ListIssueOption struct {
-	List       bool   `short:"l" long:"line" description:"show list"`
-	Num        int    `short:"n" long:"num"  default:"20" default-mask:"20" description:"show issue num"`
-	State      string `long:"state" default:"all" default-mask:"all" description:"just those that are opened, closed or all"`
-	Scope      string `long:"scope" default:"all" default-mask:"all" description:"given scope: created-by-me, assigned-to-me or all."`
-	OrderBy    string `long:"orderby" default:"updated_at" default-mask:"updated_at" description:"ordered by created_at or updated_at fields."`
-	Sort       string `long:"sort" default:"desc" default-mask:"desc" description:"sorted in asc or desc order."`
-	Opened     bool   `short:"o" long:"opened" description:"search state opened"`
-	Closed     bool   `short:"c" long:"closed" description:"search scope closed"`
-	CreatedMe  bool   `short:"r" long:"created-me" description:"search scope created-by-me"`
-	AssignedMe bool   `long:"s" long:"assigned-me" description:"search scope assigned-to-me"`
-	AllProject bool   `long:"a" long:"all-project" description:"search target all project"`
+	Num        int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of issue to output."`
+	State      string `long:"state" value-name:"<state>" default:"all" default-mask:"all" description:"Print only issue of the state just those that are \"opened\", \"closed\" or \"all\""`
+	Scope      string `long:"scope" value-name:"<scope>" default:"all" default-mask:"all" description:"Print only given scope. \"created-by-me\", \"assigned-to-me\" or \"all\"."`
+	OrderBy    string `long:"orderby" value-name:"<orderby>" default:"updated_at" default-mask:"updated_at" description:"Print issue ordered by \"created_at\" or \"updated_at\" fields."`
+	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print issue ordered in \"asc\" or \"desc\" order."`
+	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
+	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
+	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`
+	AssignedMe bool   `long:"s" long:"assigned-me" description:"Shorthand of the scope option for \"--scope=assigned-by-me\"."`
+	AllProject bool   `long:"A" long:"all-project" description:"Output the issue of all projects registed in highest priority GitLab server, determined by \"domains\" in \".labconfig.yml\""`
 }
 
 func (l *ListIssueOption) GetState() string {
@@ -76,11 +75,18 @@ func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
 	parser.Usage = `issue - Create and Edit, list a issue
 
 Synopsis:
+    # List issue
+    lab issue [-n <num>] [--state=<state> | -o | -c] [--scope=<scope> | -r | -s]
+              [--orderby=<orderby>] [--sort=<sort>] [-A]
+
+    # Create issue
     lab issue [-e] [-i <title>] [-m <message>]
-    lab issue <issue IID> [-e] [-i <title>] [-m <message>] 
-    lab issue [-n <num>] -l [--state=<state>] [--scope=<scope>]
-              [--orderby=<orderby>] [--sort=<sort>] -o -c
-              -cm -am -al
+
+    # Update issue
+    lab issue <issue iid> [-e] [-i <title>] [-m <message>] 
+
+    # Show issue
+    lab issue <Issue iid>
 `
 	return parser
 }

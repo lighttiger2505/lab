@@ -68,7 +68,8 @@ func (c *AddMergeReqeustCommand) Run(args []string) int {
 	// Get merge request title and description
 	// launch vim when non specific flags
 	createOpt := createMergeRequestCommandOption.CreateOpt
-	title, description, err := getIssueTitleAndDesc(createOpt.Title, createOpt.Description)
+	template := createMergeRequestMessage(createOpt.Title, createOpt.Description)
+	title, description, err := editIssueTitleAndDesc(template)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -130,18 +131,18 @@ func makeCreateMergeRequestOptios(opt *CreateMergeRequestOption, title, descript
 	return createMergeRequestOption
 }
 
-func makeCreateMergeRequestOption(opt *AddMergeRequestOption, title, description, branch string) *gitlabc.CreateMergeRequestOptions {
-	createMergeRequestOption := &gitlabc.CreateMergeRequestOptions{
-		Title:           gitlabc.String(title),
-		Description:     gitlabc.String(description),
-		SourceBranch:    gitlabc.String(branch),
-		TargetBranch:    gitlabc.String(opt.TargetBranch),
-		AssigneeID:      nil,
-		TargetProjectID: nil,
-	}
-	return createMergeRequestOption
-}
-
+// func makeCreateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, description, branch string) *gitlabc.CreateMergeRequestOptions {
+// 	createMergeRequestOption := &gitlabc.CreateMergeRequestOptions{
+// 		Title:           gitlabc.String(title),
+// 		Description:     gitlabc.String(description),
+// 		SourceBranch:    gitlabc.String(branch),
+// 		TargetBranch:    gitlabc.String(opt.TargetBranch),
+// 		AssigneeID:      nil,
+// 		TargetProjectID: nil,
+// 	}
+// 	return createMergeRequestOption
+// }
+//
 func createMergeRequestMessage(title, description string) string {
 	message := `<!-- Write a message for this merge request. The first block of text is the title -->
 %s
@@ -151,34 +152,4 @@ func createMergeRequestMessage(title, description string) string {
 `
 	message = fmt.Sprintf(message, title, description)
 	return message
-}
-
-func getMergeRequestTitleAndDesc(titleIn, descIn string) (string, string, error) {
-	var title, description string
-	if titleIn == "" || descIn == "" {
-		message := createMergeRequestMessage(titleIn, descIn)
-
-		editor, err := git.NewEditor("MERGE_REQUEST", "issue", message)
-		if err != nil {
-			return "", "", err
-		}
-
-		title, description, err = editor.EditTitleAndDescription()
-		if err != nil {
-			return "", "", err
-		}
-
-		if editor != nil {
-			defer editor.DeleteFile()
-		}
-	} else {
-		title = titleIn
-		description = descIn
-	}
-
-	if title == "" {
-		return "", "", fmt.Errorf("Title is requeired")
-	}
-
-	return title, description, nil
 }

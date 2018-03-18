@@ -346,8 +346,18 @@ func updateIssueOnEditor(client gitlab.Client, project string, iid int, opt *Cre
 		return "", err
 	}
 
+	// Create new title or description
+	updatedTitle := issue.Title
+	updatedMessage := issue.Description
+	if opt.Title != "" {
+		updatedTitle = opt.Title
+	}
+	if opt.Message != "" {
+		updatedMessage = opt.Message
+	}
+
 	// Starting editor for edit title and description
-	template := editIssueMessage(issue.Title, issue.Description)
+	template := editIssueMessage(updatedTitle, updatedMessage)
 	title, message, err := editIssueTitleAndDesc(template)
 	if err != nil {
 		return "", err

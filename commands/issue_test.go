@@ -57,6 +57,12 @@ var mockGitlabIssueClient = &lab.MockLabClient{
 	MockProjectIssues: func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
 		return issues, nil
 	},
+	MockCreateIssue: func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
+		return issue, nil
+	},
+	MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+		return issue, nil
+	},
 }
 
 var mockIssueProvider = &lab.MockProvider{
@@ -145,6 +151,46 @@ func TestIssueCommandRun_ListProjectIssue(t *testing.T) {
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", got, want)
+	}
+}
+
+func TestIssueCommandRun_CreateIssue(t *testing.T) {
+	mockUI := ui.NewMockUi()
+	c := IssueCommand{
+		Ui:       mockUI,
+		Provider: mockIssueProvider,
+	}
+
+	args := []string{"-i", "title", "-m", "message"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
+	}
+
+	got := mockUI.Writer.String()
+	want := "#12\n"
+
+	if got != want {
+		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
+	}
+}
+
+func TestIssueCommandRun_UpdateIssue(t *testing.T) {
+	mockUI := ui.NewMockUi()
+	c := IssueCommand{
+		Ui:       mockUI,
+		Provider: mockIssueProvider,
+	}
+
+	args := []string{"-i", "title", "-m", "message", "12"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
+	}
+
+	got := mockUI.Writer.String()
+	want := "#12\n"
+
+	if got != want {
+		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
 	}
 }
 

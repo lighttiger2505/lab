@@ -174,6 +174,29 @@ func TestIssueCommandRun_CreateIssue(t *testing.T) {
 	}
 }
 
+func TestIssueCommandRun_CreateIssueOnEditor(t *testing.T) {
+	mockUI := ui.NewMockUi()
+	c := IssueCommand{
+		Ui:       mockUI,
+		Provider: mockIssueProvider,
+		EditFunc: func(program, file string) error {
+			return nil
+		},
+	}
+
+	args := []string{"-e", "-i", "title", "-m", "message"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
+	}
+
+	got := mockUI.Writer.String()
+	want := "#12\n"
+
+	if got != want {
+		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
+	}
+}
+
 func TestIssueCommandRun_UpdateIssue(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := IssueCommand{
@@ -182,6 +205,29 @@ func TestIssueCommandRun_UpdateIssue(t *testing.T) {
 	}
 
 	args := []string{"-i", "title", "-m", "message", "12"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
+	}
+
+	got := mockUI.Writer.String()
+	want := "#12\n"
+
+	if got != want {
+		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
+	}
+}
+
+func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
+	mockUI := ui.NewMockUi()
+	c := IssueCommand{
+		Ui:       mockUI,
+		Provider: mockIssueProvider,
+		EditFunc: func(program, file string) error {
+			return nil
+		},
+	}
+
+	args := []string{"-e", "-i", "title", "-m", "message", "12"}
 	if code := c.Run(args); code != 0 {
 		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
 	}

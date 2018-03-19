@@ -103,6 +103,7 @@ Synopsis:
 type MergeRequestCommand struct {
 	Ui       ui.Ui
 	Provider gitlab.Provider
+	EditFunc func(program, file string) error
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
@@ -197,7 +198,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 		// Starting editor for edit title and description
 		template := editMergeRequestTemplate(mergeRequest.Title, mergeRequest.Description)
-		title, message, err := editIssueTitleAndDesc(template)
+		title, message, err := editIssueTitleAndDesc(template, c.EditFunc)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -247,7 +248,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		// Starting editor for edit title and description
 		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
 		template := editMergeRequestTemplate(createUpdateOption.Title, createUpdateOption.Message)
-		title, message, err := editIssueTitleAndDesc(template)
+		title, message, err := editIssueTitleAndDesc(template, c.EditFunc)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError

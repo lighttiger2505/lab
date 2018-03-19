@@ -104,6 +104,7 @@ Synopsis:
 type IssueCommand struct {
 	Ui       ui.Ui
 	Provider gitlab.Provider
+	EditFunc func(program, file string) error
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -173,6 +174,7 @@ func (c *IssueCommand) Run(args []string) int {
 			gitlabRemote.RepositoryFullName(),
 			iid,
 			issueCommandOption.CreateUpdateOption,
+			c.EditFunc,
 		)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -199,7 +201,7 @@ func (c *IssueCommand) Run(args []string) int {
 		// Starting editor for edit title and description
 		createUpdateOption := issueCommandOption.CreateUpdateOption
 		template := editIssueMessage(createUpdateOption.Title, createUpdateOption.Message)
-		title, message, err := editIssueTitleAndDesc(template)
+		title, message, err := editIssueTitleAndDesc(template, c.EditFunc)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -339,7 +341,7 @@ func updateIssue(client gitlab.Client, project string, iid int, opt *CreateUpdat
 	return fmt.Sprintf("#%d", updatedIssue.IID), nil
 }
 
-func updateIssueOnEditor(client gitlab.Client, project string, iid int, opt *CreateUpdateIssueOption) (string, error) {
+func updateIssueOnEditor(client gitlab.Client, project string, iid int, opt *CreateUpdateIssueOption, editFunc func(program, file string) error) (string, error) {
 	// Getting exist issue
 	issue, err := client.GetIssue(iid, project)
 	if err != nil {
@@ -358,7 +360,7 @@ func updateIssueOnEditor(client gitlab.Client, project string, iid int, opt *Cre
 
 	// Starting editor for edit title and description
 	template := editIssueMessage(updatedTitle, updatedMessage)
-	title, message, err := editIssueTitleAndDesc(template)
+	title, message, err := editIssueTitleAndDesc(template, editFunc)
 	if err != nil {
 		return "", err
 	}
@@ -479,8 +481,8 @@ func editIssueMessage(title, description string) string {
 	return message
 }
 
-func editIssueTitleAndDesc(template string) (string, string, error) {
-	editor, err := git.NewEditor("ISSUE", "issue", template)
+func editIssueTitleAndDesc(template string, editFunc func(program, file string) error) (string, string, error) {
+	editor, err := git.NewEditor("ISSUE", "issue", template, editFunc)
 	if err != nil {
 		return "", "", err
 	}

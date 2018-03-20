@@ -21,6 +21,12 @@ ensure: dep
 test:
 	go test github.com/lighttiger2505/lab/...
 
+.PHONY: lint
+lint:
+	@if [ "`gometalinter ./... --config=metaconfig.json | tee /dev/stderr`" ]; then \
+		echo "^ - lint err" && echo && exit 1; \
+	fi
+
 .PHONY: build
 build: $(SRCS)
 	go build $(LDFLAGS) -o bin/$(NAME)

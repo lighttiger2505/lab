@@ -1,0 +1,16 @@
+{
+  "DisableAll": true,
+  "Enable": [
+    "golint",
+    "vet",
+    "gofmt",
+    "errcheck",
+    "goconst",
+    "goimports",
+    "megacheck"
+  ],
+  "Exclude": [
+    "ignore"
+  ],
+  "Vendor": true
+}

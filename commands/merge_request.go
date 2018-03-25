@@ -184,7 +184,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		}
 
 		// Print update Issue IID
-		c.Ui.Message(fmt.Sprintf("#%d", updatedMergeRequest.IID))
+		c.Ui.Message(fmt.Sprintf("!%d", updatedMergeRequest.IID))
 
 	case UpdateMergeRequestOnEditor:
 		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
@@ -216,7 +216,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		}
 
 		// Print update Issue IID
-		c.Ui.Message(fmt.Sprintf("#%d", updatedMergeRequest.IID))
+		c.Ui.Message(fmt.Sprintf("!%d", updatedMergeRequest.IID))
 
 	case CreateMergeRequest:
 		// Get source branch. current branch from local repository when non specific flags
@@ -433,7 +433,7 @@ func outMergeRequest(mergeRequsets []*gitlabc.MergeRequest) []string {
 }
 
 func outMergeRequestDetail(mergeRequest *gitlabc.MergeRequest) string {
-	base := `#%d
+	base := `!%d
 Title: %s
 Assignee: %s
 Author: %s

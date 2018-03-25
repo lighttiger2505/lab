@@ -108,7 +108,7 @@ type IssueCommand struct {
 }
 
 func (c *IssueCommand) Synopsis() string {
-	return "Browse Issue"
+	return "Create and Edit, list a issue"
 }
 
 func (c *IssueCommand) Help() string {

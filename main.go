@@ -32,7 +32,7 @@ func main() {
 }
 
 func realMain(writer io.Writer, ver, rev string) int {
-	c := cli.NewCLI("app", fmt.Sprintf("ver: %s rev: %s", ver, rev))
+	c := cli.NewCLI("lab", fmt.Sprintf("ver: %s rev: %s", ver, rev))
 	c.Args = os.Args[1:]
 	c.HelpWriter = writer
 

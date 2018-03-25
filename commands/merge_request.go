@@ -88,7 +88,7 @@ func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
 	opt.CreateUpdateOption = newCreateUpdateMergeRequestOption()
 	opt.ListOption = newListMergeRequestOption()
 	parser := flags.NewParser(opt, flags.Default)
-	parser.Usage = `merge-request [options]
+	parser.Usage = `merge-request - Create and Edit, list a merge request
 
 Synopsis:
     lab merge-request -a <title> [-d <message>]
@@ -107,7 +107,7 @@ type MergeRequestCommand struct {
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
-	return "Browse merge request"
+	return "Create and Edit, list a merge request"
 }
 
 func (c *MergeRequestCommand) Help() string {

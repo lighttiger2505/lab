@@ -23,7 +23,7 @@ type Editor struct {
 	openEditor func(program, file string) error
 }
 
-func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
+func NewEditor(filePrefix, topic, message string, editFunc func(program, file string) error) (editor *Editor, err error) {
 	messageFile, err := getMessageFile(filePrefix)
 	if err != nil {
 		return
@@ -36,13 +36,17 @@ func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
 
 	cs := CommentChar()
 
+	if editFunc == nil {
+		editFunc = openTextEditor
+	}
+
 	editor = &Editor{
 		Program:    program,
 		Topic:      topic,
 		File:       messageFile,
 		Message:    message,
 		CS:         cs,
-		openEditor: openTextEditor,
+		openEditor: editFunc,
 	}
 
 	return

@@ -35,19 +35,14 @@ var browseTypePrefix = map[string]BrowseType{
 	"P": PipeLine,
 }
 
-var browseOpt BrowseOpt
-var browseOptionParser *flags.Parser = newBrowseOptionParser(&browseOpt)
-
-type BrowseOpt struct {
-	GlobalOpt *GlobalOpt `group:"Global Options"`
+type BrowseCommandOption struct {
+	GlobalOpt *GlobalOption `group:"Global Options"`
 }
 
-func newBrowseOptionParser(browseOpt *BrowseOpt) *flags.Parser {
-	globalParser := flags.NewParser(&globalOpt, flags.Default)
-	globalParser.AddGroup("Global Options", "", &GlobalOpt{})
-
-	parser := flags.NewParser(browseOpt, flags.Default)
-	parser.Usage = "issue [options]"
+func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
+	opt.GlobalOpt = newGlobalOption()
+	parser := flags.NewParser(opt, flags.Default)
+	parser.Usage = "browse [options]"
 	return parser
 }
 
@@ -64,11 +59,15 @@ func (c *BrowseCommand) Synopsis() string {
 
 func (c *BrowseCommand) Help() string {
 	buf := &bytes.Buffer{}
+	var browseCommnadOption BrowseCommandOption
+	browseOptionParser := newBrowseOptionParser(&browseCommnadOption)
 	browseOptionParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *BrowseCommand) Run(args []string) int {
+	var browseCommnadOption BrowseCommandOption
+	browseOptionParser := newBrowseOptionParser(&browseCommnadOption)
 	// Parse option
 	if _, err := browseOptionParser.ParseArgs(args); err != nil {
 		c.Ui.Error(err.Error())
@@ -76,7 +75,7 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	// Validate option
-	globalOpt := browseOpt.GlobalOpt
+	globalOpt := browseCommnadOption.GlobalOpt
 	if err := globalOpt.IsValid(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -97,7 +96,7 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	// Getting git remote info
 	var gitlabRemote *git.RemoteInfo
-	if globalOpt.Repository != "" {
+	if globalOpt.Project != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
 		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
 	} else {
@@ -111,7 +110,7 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	// Getting browse repository
 	var url = ""
-	if globalOpt.Repository != "" {
+	if globalOpt.Project != "" {
 		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, gitlabRemote.Domain)
 		if err != nil {
 			c.Ui.Error(err.Error())

@@ -16,6 +16,11 @@ import (
 	"github.com/mitchellh/cli"
 )
 
+var (
+	version  string
+	revision string
+)
+
 const (
 	ExitCodeOK        int = iota //0
 	ExitCodeError     int = iota //1
@@ -23,11 +28,11 @@ const (
 )
 
 func main() {
-	os.Exit(realMain(os.Stdout))
+	os.Exit(realMain(os.Stdout, version, revision))
 }
 
-func realMain(writer io.Writer) int {
-	c := cli.NewCLI("app", "0.1.0")
+func realMain(writer io.Writer, ver, rev string) int {
+	c := cli.NewCLI("lab", fmt.Sprintf("ver: %s rev: %s", ver, rev))
 	c.Args = os.Args[1:]
 	c.HelpWriter = writer
 
@@ -62,21 +67,27 @@ func realMain(writer io.Writer) int {
 				Provider: provider,
 			}, nil
 		},
-		"add-issue": func() (cli.Command, error) {
-			return &commands.AddIssueCommand{
-				Ui:       ui,
-				Provider: provider,
-			}, nil
-		},
 		"merge-request": func() (cli.Command, error) {
 			return &commands.MergeRequestCommand{
 				Ui:       ui,
 				Provider: provider,
 			}, nil
 		},
-		"add-merge-request": func() (cli.Command, error) {
-			return &commands.AddMergeReqeustCommand{
-				Ui:       ui,
+		"project": func() (cli.Command, error) {
+			return &commands.ProjectCommand{
+				UI:       ui,
+				Provider: provider,
+			}, nil
+		},
+		"pipeline": func() (cli.Command, error) {
+			return &commands.PipelineCommand{
+				UI:       ui,
+				Provider: provider,
+			}, nil
+		},
+		"lint": func() (cli.Command, error) {
+			return &commands.LintCommand{
+				UI:       ui,
 				Provider: provider,
 			}, nil
 		},

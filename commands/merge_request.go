@@ -91,11 +91,19 @@ func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
 	parser.Usage = `merge-request - Create and Edit, list a merge request
 
 Synopsis:
-    lab merge-request -a <title> [-d <message>]
-    lab merge-request [-n <num>] -l [--state <state>] [--scope <scope>]
-                      [--orderby <orderby>] [--sort <sort>] -o -c 
-                      -cm -am -al
-	lab merge-request [-t <title>] [-d <description>] <id>
+  # List merge request
+  lab merge-request [-n <num>] -l [--state <state>] [--scope <scope>]
+                    [--orderby <orderby>] [--sort <sort>] -o -c -g
+                    -r -a -A
+
+  # Create merge request
+  lab merge-request -i <title> [-d <message>]
+
+  # Update merge request
+  lab merge-request [-t <title>] [-d <description>] <MergeRequest IID>
+
+  # Show merge request
+  lab issue <MergeRequest IID>
 `
 	return parser
 }

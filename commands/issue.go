@@ -93,10 +93,10 @@ Synopsis:
   lab issue [-e] [-i <title>] [-m <message>]
 
   # Update issue
-  lab issue <issue iid> [-e] [-i <title>] [-m <message>] 
+  lab issue <Issue IID> [-e] [-i <title>] [-m <message>] 
 
   # Show issue
-  lab issue <Issue iid>
+  lab issue <Issue IID>
 `
 	return parser
 }

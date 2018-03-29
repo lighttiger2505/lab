@@ -4,35 +4,35 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/git"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	gitlabc "github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
-var testProjects = []*gitlabc.Project{
-	&gitlabc.Project{
+var testProjects = []*gitlab.Project{
+	&gitlab.Project{
 		Name: "name1",
-		Namespace: &gitlabc.ProjectNamespace{
+		Namespace: &gitlab.ProjectNamespace{
 			Name: "namespace1",
 		},
 		Description: "description1\ndescription1",
 	},
-	&gitlabc.Project{
+	&gitlab.Project{
 		Name: "name2",
-		Namespace: &gitlabc.ProjectNamespace{
+		Namespace: &gitlab.ProjectNamespace{
 			Name: "namespace2",
 		},
 		Description: "description2\ndescription2",
 	},
 }
 
-var mockGitlabProjectClient = &gitlab.MockLabClient{
-	MockProjects: func(opt *gitlabc.ListProjectsOptions) ([]*gitlabc.Project, error) {
+var mockGitlabProjectClient = &lab.MockLabClient{
+	MockProjects: func(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {
 		return testProjects, nil
 	},
 }
 
-var mockProjectProvider = &gitlab.MockProvider{
+var mockProjectProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
 		return &git.RemoteInfo{
@@ -41,7 +41,7 @@ var mockProjectProvider = &gitlab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetClient: func(remote *git.RemoteInfo) (gitlab.Client, error) {
+	MockGetClient: func(remote *git.RemoteInfo) (lab.Client, error) {
 		return mockGitlabProjectClient, nil
 	},
 }

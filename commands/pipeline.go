@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
-	gitlabc "github.com/xanzy/go-gitlab"
+	"github.com/xanzy/go-gitlab"
 )
 
 type PipelineCommandOption struct {
@@ -39,7 +39,7 @@ func newPipelineOption() *PipelineOption {
 
 type PipelineCommand struct {
 	UI       ui.Ui
-	Provider gitlab.Provider
+	Provider lab.Provider
 }
 
 func (c *PipelineCommand) Synopsis() string {
@@ -97,35 +97,35 @@ func (c *PipelineCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makePipelineOptions(pipelineOption *PipelineOption, outputOption *OutputOption) *gitlabc.ListProjectPipelinesOptions {
+func makePipelineOptions(pipelineOption *PipelineOption, outputOption *OutputOption) *gitlab.ListProjectPipelinesOptions {
 	var scope *string
 	if pipelineOption.Scope != "" {
-		scope = gitlabc.String(pipelineOption.Scope)
+		scope = gitlab.String(pipelineOption.Scope)
 	}
-	var status *gitlabc.BuildStateValue
+	var status *gitlab.BuildStateValue
 	if pipelineOption.States != "" {
-		v := gitlabc.BuildStateValue(pipelineOption.States)
+		v := gitlab.BuildStateValue(pipelineOption.States)
 		status = &v
 	}
-	listOption := &gitlabc.ListOptions{
+	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: outputOption.Line,
 	}
-	listPipelinesOptions := &gitlabc.ListProjectPipelinesOptions{
+	listPipelinesOptions := &gitlab.ListProjectPipelinesOptions{
 		Scope:       scope,
 		Status:      status,
-		Ref:         gitlabc.String(""),
-		YamlErrors:  gitlabc.Bool(false),
-		Name:        gitlabc.String(""),
-		Username:    gitlabc.String(""),
-		OrderBy:     gitlabc.OrderBy(gitlabc.OrderByValue(pipelineOption.OrderBy)),
-		Sort:        gitlabc.String(outputOption.Sort),
+		Ref:         gitlab.String(""),
+		YamlErrors:  gitlab.Bool(false),
+		Name:        gitlab.String(""),
+		Username:    gitlab.String(""),
+		OrderBy:     gitlab.OrderBy(gitlab.OrderByValue(pipelineOption.OrderBy)),
+		Sort:        gitlab.String(outputOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listPipelinesOptions
 }
 
-func pipelineOutput(pipelines gitlabc.PipelineList) []string {
+func pipelineOutput(pipelines gitlab.PipelineList) []string {
 	var outputs []string
 	for _, pipeline := range pipelines {
 		output := strings.Join([]string{

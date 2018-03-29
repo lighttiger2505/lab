@@ -12,7 +12,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/git"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 )
 
@@ -48,7 +48,7 @@ func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
 
 type BrowseCommand struct {
 	Ui        ui.Ui
-	Provider  gitlab.Provider
+	Provider  lab.Provider
 	GitClient git.Client
 	Cmd       cmd.Cmd
 }

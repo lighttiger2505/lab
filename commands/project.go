@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
-	gitlabc "github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type ProjectCommnadOption struct {
@@ -39,7 +39,7 @@ func newProjectOption() *ProjectOption {
 
 type ProjectCommand struct {
 	UI       ui.Ui
-	Provider gitlab.Provider
+	Provider lab.Provider
 }
 
 func (c *ProjectCommand) Synopsis() string {
@@ -96,22 +96,22 @@ func (c *ProjectCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeProjectOptions(projectOption *ProjectOption, outputOption *OutputOption) *gitlabc.ListProjectsOptions {
-	listOption := &gitlabc.ListOptions{
+func makeProjectOptions(projectOption *ProjectOption, outputOption *OutputOption) *gitlab.ListProjectsOptions {
+	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: outputOption.Line,
 	}
-	listProjectsOptions := &gitlabc.ListProjectsOptions{
-		Archived:    gitlabc.Bool(false),
-		OrderBy:     gitlabc.String(projectOption.OrderBy),
-		Sort:        gitlabc.String(outputOption.Sort),
-		Search:      gitlabc.String(""),
-		Simple:      gitlabc.Bool(false),
-		Owned:       gitlabc.Bool(projectOption.Owned),
-		Membership:  gitlabc.Bool(projectOption.Membership),
-		Starred:     gitlabc.Bool(false),
-		Statistics:  gitlabc.Bool(false),
-		Visibility:  gitlabc.Visibility("private"),
+	listProjectsOptions := &gitlab.ListProjectsOptions{
+		Archived:    gitlab.Bool(false),
+		OrderBy:     gitlab.String(projectOption.OrderBy),
+		Sort:        gitlab.String(outputOption.Sort),
+		Search:      gitlab.String(""),
+		Simple:      gitlab.Bool(false),
+		Owned:       gitlab.Bool(projectOption.Owned),
+		Membership:  gitlab.Bool(projectOption.Membership),
+		Starred:     gitlab.Bool(false),
+		Statistics:  gitlab.Bool(false),
+		Visibility:  gitlab.Visibility("private"),
 		ListOptions: *listOption,
 	}
 	return listProjectsOptions
@@ -124,7 +124,7 @@ func removeLineBreak(value string) string {
 	return value
 }
 
-func projectOutput(projects []*gitlabc.Project) []string {
+func projectOutput(projects []*gitlab.Project) []string {
 	var outputs []string
 	for _, project := range projects {
 		output := strings.Join([]string{

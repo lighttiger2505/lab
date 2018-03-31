@@ -186,6 +186,9 @@ type MockLabClient struct {
 	MockProjectPipelines func(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error)
 	// Lint
 	MockLint func(content string) (*gitlab.LintResult, error)
+	// User
+	MockProjectUsers func(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error)
+	MockUsers        func(opt *gitlab.ListUsersOptions) ([]*gitlab.User, error)
 }
 
 func (m *MockLabClient) Issues(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
@@ -238,4 +241,12 @@ func (m *MockLabClient) ProjectPipelines(repositoryName string, opt *gitlab.List
 
 func (m *MockLabClient) Lint(content string) (*gitlab.LintResult, error) {
 	return m.MockLint(content)
+}
+
+func (m *MockLabClient) Users(opt *gitlab.ListUsersOptions) ([]*gitlab.User, error) {
+	return m.MockUsers(opt)
+}
+
+func (m *MockLabClient) ProjectUsers(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error) {
+	return m.MockProjectUsers(repositoryName, opt)
 }

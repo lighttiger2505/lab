@@ -91,6 +91,12 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Provider: provider,
 			}, nil
 		},
+		"user": func() (cli.Command, error) {
+			return &commands.UserCommand{
+				UI:       ui,
+				Provider: provider,
+			}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

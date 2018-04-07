@@ -15,9 +15,10 @@ import (
 )
 
 type CreateUpdateIssueOption struct {
-	Edit    bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
-	Title   string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
-	Message string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
+	Edit       bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
+	Title      string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
+	Message    string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
+	StateEvent string `long:"state-event" description:"Change the status. \"opened\", \"closed\""`
 }
 
 func newAddIssueOption() *CreateUpdateIssueOption {
@@ -278,7 +279,7 @@ func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
 		if createUpdateOption.Edit {
 			return UpdateIssueOnEditor
 		}
-		if createUpdateOption.Title != "" || createUpdateOption.Message != "" {
+		if createUpdateOption.Title != "" || createUpdateOption.Message != "" || createUpdateOption.StateEvent != "" {
 			return UpdateIssue
 		}
 		return ShowIssue
@@ -329,7 +330,7 @@ func updateIssue(client lab.Client, project string, iid int, opt *CreateUpdateIs
 
 	// Do update issue
 	updatedIssue, err := client.UpdateIssue(
-		makeUpdateIssueOption(updatedTitle, updatedMessage),
+		makeUpdateIssueOption(opt, updatedTitle, updatedMessage),
 		iid,
 		project,
 	)
@@ -367,7 +368,7 @@ func updateIssueOnEditor(client lab.Client, project string, iid int, opt *Create
 
 	// Do update issue
 	updatedIssue, err := client.UpdateIssue(
-		makeUpdateIssueOption(title, message),
+		makeUpdateIssueOption(opt, title, message),
 		iid,
 		project,
 	)
@@ -415,12 +416,13 @@ func makeCreateIssueOptions(title, description string) *gitlab.CreateIssueOption
 	return opt
 }
 
-func makeUpdateIssueOption(title, description string) *gitlab.UpdateIssueOptions {
-	opt := &gitlab.UpdateIssueOptions{
+func makeUpdateIssueOption(opt *CreateUpdateIssueOption, title, description string) *gitlab.UpdateIssueOptions {
+	updateIssueOption := &gitlab.UpdateIssueOptions{
 		Title:       gitlab.String(title),
 		Description: gitlab.String(description),
+		StateEvent:  gitlab.String(opt.StateEvent),
 	}
-	return opt
+	return updateIssueOption
 }
 
 func issueOutput(issues []*gitlab.Issue) []string {
@@ -441,6 +443,7 @@ func issueDetailOutput(issue *gitlab.Issue) string {
 Title: %s
 Assignee: %s
 Author: %s
+State: %s
 CreatedAt: %s
 UpdatedAt: %s
 
@@ -451,6 +454,7 @@ UpdatedAt: %s
 		issue.Title,
 		issue.Assignee.Name,
 		issue.Author.Name,
+		issue.State,
 		issue.CreatedAt.String(),
 		issue.UpdatedAt.String(),
 		issue.Description,

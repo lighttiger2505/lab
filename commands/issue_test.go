@@ -45,6 +45,7 @@ var issue = &gitlab.Issue{
 
 var issues = []*gitlab.Issue{
 	&gitlab.Issue{IID: 12, Title: "Title12", WebURL: "http://gitlab.jp/namespace/repo12"},
+	&gitlab.Issue{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
 }
 
 var mockGitlabIssueClient = &lab.MockLabClient{

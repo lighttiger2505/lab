@@ -91,7 +91,7 @@ Synopsis:
             [--orderby=<orderby>] [--sort=<sort>] [-A]
 
   # Create issue
-  lab issue [-e] [-i <title>] [-m <message>]
+  lab issue [-e] [-i <title>] [-m <message>] [--state-event=<state>]
 
   # Update issue
   lab issue <Issue IID> [-e] [-i <title>] [-m <message>] 

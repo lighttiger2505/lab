@@ -18,7 +18,8 @@ type CreateUpdateIssueOption struct {
 	Edit       bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
 	Title      string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
 	Message    string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
-	StateEvent string `long:"state-event" description:"Change the status. \"opened\", \"closed\""`
+	StateEvent string `long:"state-event" description:"Change the status. \"close\", \"reopen\""`
+	AssigneeID int    `long:"assignee-id" description:"The ID of assignee."`
 }
 
 func newAddIssueOption() *CreateUpdateIssueOption {
@@ -91,10 +92,10 @@ Synopsis:
             [--orderby=<orderby>] [--sort=<sort>] [-A]
 
   # Create issue
-  lab issue [-e] [-i <title>] [-m <message>] [--state-event=<state>]
+  lab issue [-e] [-i <title>] [-m <message>] [--assignee-id=<assignee id>]
 
   # Update issue
-  lab issue <Issue IID> [-e] [-i <title>] [-m <message>] 
+  lab issue <Issue IID> [-e] [-i <title>] [-m <message>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show issue
   lab issue <Issue IID>
@@ -187,7 +188,7 @@ func (c *IssueCommand) Run(args []string) int {
 		// Do create issue
 		createUpdateOption := issueCommandOption.CreateUpdateOption
 		issue, err := client.CreateIssue(
-			makeCreateIssueOptions(createUpdateOption.Title, createUpdateOption.Message),
+			makeCreateIssueOptions(createUpdateOption, createUpdateOption.Title, createUpdateOption.Message),
 			gitlabRemote.RepositoryFullName(),
 		)
 		if err != nil {
@@ -210,7 +211,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 		// Do create issue
 		issue, err := client.CreateIssue(
-			makeCreateIssueOptions(title, message),
+			makeCreateIssueOptions(createUpdateOption, title, message),
 			gitlabRemote.RepositoryFullName(),
 		)
 		if err != nil {
@@ -279,7 +280,7 @@ func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
 		if createUpdateOption.Edit {
 			return UpdateIssueOnEditor
 		}
-		if createUpdateOption.Title != "" || createUpdateOption.Message != "" || createUpdateOption.StateEvent != "" {
+		if hasEditIssueOption(createUpdateOption) {
 			return UpdateIssue
 		}
 		return ShowIssue
@@ -289,7 +290,7 @@ func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
 	if createUpdateOption.Edit {
 		return CreateIssueOnEditor
 	}
-	if createUpdateOption.Title != "" {
+	if hasEditIssueOption(createUpdateOption) {
 		return CreateIssue
 	}
 	if listOption.AllProject {
@@ -297,6 +298,13 @@ func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
 	}
 
 	return ListIssue
+}
+
+func hasEditIssueOption(opt *CreateUpdateIssueOption) bool {
+	if opt.Title != "" || opt.Message != "" || opt.StateEvent != "" || opt.AssigneeID != 0 {
+		return true
+	}
+	return false
 }
 
 func validIssueIID(args []string) (int, error) {
@@ -408,19 +416,27 @@ func makeIssueOption(issueListOption *ListIssueOption) *gitlab.ListIssuesOptions
 	return listIssuesOptions
 }
 
-func makeCreateIssueOptions(title, description string) *gitlab.CreateIssueOptions {
-	opt := &gitlab.CreateIssueOptions{
+func makeCreateIssueOptions(opt *CreateUpdateIssueOption, title, description string) *gitlab.CreateIssueOptions {
+	createIssueOption := &gitlab.CreateIssueOptions{
 		Title:       gitlab.String(title),
 		Description: gitlab.String(description),
 	}
-	return opt
+	if opt.AssigneeID != 0 {
+		createIssueOption.AssigneeIDs = []int{opt.AssigneeID}
+	}
+	return createIssueOption
 }
 
 func makeUpdateIssueOption(opt *CreateUpdateIssueOption, title, description string) *gitlab.UpdateIssueOptions {
 	updateIssueOption := &gitlab.UpdateIssueOptions{
 		Title:       gitlab.String(title),
 		Description: gitlab.String(description),
-		StateEvent:  gitlab.String(opt.StateEvent),
+	}
+	if opt.StateEvent != "" {
+		updateIssueOption.StateEvent = gitlab.String(opt.StateEvent)
+	}
+	if opt.AssigneeID != 0 {
+		updateIssueOption.AssigneeID = gitlab.Int(opt.AssigneeID)
 	}
 	return updateIssueOption
 }

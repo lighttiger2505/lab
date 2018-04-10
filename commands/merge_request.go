@@ -20,6 +20,8 @@ type CreateUpdateMergeRequestOption struct {
 	Message      string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
 	SourceBranch string `short:"s" long:"source" description:"The source branch"`
 	TargetBranch string `short:"t" long:"target" default:"master" default-mask:"master" description:"The target branch"`
+	StateEvent   string `long:"state-event" description:"Change the status. \"opened\", \"closed\""`
+	AssigneeID   int    `long:"assignee-id" description:"The ID of assignee."`
 }
 
 func newCreateUpdateMergeRequestOption() *CreateUpdateMergeRequestOption {
@@ -97,13 +99,13 @@ Synopsis:
                     -r -a -A
 
   # Create merge request
-  lab merge-request -i <title> [-d <message>]
+  lab merge-request [-e] [-i <title>] [-d <message>] [--assignee-id=<assignee id>]
 
   # Update merge request
-  lab merge-request [-t <title>] [-d <description>] <MergeRequest IID>
+  lab merge-request <MergeRequest IID> [-t <title>] [-d <description>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show merge request
-  lab issue <MergeRequest IID>
+  lab merge-request <MergeRequest IID>
 `
 	return parser
 }
@@ -343,7 +345,7 @@ func mergeRequestOperation(opt MergeRequestCommandOption, args []string) MergeRe
 		if createUpdateOption.Edit {
 			return UpdateMergeRequestOnEditor
 		}
-		if createUpdateOption.Title != "" || createUpdateOption.Message != "" {
+		if hasCreateUpdateOption(createUpdateOption) {
 			return UpdateMergeRequest
 		}
 		return ShowMergeRequest
@@ -361,6 +363,13 @@ func mergeRequestOperation(opt MergeRequestCommandOption, args []string) MergeRe
 	}
 
 	return ListMergeRequest
+}
+
+func hasCreateUpdateOption(opt *CreateUpdateMergeRequestOption) bool {
+	if opt.Title != "" || opt.Message != "" || opt.StateEvent != "" || opt.AssigneeID != 0 {
+		return true
+	}
+	return false
 }
 
 func validMergeRequestIID(args []string) (int, error) {
@@ -411,8 +420,10 @@ func makeCreateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, de
 		Description:     gitlab.String(description),
 		SourceBranch:    gitlab.String(branch),
 		TargetBranch:    gitlab.String(opt.TargetBranch),
-		AssigneeID:      nil,
 		TargetProjectID: nil,
+	}
+	if opt.AssigneeID != 0 {
+		createMergeRequestOption.AssigneeID = gitlab.Int(opt.AssigneeID)
 	}
 	return createMergeRequestOption
 }
@@ -422,7 +433,12 @@ func makeUpdateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, de
 		Title:        gitlab.String(title),
 		Description:  gitlab.String(description),
 		TargetBranch: gitlab.String(opt.TargetBranch),
-		AssigneeID:   nil,
+	}
+	if opt.StateEvent != "" {
+		updateMergeRequestOptions.StateEvent = gitlab.String(opt.StateEvent)
+	}
+	if opt.AssigneeID != 0 {
+		updateMergeRequestOptions.AssigneeID = gitlab.Int(opt.AssigneeID)
 	}
 	return updateMergeRequestOptions
 }

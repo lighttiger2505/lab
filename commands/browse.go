@@ -95,17 +95,15 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	// Getting git remote info
-	var gitlabRemote *git.RemoteInfo
+	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
 	if globalOpt.Project != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
-		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
-	} else {
-		var err error
-		gitlabRemote, err = c.Provider.GetCurrentRemote()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
+		gitlabRemote.NameSpace = namespace
+		gitlabRemote.Repository = project
 	}
 
 	// Getting browse repository

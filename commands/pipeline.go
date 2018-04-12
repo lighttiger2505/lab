@@ -59,7 +59,7 @@ type PipelineCommand struct {
 }
 
 func (c *PipelineCommand) Synopsis() string {
-	return "Show pipeline"
+	return "List pipeline, List pipeline jobs"
 }
 
 func (c *PipelineCommand) Help() string {

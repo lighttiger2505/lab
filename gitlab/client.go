@@ -23,6 +23,7 @@ type Client interface {
 	Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error)
 	// Pipeline
 	ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error)
+	ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]gitlab.Job, error)
 	// Lint
 	Lint(content string) (*gitlab.LintResult, error)
 	// User
@@ -142,6 +143,14 @@ func (l *LabClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProj
 	return pipelines, nil
 }
 
+func (l *LabClient) ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]gitlab.Job, error) {
+	jobs, _, err := l.Client.Jobs.ListPipelineJobs(repositoryName, pid, opt)
+	if err != nil {
+		return nil, fmt.Errorf("Failed list pipeline jobs. Error: %s", err.Error())
+	}
+	return jobs, nil
+}
+
 func (l *LabClient) Lint(content string) (*gitlab.LintResult, error) {
 	lintResult, _, err := l.Client.Validate.Lint(content)
 	if err != nil {
@@ -183,7 +192,8 @@ type MockLabClient struct {
 	// Project
 	MockProjects func(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error)
 	// Pipeline
-	MockProjectPipelines func(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error)
+	MockProjectPipelines    func(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error)
+	MockProjectPipelineJobs func(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]gitlab.Job, error)
 	// Lint
 	MockLint func(content string) (*gitlab.LintResult, error)
 	// User
@@ -237,6 +247,10 @@ func (m *MockLabClient) Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Pro
 
 func (m *MockLabClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error) {
 	return m.MockProjectPipelines(repositoryName, opt)
+}
+
+func (m *MockLabClient) ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]gitlab.Job, error) {
+	return m.MockProjectPipelineJobs(repositoryName, opt, pid)
 }
 
 func (m *MockLabClient) Lint(content string) (*gitlab.LintResult, error) {

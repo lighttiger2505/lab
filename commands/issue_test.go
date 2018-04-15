@@ -48,14 +48,14 @@ var issues = []*gitlab.Issue{
 	&gitlab.Issue{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
 }
 
-var mockGitlabIssueClient = &lab.MockLabClient{
+var mockGitlabIssueClient = &lab.MockLabIssueClient{
 	MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 		return issue, nil
 	},
-	MockIssues: func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
+	MockGetAllProjectIssues: func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
 		return issues, nil
 	},
-	MockProjectIssues: func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
+	MockGetProjectIssues: func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
 		return issues, nil
 	},
 	MockCreateIssue: func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
@@ -82,7 +82,7 @@ var mockIssueProvider = &lab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetClient: func(remote *git.RemoteInfo) (lab.Client, error) {
+	MockGetIssueClient: func(remote *git.RemoteInfo) (lab.Issue, error) {
 		return mockGitlabIssueClient, nil
 	},
 }

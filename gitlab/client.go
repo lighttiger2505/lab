@@ -7,12 +7,6 @@ import (
 )
 
 type Client interface {
-	// Issue
-	GetIssue(pid int, repositoryName string) (*gitlab.Issue, error)
-	Issues(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error)
-	ProjectIssues(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)
-	CreateIssue(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error)
-	UpdateIssue(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error)
 	// Merge Request
 	GetMergeRequest(pid int, repositoryName string) (*gitlab.MergeRequest, error)
 	MergeRequest(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
@@ -37,49 +31,6 @@ type LabClient struct {
 
 func NewLabClient(client *gitlab.Client) *LabClient {
 	return &LabClient{Client: client}
-}
-
-func (l *LabClient) GetIssue(pid int, repositoryName string) (*gitlab.Issue, error) {
-	issue, _, err := l.Client.Issues.GetIssue(repositoryName, pid)
-	if err != nil {
-		return nil, fmt.Errorf("Failed get issue. %s", err.Error())
-	}
-	return issue, nil
-}
-
-func (l *LabClient) Issues(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
-	issues, _, err := l.Client.Issues.ListIssues(opt)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list issue. %s", err.Error())
-	}
-	return issues, nil
-}
-
-func (l *LabClient) ProjectIssues(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
-	issues, _, err := l.Client.Issues.ListProjectIssues(repositoryName, opt)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list project issue. %s", err.Error())
-	}
-	return issues, nil
-}
-
-func (l *LabClient) CreateIssue(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
-	issue, _, err := l.Client.Issues.CreateIssue(
-		repositoryName,
-		opt,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("Failed create issue. %s", err.Error())
-	}
-	return issue, nil
-}
-
-func (l *LabClient) UpdateIssue(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
-	issue, _, err := l.Client.Issues.UpdateIssue(repositoryName, pid, opt)
-	if err != nil {
-		return nil, fmt.Errorf("Failed update issue. %s", err.Error())
-	}
-	return issue, nil
 }
 
 func (l *LabClient) GetMergeRequest(pid int, repositoryName string) (*gitlab.MergeRequest, error) {
@@ -177,12 +128,6 @@ func (l *LabClient) ProjectUsers(repositoryName string, opt *gitlab.ListProjectU
 
 type MockLabClient struct {
 	Client
-	// Issue
-	MockGetIssue      func(pid int, repositoryName string) (*gitlab.Issue, error)
-	MockIssues        func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error)
-	MockProjectIssues func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)
-	MockCreateIssue   func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error)
-	MockUpdateIssue   func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error)
 	// Merge Request
 	MockGetMergeRequest     func(pid int, repositoryName string) (*gitlab.MergeRequest, error)
 	MockMergeRequest        func(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
@@ -199,26 +144,6 @@ type MockLabClient struct {
 	// User
 	MockProjectUsers func(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error)
 	MockUsers        func(opt *gitlab.ListUsersOptions) ([]*gitlab.User, error)
-}
-
-func (m *MockLabClient) Issues(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
-	return m.MockIssues(opt)
-}
-
-func (m *MockLabClient) GetIssue(pid int, repositoryName string) (*gitlab.Issue, error) {
-	return m.MockGetIssue(pid, repositoryName)
-}
-
-func (m *MockLabClient) ProjectIssues(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
-	return m.MockProjectIssues(opt, repositoryName)
-}
-
-func (m *MockLabClient) CreateIssue(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
-	return m.MockCreateIssue(opt, repositoryName)
-}
-
-func (m *MockLabClient) UpdateIssue(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
-	return m.MockUpdateIssue(opt, pid, repositoryName)
 }
 
 func (m *MockLabClient) GetMergeRequest(pid int, repositoryName string) (*gitlab.MergeRequest, error) {

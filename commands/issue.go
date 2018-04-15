@@ -143,7 +143,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := c.Provider.GetClient(gitlabRemote)
+	client, err := c.Provider.GetIssueClient(gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -235,7 +235,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 	case ListIssue:
 		listOption := issueCommandOption.ListOption
-		issues, err := client.ProjectIssues(
+		issues, err := client.GetProjectIssues(
 			makeProjectIssueOption(listOption),
 			gitlabRemote.RepositoryFullName(),
 		)
@@ -252,7 +252,7 @@ func (c *IssueCommand) Run(args []string) int {
 	case ListIssueAllProject:
 		// Do get issue list
 		listOption := issueCommandOption.ListOption
-		issues, err := client.Issues(makeIssueOption(listOption))
+		issues, err := client.GetAllProjectIssues(makeIssueOption(listOption))
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -319,7 +319,7 @@ func validIssueIID(args []string) (int, error) {
 	return iid, nil
 }
 
-func updateIssue(client lab.Client, project string, iid int, opt *CreateUpdateIssueOption) (string, error) {
+func updateIssue(client lab.Issue, project string, iid int, opt *CreateUpdateIssueOption) (string, error) {
 	// Getting exist issue
 	issue, err := client.GetIssue(iid, project)
 	if err != nil {
@@ -350,7 +350,7 @@ func updateIssue(client lab.Client, project string, iid int, opt *CreateUpdateIs
 	return fmt.Sprintf("#%d", updatedIssue.IID), nil
 }
 
-func updateIssueOnEditor(client lab.Client, project string, iid int, opt *CreateUpdateIssueOption, editFunc func(program, file string) error) (string, error) {
+func updateIssueOnEditor(client lab.Issue, project string, iid int, opt *CreateUpdateIssueOption, editFunc func(program, file string) error) (string, error) {
 	// Getting exist issue
 	issue, err := client.GetIssue(iid, project)
 	if err != nil {

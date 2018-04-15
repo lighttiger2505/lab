@@ -16,6 +16,7 @@ type Provider interface {
 	GetSpecificRemote(namespace, project string) *git.RemoteInfo
 	GetCurrentRemote() (*git.RemoteInfo, error)
 	GetClient(remote *git.RemoteInfo) (Client, error)
+	GetIssueClient(remote *git.RemoteInfo) (Issue, error)
 }
 
 type GitlabProvider struct {
@@ -90,9 +91,8 @@ func (p *GitlabProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
 	return gitlabRemote, nil
 }
 
-func (p *GitlabProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
+func (p *GitlabProvider) makeGitLabClient(remote *git.RemoteInfo) (*gitlab.Client, error) {
 	token := p.ConfigManager.GetTokenOnly(remote.Domain)
-
 	if token == "" {
 		token, err := p.UI.Ask("Please input GitLab private token :")
 		if err != nil {
@@ -108,7 +108,23 @@ func (p *GitlabProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
 	if err := client.SetBaseURL(remote.ApiUrl()); err != nil {
 		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
 	}
-	return NewLabClient(client), nil
+	return client, nil
+}
+
+func (p *GitlabProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
+	gitlabClient, err := p.makeGitLabClient(remote)
+	if err != nil {
+		return nil, err
+	}
+	return NewLabClient(gitlabClient), nil
+}
+
+func (p *GitlabProvider) GetIssueClient(remote *git.RemoteInfo) (Issue, error) {
+	gitlabClient, err := p.makeGitLabClient(remote)
+	if err != nil {
+		return nil, err
+	}
+	return NewIssueClient(gitlabClient), nil
 }
 
 func (p *GitlabProvider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {
@@ -166,6 +182,7 @@ type MockProvider struct {
 	MockGetSpecificRemote func(namespace, project string) *git.RemoteInfo
 	MockGetCurrentRemote  func() (*git.RemoteInfo, error)
 	MockGetClient         func(remote *git.RemoteInfo) (Client, error)
+	MockGetIssueClient    func(remote *git.RemoteInfo) (Issue, error)
 }
 
 func (m *MockProvider) Init() error {
@@ -182,4 +199,8 @@ func (m *MockProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
 
 func (m *MockProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
 	return m.MockGetClient(remote)
+}
+
+func (m *MockProvider) GetIssueClient(remote *git.RemoteInfo) (Issue, error) {
+	return m.MockGetIssueClient(remote)
 }

@@ -42,14 +42,14 @@ var mergeRequests []*gitlab.MergeRequest = []*gitlab.MergeRequest{
 	&gitlab.MergeRequest{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
 }
 
-var mockGitlabMergeRequestClient = &lab.MockLabClient{
+var mockGitlabMergeRequestClient = &lab.MockLabMergeRequestClient{
 	MockGetMergeRequest: func(pid int, repositoryName string) (*gitlab.MergeRequest, error) {
 		return mergeRequest, nil
 	},
-	MockMergeRequest: func(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
+	MockGetAllProjectMergeRequest: func(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
 		return mergeRequests, nil
 	},
-	MockProjectMergeRequest: func(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
+	MockGetProjectMargeRequest: func(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
 		return mergeRequests, nil
 	},
 	MockCreateMergeRequest: func(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error) {
@@ -75,7 +75,7 @@ var mockMergeRequestProvider = &lab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetClient: func(remote *git.RemoteInfo) (lab.Client, error) {
+	MockGetMergeRequestClient: func(remote *git.RemoteInfo) (lab.MergeRequest, error) {
 		return mockGitlabMergeRequestClient, nil
 	},
 }

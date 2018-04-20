@@ -7,12 +7,6 @@ import (
 )
 
 type Client interface {
-	// Merge Request
-	GetMergeRequest(pid int, repositoryName string) (*gitlab.MergeRequest, error)
-	MergeRequest(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
-	ProjectMergeRequest(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
-	CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error)
-	UpdateMergeRequest(opt *gitlab.UpdateMergeRequestOptions, pid int, repositoryName string) (*gitlab.MergeRequest, error)
 	// Project
 	Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error)
 	// Pipeline
@@ -27,55 +21,6 @@ type Client interface {
 
 type LabClient struct {
 	Client *gitlab.Client
-}
-
-func NewLabClient(client *gitlab.Client) *LabClient {
-	return &LabClient{Client: client}
-}
-
-func (l *LabClient) GetMergeRequest(pid int, repositoryName string) (*gitlab.MergeRequest, error) {
-	mergeRequest, _, err := l.Client.MergeRequests.GetMergeRequest(repositoryName, pid)
-	if err != nil {
-		return nil, fmt.Errorf("Failed get merge request. %s", err.Error())
-	}
-	return mergeRequest, nil
-}
-
-func (l *LabClient) MergeRequest(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
-	mergeRequests, _, err := l.Client.MergeRequests.ListMergeRequests(opt)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list merge requests. %s", err.Error())
-	}
-
-	return mergeRequests, nil
-}
-
-func (l *LabClient) ProjectMergeRequest(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
-	mergeRequests, _, err := l.Client.MergeRequests.ListProjectMergeRequests(repositoryName, opt)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list project merge requests. %s", err.Error())
-	}
-
-	return mergeRequests, nil
-}
-
-func (l *LabClient) CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error) {
-	mergeRequest, _, err := l.Client.MergeRequests.CreateMergeRequest(
-		repositoryName,
-		opt,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list project merge requests. %s", err.Error())
-	}
-	return mergeRequest, nil
-}
-
-func (l *LabClient) UpdateMergeRequest(opt *gitlab.UpdateMergeRequestOptions, pid int, repositoryName string) (*gitlab.MergeRequest, error) {
-	mergeRequest, _, err := l.Client.MergeRequests.UpdateMergeRequest(repositoryName, pid, opt)
-	if err != nil {
-		return nil, fmt.Errorf("Failed get merge request. %s", err.Error())
-	}
-	return mergeRequest, nil
 }
 
 func (l *LabClient) Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {
@@ -100,6 +45,10 @@ func (l *LabClient) ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJ
 		return nil, fmt.Errorf("Failed list pipeline jobs. Error: %s", err.Error())
 	}
 	return jobs, nil
+}
+
+func NewLabClient(client *gitlab.Client) *LabClient {
+	return &LabClient{Client: client}
 }
 
 func (l *LabClient) Lint(content string) (*gitlab.LintResult, error) {
@@ -128,12 +77,6 @@ func (l *LabClient) ProjectUsers(repositoryName string, opt *gitlab.ListProjectU
 
 type MockLabClient struct {
 	Client
-	// Merge Request
-	MockGetMergeRequest     func(pid int, repositoryName string) (*gitlab.MergeRequest, error)
-	MockMergeRequest        func(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error)
-	MockProjectMergeRequest func(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error)
-	MockCreateMergeRequest  func(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error)
-	MockUpdateMergeRequest  func(opt *gitlab.UpdateMergeRequestOptions, pid int, repositoryName string) (*gitlab.MergeRequest, error)
 	// Project
 	MockProjects func(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error)
 	// Pipeline
@@ -144,26 +87,6 @@ type MockLabClient struct {
 	// User
 	MockProjectUsers func(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error)
 	MockUsers        func(opt *gitlab.ListUsersOptions) ([]*gitlab.User, error)
-}
-
-func (m *MockLabClient) GetMergeRequest(pid int, repositoryName string) (*gitlab.MergeRequest, error) {
-	return m.MockGetMergeRequest(pid, repositoryName)
-}
-
-func (m *MockLabClient) MergeRequest(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
-	return m.MockMergeRequest(opt)
-}
-
-func (m *MockLabClient) ProjectMergeRequest(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
-	return m.MockProjectMergeRequest(opt, repositoryName)
-}
-
-func (m *MockLabClient) CreateMergeRequest(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error) {
-	return m.MockCreateMergeRequest(opt, repositoryName)
-}
-
-func (m *MockLabClient) UpdateMergeRequest(opt *gitlab.UpdateMergeRequestOptions, pid int, repositoryName string) (*gitlab.MergeRequest, error) {
-	return m.MockUpdateMergeRequest(opt, pid, repositoryName)
 }
 
 func (m *MockLabClient) Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {

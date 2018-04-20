@@ -150,7 +150,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := c.Provider.GetClient(gitlabRemote)
+	client, err := c.Provider.GetMergeRequestClient(gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -300,7 +300,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 	case ListMergeRequest:
 		listOption := mergeRequestCommandOption.ListOption
-		mergeRequests, err := client.ProjectMergeRequest(
+		mergeRequests, err := client.GetProjectMargeRequest(
 			makeProjectMergeRequestOption(listOption),
 			gitlabRemote.RepositoryFullName(),
 		)
@@ -315,7 +315,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	case ListMergeRequestAllProject:
 		// Do get merge request list
 		listOption := mergeRequestCommandOption.ListOption
-		mergeRequests, err := client.MergeRequest(
+		mergeRequests, err := client.GetAllProjectMergeRequest(
 			makeMergeRequestOption(listOption),
 		)
 		if err != nil {

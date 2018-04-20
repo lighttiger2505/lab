@@ -29,11 +29,11 @@ lint:
 
 .PHONY: build
 build: $(SRCS)
-	go build $(LDFLAGS) -o bin/$(NAME)
+	go build $(LDFLAGS) ./...
 
 .PHONY: install
 install: $(SRCS)
-	go install $(LDFLAGS)
+	go install $(LDFLAGS) ./...
 
 .PHONY: coverage
 coverage:

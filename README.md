@@ -25,6 +25,21 @@ Please running install script.
 curl -s https://raw.githubusercontent.com/lighttiger2505/lab/master/install.sh | bash
 ```
 
+## Features
+
+```
+Usage: lab [--version] [--help] <command> [<args>]
+
+Available commands are:
+    browse           Browse repository page
+    issue            Create and Edit, list a issue
+    lint             validate .gitlab-ci.yml
+    merge-request    Create and Edit, list a merge request
+    pipeline         List pipeline, List pipeline jobs
+    project          Show project
+    user             Show pipeline
+```
+
 ## Usage
 
 1. change directory gitlab repository

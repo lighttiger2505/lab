@@ -14,6 +14,7 @@ var newRemoteTests = []newGitRemoteTest{
 	{
 		url: "ssh://git@gitlab.ssl.domain.jp/namespace/repository.git",
 		remoteInfo: &RemoteInfo{
+			Remote:     "origin",
 			Domain:     "gitlab.ssl.domain.jp",
 			NameSpace:  "namespace",
 			Repository: "repository",
@@ -22,6 +23,7 @@ var newRemoteTests = []newGitRemoteTest{
 	{
 		url: "git@gitlab.ssl.domain.jp:namespace/repository.git",
 		remoteInfo: &RemoteInfo{
+			Remote:     "origin",
 			Domain:     "gitlab.ssl.domain.jp",
 			NameSpace:  "namespace",
 			Repository: "repository",
@@ -30,6 +32,7 @@ var newRemoteTests = []newGitRemoteTest{
 	{
 		url: "https://gitlab.ssl.domain.jp/namespace/repository",
 		remoteInfo: &RemoteInfo{
+			Remote:     "origin",
 			Domain:     "gitlab.ssl.domain.jp",
 			NameSpace:  "namespace",
 			Repository: "repository",
@@ -39,7 +42,7 @@ var newRemoteTests = []newGitRemoteTest{
 
 func TestNewGitRemote(t *testing.T) {
 	for i, test := range newRemoteTests {
-		got := NewRemoteInfo(test.url)
+		got := NewRemoteInfo("origin", test.url)
 		if !reflect.DeepEqual(test.remoteInfo, got) {
 			t.Errorf("#%d: bad return value want %#v got %#v", i, test.remoteInfo, got)
 		}

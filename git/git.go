@@ -15,7 +15,7 @@ import (
 
 type Client interface {
 	RemoteInfos() ([]*RemoteInfo, error)
-	CurrentBranch() (string, error)
+	CurrentBranch(remote *RemoteInfo) (string, error)
 }
 
 type GitClient struct {
@@ -30,9 +30,9 @@ func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return GitRemotes()
 }
 
-func (g *GitClient) CurrentBranch() (string, error) {
+func (g *GitClient) CurrentBranch(remote *RemoteInfo) (string, error) {
 	// Get remote repositorys
-	branches := cmd.GitOutputs("git", []string{"branch"})
+	branches := cmd.GitOutputs("git", []string{"branch", "-a"})
 
 	currentPrefix := "*"
 	currentBranch := ""
@@ -40,24 +40,36 @@ func (g *GitClient) CurrentBranch() (string, error) {
 		if strings.HasPrefix(branch, currentPrefix) {
 			trimPrefix := strings.TrimPrefix(branch, currentPrefix)
 			currentBranch = strings.Trim(trimPrefix, " ")
+			break
 		}
 	}
 
 	if currentBranch == "" {
 		return "", errors.New("Not found current branch")
 	}
-	return currentBranch, nil
+
+	remoteBranch := fmt.Sprintf("%s/%s", remote.Remote, currentBranch)
+	for _, branch := range branches {
+		trimBranch := strings.TrimSpace(branch)
+		if strings.HasSuffix(trimBranch, remoteBranch) {
+			return currentBranch, nil
+		}
+	}
+	return "master", nil
+
 }
 
 type RemoteInfo struct {
+	Remote     string
 	Domain     string
 	NameSpace  string
 	Repository string
 }
 
-func NewRemoteInfo(url string) *RemoteInfo {
+func NewRemoteInfo(remote, url string) *RemoteInfo {
 	splitUrl := regexp.MustCompile("/|:|@").Split(url, -1)
 	return &RemoteInfo{
+		Remote:     remote,
 		Repository: strings.TrimSuffix(splitUrl[len(splitUrl)-1], ".git"),
 		NameSpace:  splitUrl[len(splitUrl)-2],
 		Domain:     splitUrl[len(splitUrl)-3],
@@ -137,7 +149,7 @@ func GitRemotes() ([]*RemoteInfo, error) {
 	var remoteInfos []*RemoteInfo
 	for _, remote := range remotes {
 		url := cmd.GitOutput("git", []string{"remote", "get-url", remote})
-		remoteInfo := NewRemoteInfo(url)
+		remoteInfo := NewRemoteInfo(remote, url)
 		remoteInfos = append(remoteInfos, remoteInfo)
 	}
 	return remoteInfos, nil
@@ -269,6 +281,6 @@ func (m *MockClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return m.MockRemoteInfos()
 }
 
-func (m *MockClient) CurrentBranch() (string, error) {
+func (m *MockClient) CurrentBranch(remote *RemoteInfo) (string, error) {
 	return m.MockCurrentBranch()
 }

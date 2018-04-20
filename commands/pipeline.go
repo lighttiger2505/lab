@@ -2,14 +2,15 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
-	gitlabc "github.com/xanzy/go-gitlab"
+	"github.com/xanzy/go-gitlab"
 )
 
 type PipelineCommandOption struct {
@@ -21,7 +22,15 @@ func newPipelineCommandParser(opt *PipelineCommandOption) *flags.Parser {
 	opt.PipelineOption = newPipelineOption()
 	opt.OutputOption = newOutputOption()
 	parser := flags.NewParser(opt, flags.Default)
-	parser.Usage = "pipeline [options]"
+	parser.Usage = `pipeline [options]
+
+Synopsis:
+  # List pipeline
+  lab pipeline 
+
+  # Show pipeline
+  lab pipeline <Pipeline IID>
+`
 	return parser
 }
 
@@ -37,13 +46,20 @@ func newPipelineOption() *PipelineOption {
 	return &PipelineOption{}
 }
 
+type PipelineOperation int
+
+const (
+	ListPipeline PipelineOperation = iota
+	ShowPipeline
+)
+
 type PipelineCommand struct {
 	UI       ui.Ui
-	Provider gitlab.Provider
+	Provider lab.Provider
 }
 
 func (c *PipelineCommand) Synopsis() string {
-	return "Show pipeline"
+	return "List pipeline, List pipeline jobs"
 }
 
 func (c *PipelineCommand) Help() string {
@@ -58,7 +74,8 @@ func (c *PipelineCommand) Run(args []string) int {
 	// Parse flags
 	var pipelineCommandOption PipelineCommandOption
 	pipelineCommandParser := newPipelineCommandParser(&pipelineCommandOption)
-	if _, err := pipelineCommandParser.ParseArgs(args); err != nil {
+	parseArgs, err := pipelineCommandParser.ParseArgs(args)
+	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
@@ -82,50 +99,77 @@ func (c *PipelineCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	pipelines, err := client.ProjectPipelines(
-		gitlabRemote.RepositoryFullName(),
-		makePipelineOptions(pipelineCommandOption.PipelineOption, pipelineCommandOption.OutputOption),
-	)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
+	operation := pipelineOperation(pipelineCommandOption, parseArgs)
+	switch operation {
+	case ListPipeline:
+		pipelines, err := client.ProjectPipelines(
+			gitlabRemote.RepositoryFullName(),
+			makePipelineOptions(pipelineCommandOption.PipelineOption, pipelineCommandOption.OutputOption),
+		)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeError
+		}
 
-	result := columnize.SimpleFormat(pipelineOutput(pipelines))
-	c.UI.Message(result)
+		result := columnize.SimpleFormat(pipelineOutput(pipelines))
+		c.UI.Message(result)
+	case ShowPipeline:
+		pid, err := strconv.Atoi(parseArgs[0])
+		if err != nil {
+			fmt.Errorf("Invalid pipeline iid. value: %s, error: %s", parseArgs[0], err)
+		}
+		jobs, err := client.ProjectPipelineJobs(
+			gitlabRemote.RepositoryFullName(),
+			makePiplineJobsOptions(),
+			pid,
+		)
+		result := columnize.SimpleFormat(jobOutput(jobs))
+		c.UI.Message(result)
+	}
 
 	return ExitCodeOK
 }
 
-func makePipelineOptions(pipelineOption *PipelineOption, outputOption *OutputOption) *gitlabc.ListProjectPipelinesOptions {
+func pipelineOperation(opt PipelineCommandOption, args []string) PipelineOperation {
+	if len(args) > 0 {
+		return ShowPipeline
+	}
+	return ListPipeline
+}
+
+func makePipelineOptions(pipelineOption *PipelineOption, outputOption *OutputOption) *gitlab.ListProjectPipelinesOptions {
 	var scope *string
 	if pipelineOption.Scope != "" {
-		scope = gitlabc.String(pipelineOption.Scope)
+		scope = gitlab.String(pipelineOption.Scope)
 	}
-	var status *gitlabc.BuildStateValue
+	var status *gitlab.BuildStateValue
 	if pipelineOption.States != "" {
-		v := gitlabc.BuildStateValue(pipelineOption.States)
+		v := gitlab.BuildStateValue(pipelineOption.States)
 		status = &v
 	}
-	listOption := &gitlabc.ListOptions{
+	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: outputOption.Line,
 	}
-	listPipelinesOptions := &gitlabc.ListProjectPipelinesOptions{
+	listPipelinesOptions := &gitlab.ListProjectPipelinesOptions{
 		Scope:       scope,
 		Status:      status,
-		Ref:         gitlabc.String(""),
-		YamlErrors:  gitlabc.Bool(false),
-		Name:        gitlabc.String(""),
-		Username:    gitlabc.String(""),
-		OrderBy:     gitlabc.OrderBy(gitlabc.OrderByValue(pipelineOption.OrderBy)),
-		Sort:        gitlabc.String(outputOption.Sort),
+		Ref:         gitlab.String(""),
+		YamlErrors:  gitlab.Bool(false),
+		Name:        gitlab.String(""),
+		Username:    gitlab.String(""),
+		OrderBy:     gitlab.OrderBy(gitlab.OrderByValue(pipelineOption.OrderBy)),
+		Sort:        gitlab.String(outputOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listPipelinesOptions
 }
 
-func pipelineOutput(pipelines gitlabc.PipelineList) []string {
+func makePiplineJobsOptions() *gitlab.ListJobsOptions {
+	return &gitlab.ListJobsOptions{}
+}
+
+func pipelineOutput(pipelines gitlab.PipelineList) []string {
 	var outputs []string
 	for _, pipeline := range pipelines {
 		output := strings.Join([]string{
@@ -133,6 +177,20 @@ func pipelineOutput(pipelines gitlabc.PipelineList) []string {
 			pipeline.Status,
 			pipeline.Ref,
 			pipeline.Sha,
+		}, "|")
+		outputs = append(outputs, output)
+	}
+	return outputs
+}
+
+func jobOutput(jobs []gitlab.Job) []string {
+	var outputs []string
+	for _, job := range jobs {
+		output := strings.Join([]string{
+			strconv.Itoa(job.ID),
+			job.Status,
+			job.Stage,
+			job.Name,
 		}, "|")
 		outputs = append(outputs, output)
 	}

@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/lighttiger2505/lab/git"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	gitlabc "github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
-var mergeRequest = &gitlabc.MergeRequest{
+var mergeRequest = &gitlab.MergeRequest{
 	IID:   12,
 	Title: "Title12",
 	Assignee: struct {
@@ -37,29 +37,29 @@ var mergeRequest = &gitlabc.MergeRequest{
 	Description: "Description",
 }
 
-var mergeRequests []*gitlabc.MergeRequest = []*gitlabc.MergeRequest{
-	&gitlabc.MergeRequest{IID: 12, Title: "Title12", WebURL: "http://gitlab.jp/namespace/repo12"},
-	&gitlabc.MergeRequest{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
+var mergeRequests []*gitlab.MergeRequest = []*gitlab.MergeRequest{
+	&gitlab.MergeRequest{IID: 12, Title: "Title12", WebURL: "http://gitlab.jp/namespace/repo12"},
+	&gitlab.MergeRequest{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
 }
 
-var mockGitlabMergeRequestClient *gitlab.MockLabClient = &gitlab.MockLabClient{
-	MockGetMergeRequest: func(pid int, repositoryName string) (*gitlabc.MergeRequest, error) {
+var mockGitlabMergeRequestClient = &lab.MockLabMergeRequestClient{
+	MockGetMergeRequest: func(pid int, repositoryName string) (*gitlab.MergeRequest, error) {
 		return mergeRequest, nil
 	},
-	MockMergeRequest: func(opt *gitlabc.ListMergeRequestsOptions) ([]*gitlabc.MergeRequest, error) {
+	MockGetAllProjectMergeRequest: func(opt *gitlab.ListMergeRequestsOptions) ([]*gitlab.MergeRequest, error) {
 		return mergeRequests, nil
 	},
-	MockProjectMergeRequest: func(opt *gitlabc.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlabc.MergeRequest, error) {
+	MockGetProjectMargeRequest: func(opt *gitlab.ListProjectMergeRequestsOptions, repositoryName string) ([]*gitlab.MergeRequest, error) {
 		return mergeRequests, nil
 	},
-	MockCreateMergeRequest: func(opt *gitlabc.CreateMergeRequestOptions, repositoryName string) (*gitlabc.MergeRequest, error) {
+	MockCreateMergeRequest: func(opt *gitlab.CreateMergeRequestOptions, repositoryName string) (*gitlab.MergeRequest, error) {
 		return mergeRequest, nil
 	},
-	MockUpdateMergeRequest: func(opt *gitlabc.UpdateMergeRequestOptions, pid int, repositoryName string) (*gitlabc.MergeRequest, error) {
+	MockUpdateMergeRequest: func(opt *gitlab.UpdateMergeRequestOptions, pid int, repositoryName string) (*gitlab.MergeRequest, error) {
 		return mergeRequest, nil
 	}}
 
-var mockMergeRequestProvider = &gitlab.MockProvider{
+var mockMergeRequestProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
 	MockGetSpecificRemote: func(namespace, project string) *git.RemoteInfo {
 		return &git.RemoteInfo{
@@ -75,7 +75,7 @@ var mockMergeRequestProvider = &gitlab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetClient: func(remote *git.RemoteInfo) (gitlab.Client, error) {
+	MockGetMergeRequestClient: func(remote *git.RemoteInfo) (lab.MergeRequest, error) {
 		return mockGitlabMergeRequestClient, nil
 	},
 }

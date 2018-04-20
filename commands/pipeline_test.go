@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/git"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	gitlabc "github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
-var testPipelines = gitlabc.PipelineList{
+var testPipelines = gitlab.PipelineList{
 	struct {
 		ID     int    `json:"id"`
 		Status string `json:"status"`
@@ -34,13 +34,13 @@ var testPipelines = gitlabc.PipelineList{
 	},
 }
 
-var mockGitlabPipelineClient = &gitlab.MockLabClient{
-	MockProjectPipelines: func(repositoryName string, opt *gitlabc.ListProjectPipelinesOptions) (gitlabc.PipelineList, error) {
+var mockGitlabPipelineClient = &lab.MockLabClient{
+	MockProjectPipelines: func(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error) {
 		return testPipelines, nil
 	},
 }
 
-var mockPipelineProvider = &gitlab.MockProvider{
+var mockPipelineProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
 		return &git.RemoteInfo{
@@ -49,7 +49,7 @@ var mockPipelineProvider = &gitlab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetClient: func(remote *git.RemoteInfo) (gitlab.Client, error) {
+	MockGetClient: func(remote *git.RemoteInfo) (lab.Client, error) {
 		return mockGitlabPipelineClient, nil
 	},
 }

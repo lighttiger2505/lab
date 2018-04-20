@@ -8,16 +8,18 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/git"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
-	gitlabc "github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type CreateUpdateIssueOption struct {
-	Edit    bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
-	Title   string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
-	Message string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
+	Edit       bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
+	Title      string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
+	Message    string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
+	StateEvent string `long:"state-event" description:"Change the status. \"close\", \"reopen\""`
+	AssigneeID int    `long:"assignee-id" description:"The ID of assignee."`
 }
 
 func newAddIssueOption() *CreateUpdateIssueOption {
@@ -90,10 +92,10 @@ Synopsis:
             [--orderby=<orderby>] [--sort=<sort>] [-A]
 
   # Create issue
-  lab issue [-e] [-i <title>] [-m <message>]
+  lab issue [-e] [-i <title>] [-m <message>] [--assignee-id=<assignee id>]
 
   # Update issue
-  lab issue <Issue IID> [-e] [-i <title>] [-m <message>] 
+  lab issue <Issue IID> [-e] [-i <title>] [-m <message>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show issue
   lab issue <Issue IID>
@@ -103,7 +105,7 @@ Synopsis:
 
 type IssueCommand struct {
 	Ui       ui.Ui
-	Provider gitlab.Provider
+	Provider lab.Provider
 	EditFunc func(program, file string) error
 }
 
@@ -141,7 +143,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := c.Provider.GetClient(gitlabRemote)
+	client, err := c.Provider.GetIssueClient(gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -186,7 +188,7 @@ func (c *IssueCommand) Run(args []string) int {
 		// Do create issue
 		createUpdateOption := issueCommandOption.CreateUpdateOption
 		issue, err := client.CreateIssue(
-			makeCreateIssueOptions(createUpdateOption.Title, createUpdateOption.Message),
+			makeCreateIssueOptions(createUpdateOption, createUpdateOption.Title, createUpdateOption.Message),
 			gitlabRemote.RepositoryFullName(),
 		)
 		if err != nil {
@@ -209,7 +211,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 		// Do create issue
 		issue, err := client.CreateIssue(
-			makeCreateIssueOptions(title, message),
+			makeCreateIssueOptions(createUpdateOption, title, message),
 			gitlabRemote.RepositoryFullName(),
 		)
 		if err != nil {
@@ -233,7 +235,7 @@ func (c *IssueCommand) Run(args []string) int {
 
 	case ListIssue:
 		listOption := issueCommandOption.ListOption
-		issues, err := client.ProjectIssues(
+		issues, err := client.GetProjectIssues(
 			makeProjectIssueOption(listOption),
 			gitlabRemote.RepositoryFullName(),
 		)
@@ -250,7 +252,7 @@ func (c *IssueCommand) Run(args []string) int {
 	case ListIssueAllProject:
 		// Do get issue list
 		listOption := issueCommandOption.ListOption
-		issues, err := client.Issues(makeIssueOption(listOption))
+		issues, err := client.GetAllProjectIssues(makeIssueOption(listOption))
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -278,7 +280,7 @@ func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
 		if createUpdateOption.Edit {
 			return UpdateIssueOnEditor
 		}
-		if createUpdateOption.Title != "" || createUpdateOption.Message != "" {
+		if hasEditIssueOption(createUpdateOption) {
 			return UpdateIssue
 		}
 		return ShowIssue
@@ -288,7 +290,7 @@ func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
 	if createUpdateOption.Edit {
 		return CreateIssueOnEditor
 	}
-	if createUpdateOption.Title != "" {
+	if hasEditIssueOption(createUpdateOption) {
 		return CreateIssue
 	}
 	if listOption.AllProject {
@@ -296,6 +298,13 @@ func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
 	}
 
 	return ListIssue
+}
+
+func hasEditIssueOption(opt *CreateUpdateIssueOption) bool {
+	if opt.Title != "" || opt.Message != "" || opt.StateEvent != "" || opt.AssigneeID != 0 {
+		return true
+	}
+	return false
 }
 
 func validIssueIID(args []string) (int, error) {
@@ -310,7 +319,7 @@ func validIssueIID(args []string) (int, error) {
 	return iid, nil
 }
 
-func updateIssue(client gitlab.Client, project string, iid int, opt *CreateUpdateIssueOption) (string, error) {
+func updateIssue(client lab.Issue, project string, iid int, opt *CreateUpdateIssueOption) (string, error) {
 	// Getting exist issue
 	issue, err := client.GetIssue(iid, project)
 	if err != nil {
@@ -329,7 +338,7 @@ func updateIssue(client gitlab.Client, project string, iid int, opt *CreateUpdat
 
 	// Do update issue
 	updatedIssue, err := client.UpdateIssue(
-		makeUpdateIssueOption(updatedTitle, updatedMessage),
+		makeUpdateIssueOption(opt, updatedTitle, updatedMessage),
 		iid,
 		project,
 	)
@@ -341,7 +350,7 @@ func updateIssue(client gitlab.Client, project string, iid int, opt *CreateUpdat
 	return fmt.Sprintf("#%d", updatedIssue.IID), nil
 }
 
-func updateIssueOnEditor(client gitlab.Client, project string, iid int, opt *CreateUpdateIssueOption, editFunc func(program, file string) error) (string, error) {
+func updateIssueOnEditor(client lab.Issue, project string, iid int, opt *CreateUpdateIssueOption, editFunc func(program, file string) error) (string, error) {
 	// Getting exist issue
 	issue, err := client.GetIssue(iid, project)
 	if err != nil {
@@ -367,7 +376,7 @@ func updateIssueOnEditor(client gitlab.Client, project string, iid int, opt *Cre
 
 	// Do update issue
 	updatedIssue, err := client.UpdateIssue(
-		makeUpdateIssueOption(title, message),
+		makeUpdateIssueOption(opt, title, message),
 		iid,
 		project,
 	)
@@ -377,57 +386,66 @@ func updateIssueOnEditor(client gitlab.Client, project string, iid int, opt *Cre
 	return fmt.Sprintf("#%d", updatedIssue.IID), nil
 }
 
-func makeProjectIssueOption(issueListOption *ListIssueOption) *gitlabc.ListProjectIssuesOptions {
-	listOption := &gitlabc.ListOptions{
+func makeProjectIssueOption(issueListOption *ListIssueOption) *gitlab.ListProjectIssuesOptions {
+	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: issueListOption.Num,
 	}
-	listProjectIssuesOptions := &gitlabc.ListProjectIssuesOptions{
-		State:       gitlabc.String(issueListOption.GetState()),
-		Scope:       gitlabc.String(issueListOption.GetScope()),
-		OrderBy:     gitlabc.String(issueListOption.OrderBy),
-		Sort:        gitlabc.String(issueListOption.Sort),
+	listProjectIssuesOptions := &gitlab.ListProjectIssuesOptions{
+		State:       gitlab.String(issueListOption.GetState()),
+		Scope:       gitlab.String(issueListOption.GetScope()),
+		OrderBy:     gitlab.String(issueListOption.OrderBy),
+		Sort:        gitlab.String(issueListOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listProjectIssuesOptions
 }
 
-func makeIssueOption(issueListOption *ListIssueOption) *gitlabc.ListIssuesOptions {
-	listOption := &gitlabc.ListOptions{
+func makeIssueOption(issueListOption *ListIssueOption) *gitlab.ListIssuesOptions {
+	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: issueListOption.Num,
 	}
-	listIssuesOptions := &gitlabc.ListIssuesOptions{
-		State:       gitlabc.String(issueListOption.GetState()),
-		Scope:       gitlabc.String(issueListOption.GetScope()),
-		OrderBy:     gitlabc.String(issueListOption.OrderBy),
-		Sort:        gitlabc.String(issueListOption.Sort),
+	listIssuesOptions := &gitlab.ListIssuesOptions{
+		State:       gitlab.String(issueListOption.GetState()),
+		Scope:       gitlab.String(issueListOption.GetScope()),
+		OrderBy:     gitlab.String(issueListOption.OrderBy),
+		Sort:        gitlab.String(issueListOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listIssuesOptions
 }
 
-func makeCreateIssueOptions(title, description string) *gitlabc.CreateIssueOptions {
-	opt := &gitlabc.CreateIssueOptions{
-		Title:       gitlabc.String(title),
-		Description: gitlabc.String(description),
+func makeCreateIssueOptions(opt *CreateUpdateIssueOption, title, description string) *gitlab.CreateIssueOptions {
+	createIssueOption := &gitlab.CreateIssueOptions{
+		Title:       gitlab.String(title),
+		Description: gitlab.String(description),
 	}
-	return opt
+	if opt.AssigneeID != 0 {
+		createIssueOption.AssigneeIDs = []int{opt.AssigneeID}
+	}
+	return createIssueOption
 }
 
-func makeUpdateIssueOption(title, description string) *gitlabc.UpdateIssueOptions {
-	opt := &gitlabc.UpdateIssueOptions{
-		Title:       gitlabc.String(title),
-		Description: gitlabc.String(description),
+func makeUpdateIssueOption(opt *CreateUpdateIssueOption, title, description string) *gitlab.UpdateIssueOptions {
+	updateIssueOption := &gitlab.UpdateIssueOptions{
+		Title:       gitlab.String(title),
+		Description: gitlab.String(description),
 	}
-	return opt
+	if opt.StateEvent != "" {
+		updateIssueOption.StateEvent = gitlab.String(opt.StateEvent)
+	}
+	if opt.AssigneeID != 0 {
+		updateIssueOption.AssigneeID = gitlab.Int(opt.AssigneeID)
+	}
+	return updateIssueOption
 }
 
-func issueOutput(issues []*gitlabc.Issue) []string {
+func issueOutput(issues []*gitlab.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
-			gitlab.ParceRepositoryFullName(issue.WebURL),
+			lab.ParceRepositoryFullName(issue.WebURL),
 			fmt.Sprintf("#%d", issue.IID),
 			issue.Title,
 		}, "|")
@@ -436,11 +454,12 @@ func issueOutput(issues []*gitlabc.Issue) []string {
 	return datas
 }
 
-func issueDetailOutput(issue *gitlabc.Issue) string {
+func issueDetailOutput(issue *gitlab.Issue) string {
 	base := `#%d
 Title: %s
 Assignee: %s
 Author: %s
+State: %s
 CreatedAt: %s
 UpdatedAt: %s
 
@@ -451,6 +470,7 @@ UpdatedAt: %s
 		issue.Title,
 		issue.Assignee.Name,
 		issue.Author.Name,
+		issue.State,
 		issue.CreatedAt.String(),
 		issue.UpdatedAt.String(),
 		issue.Description,
@@ -458,7 +478,7 @@ UpdatedAt: %s
 	return detial
 }
 
-func projectIssueOutput(issues []*gitlabc.Issue) []string {
+func projectIssueOutput(issues []*gitlab.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{

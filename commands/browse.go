@@ -12,7 +12,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/git"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 )
 
@@ -48,7 +48,7 @@ func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
 
 type BrowseCommand struct {
 	Ui        ui.Ui
-	Provider  gitlab.Provider
+	Provider  lab.Provider
 	GitClient git.Client
 	Cmd       cmd.Cmd
 }
@@ -95,17 +95,15 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	// Getting git remote info
-	var gitlabRemote *git.RemoteInfo
+	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
 	if globalOpt.Project != "" {
 		namespace, project := globalOpt.NameSpaceAndProject()
-		gitlabRemote = c.Provider.GetSpecificRemote(namespace, project)
-	} else {
-		var err error
-		gitlabRemote, err = c.Provider.GetCurrentRemote()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
+		gitlabRemote.NameSpace = namespace
+		gitlabRemote.Repository = project
 	}
 
 	// Getting browse repository

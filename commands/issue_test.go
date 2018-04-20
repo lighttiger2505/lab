@@ -17,6 +17,7 @@ var updatedAt, _ = time.Parse("2006-01-02", "2018-03-14")
 var issue = &gitlab.Issue{
 	IID:   12,
 	Title: "Title12",
+	State: "State12",
 	Assignee: struct {
 		ID        int    `json:"id"`
 		Name      string `json:"name"`
@@ -47,14 +48,14 @@ var issues = []*gitlab.Issue{
 	&gitlab.Issue{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
 }
 
-var mockGitlabIssueClient = &lab.MockLabClient{
+var mockGitlabIssueClient = &lab.MockLabIssueClient{
 	MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 		return issue, nil
 	},
-	MockIssues: func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
+	MockGetAllProjectIssues: func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
 		return issues, nil
 	},
-	MockProjectIssues: func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
+	MockGetProjectIssues: func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
 		return issues, nil
 	},
 	MockCreateIssue: func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
@@ -81,7 +82,7 @@ var mockIssueProvider = &lab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetClient: func(remote *git.RemoteInfo) (lab.Client, error) {
+	MockGetIssueClient: func(remote *git.RemoteInfo) (lab.Issue, error) {
 		return mockGitlabIssueClient, nil
 	},
 }
@@ -103,6 +104,7 @@ func TestIssueCommandRun_ShowIssue(t *testing.T) {
 Title: Title12
 Assignee: AssigneeName
 Author: AuthorName
+State: State12
 CreatedAt: 2018-02-14 00:00:00 +0000 UTC
 UpdatedAt: 2018-03-14 00:00:00 +0000 UTC
 

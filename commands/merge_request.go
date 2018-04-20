@@ -8,10 +8,10 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/git"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
-	gitlabc "github.com/xanzy/go-gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type CreateUpdateMergeRequestOption struct {
@@ -20,6 +20,8 @@ type CreateUpdateMergeRequestOption struct {
 	Message      string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
 	SourceBranch string `short:"s" long:"source" description:"The source branch"`
 	TargetBranch string `short:"t" long:"target" default:"master" default-mask:"master" description:"The target branch"`
+	StateEvent   string `long:"state-event" description:"Change the status. \"opened\", \"closed\""`
+	AssigneeID   int    `long:"assignee-id" description:"The ID of assignee."`
 }
 
 func newCreateUpdateMergeRequestOption() *CreateUpdateMergeRequestOption {
@@ -97,20 +99,20 @@ Synopsis:
                     -r -a -A
 
   # Create merge request
-  lab merge-request -i <title> [-d <message>]
+  lab merge-request [-e] [-i <title>] [-d <message>] [--assignee-id=<assignee id>]
 
   # Update merge request
-  lab merge-request [-t <title>] [-d <description>] <MergeRequest IID>
+  lab merge-request <MergeRequest IID> [-t <title>] [-d <description>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show merge request
-  lab issue <MergeRequest IID>
+  lab merge-request <MergeRequest IID>
 `
 	return parser
 }
 
 type MergeRequestCommand struct {
 	Ui       ui.Ui
-	Provider gitlab.Provider
+	Provider lab.Provider
 	EditFunc func(program, file string) error
 }
 
@@ -148,7 +150,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := c.Provider.GetClient(gitlabRemote)
+	client, err := c.Provider.GetMergeRequestClient(gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -298,7 +300,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 	case ListMergeRequest:
 		listOption := mergeRequestCommandOption.ListOption
-		mergeRequests, err := client.ProjectMergeRequest(
+		mergeRequests, err := client.GetProjectMargeRequest(
 			makeProjectMergeRequestOption(listOption),
 			gitlabRemote.RepositoryFullName(),
 		)
@@ -313,7 +315,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	case ListMergeRequestAllProject:
 		// Do get merge request list
 		listOption := mergeRequestCommandOption.ListOption
-		mergeRequests, err := client.MergeRequest(
+		mergeRequests, err := client.GetAllProjectMergeRequest(
 			makeMergeRequestOption(listOption),
 		)
 		if err != nil {
@@ -343,7 +345,7 @@ func mergeRequestOperation(opt MergeRequestCommandOption, args []string) MergeRe
 		if createUpdateOption.Edit {
 			return UpdateMergeRequestOnEditor
 		}
-		if createUpdateOption.Title != "" || createUpdateOption.Message != "" {
+		if hasCreateUpdateOption(createUpdateOption) {
 			return UpdateMergeRequest
 		}
 		return ShowMergeRequest
@@ -363,6 +365,13 @@ func mergeRequestOperation(opt MergeRequestCommandOption, args []string) MergeRe
 	return ListMergeRequest
 }
 
+func hasCreateUpdateOption(opt *CreateUpdateMergeRequestOption) bool {
+	if opt.Title != "" || opt.Message != "" || opt.StateEvent != "" || opt.AssigneeID != 0 {
+		return true
+	}
+	return false
+}
+
 func validMergeRequestIID(args []string) (int, error) {
 	if len(args) < 1 {
 		return 0, nil
@@ -375,63 +384,70 @@ func validMergeRequestIID(args []string) (int, error) {
 	return iid, nil
 }
 
-func makeMergeRequestOption(listMergeRequestsOption *ListMergeRequestOption) *gitlabc.ListMergeRequestsOptions {
-	listOption := &gitlabc.ListOptions{
+func makeMergeRequestOption(listMergeRequestsOption *ListMergeRequestOption) *gitlab.ListMergeRequestsOptions {
+	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: listMergeRequestsOption.Num,
 	}
-	listRequestsOptions := &gitlabc.ListMergeRequestsOptions{
-		State:       gitlabc.String(listMergeRequestsOption.GetState()),
-		Scope:       gitlabc.String(listMergeRequestsOption.GetScope()),
-		OrderBy:     gitlabc.String(listMergeRequestsOption.OrderBy),
-		Sort:        gitlabc.String(listMergeRequestsOption.Sort),
+	listRequestsOptions := &gitlab.ListMergeRequestsOptions{
+		State:       gitlab.String(listMergeRequestsOption.GetState()),
+		Scope:       gitlab.String(listMergeRequestsOption.GetScope()),
+		OrderBy:     gitlab.String(listMergeRequestsOption.OrderBy),
+		Sort:        gitlab.String(listMergeRequestsOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listRequestsOptions
 }
 
-func makeProjectMergeRequestOption(listMergeRequestsOption *ListMergeRequestOption) *gitlabc.ListProjectMergeRequestsOptions {
-	listOption := &gitlabc.ListOptions{
+func makeProjectMergeRequestOption(listMergeRequestsOption *ListMergeRequestOption) *gitlab.ListProjectMergeRequestsOptions {
+	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: listMergeRequestsOption.Num,
 	}
-	listMergeRequestsOptions := &gitlabc.ListProjectMergeRequestsOptions{
-		State:       gitlabc.String(listMergeRequestsOption.GetState()),
-		Scope:       gitlabc.String(listMergeRequestsOption.GetScope()),
-		OrderBy:     gitlabc.String(listMergeRequestsOption.OrderBy),
-		Sort:        gitlabc.String(listMergeRequestsOption.Sort),
+	listMergeRequestsOptions := &gitlab.ListProjectMergeRequestsOptions{
+		State:       gitlab.String(listMergeRequestsOption.GetState()),
+		Scope:       gitlab.String(listMergeRequestsOption.GetScope()),
+		OrderBy:     gitlab.String(listMergeRequestsOption.OrderBy),
+		Sort:        gitlab.String(listMergeRequestsOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listMergeRequestsOptions
 }
 
-func makeCreateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, description, branch string) *gitlabc.CreateMergeRequestOptions {
-	createMergeRequestOption := &gitlabc.CreateMergeRequestOptions{
-		Title:           gitlabc.String(title),
-		Description:     gitlabc.String(description),
-		SourceBranch:    gitlabc.String(branch),
-		TargetBranch:    gitlabc.String(opt.TargetBranch),
-		AssigneeID:      nil,
+func makeCreateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, description, branch string) *gitlab.CreateMergeRequestOptions {
+	createMergeRequestOption := &gitlab.CreateMergeRequestOptions{
+		Title:           gitlab.String(title),
+		Description:     gitlab.String(description),
+		SourceBranch:    gitlab.String(branch),
+		TargetBranch:    gitlab.String(opt.TargetBranch),
 		TargetProjectID: nil,
+	}
+	if opt.AssigneeID != 0 {
+		createMergeRequestOption.AssigneeID = gitlab.Int(opt.AssigneeID)
 	}
 	return createMergeRequestOption
 }
 
-func makeUpdateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, description string) *gitlabc.UpdateMergeRequestOptions {
-	updateMergeRequestOptions := &gitlabc.UpdateMergeRequestOptions{
-		Title:        gitlabc.String(title),
-		Description:  gitlabc.String(description),
-		TargetBranch: gitlabc.String(opt.TargetBranch),
-		AssigneeID:   nil,
+func makeUpdateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, description string) *gitlab.UpdateMergeRequestOptions {
+	updateMergeRequestOptions := &gitlab.UpdateMergeRequestOptions{
+		Title:        gitlab.String(title),
+		Description:  gitlab.String(description),
+		TargetBranch: gitlab.String(opt.TargetBranch),
+	}
+	if opt.StateEvent != "" {
+		updateMergeRequestOptions.StateEvent = gitlab.String(opt.StateEvent)
+	}
+	if opt.AssigneeID != 0 {
+		updateMergeRequestOptions.AssigneeID = gitlab.Int(opt.AssigneeID)
 	}
 	return updateMergeRequestOptions
 }
 
-func outMergeRequest(mergeRequsets []*gitlabc.MergeRequest) []string {
+func outMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
 	outputs := []string{}
 	for _, mergeRequest := range mergeRequsets {
 		output := strings.Join([]string{
-			gitlab.ParceRepositoryFullName(mergeRequest.WebURL),
+			lab.ParceRepositoryFullName(mergeRequest.WebURL),
 			fmt.Sprintf("!%d", mergeRequest.IID),
 			mergeRequest.Title,
 		}, "|")
@@ -440,7 +456,7 @@ func outMergeRequest(mergeRequsets []*gitlabc.MergeRequest) []string {
 	return outputs
 }
 
-func outMergeRequestDetail(mergeRequest *gitlabc.MergeRequest) string {
+func outMergeRequestDetail(mergeRequest *gitlab.MergeRequest) string {
 	base := `!%d
 Title: %s
 Assignee: %s
@@ -462,7 +478,7 @@ UpdatedAt: %s
 	return detial
 }
 
-func outProjectMergeRequest(mergeRequsets []*gitlabc.MergeRequest) []string {
+func outProjectMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
 	outputs := []string{}
 	for _, mergeRequest := range mergeRequsets {
 		output := strings.Join([]string{

@@ -115,7 +115,7 @@ func (c *BrowseCommand) Run(args []string) int {
 			return ExitCodeError
 		}
 	} else {
-		branch, err := c.GitClient.CurrentBranch()
+		branch, err := c.GitClient.CurrentBranch(gitlabRemote)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError

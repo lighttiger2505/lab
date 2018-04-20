@@ -11,7 +11,7 @@ type Client interface {
 	Projects(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error)
 	// Pipeline
 	ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error)
-	ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]gitlab.Job, error)
+	ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]*gitlab.Job, error)
 	// Lint
 	Lint(content string) (*gitlab.LintResult, error)
 	// User
@@ -39,7 +39,7 @@ func (l *LabClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProj
 	return pipelines, nil
 }
 
-func (l *LabClient) ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]gitlab.Job, error) {
+func (l *LabClient) ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]*gitlab.Job, error) {
 	jobs, _, err := l.Client.Jobs.ListPipelineJobs(repositoryName, pid, opt)
 	if err != nil {
 		return nil, fmt.Errorf("Failed list pipeline jobs. Error: %s", err.Error())

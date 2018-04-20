@@ -183,7 +183,7 @@ func pipelineOutput(pipelines gitlab.PipelineList) []string {
 	return outputs
 }
 
-func jobOutput(jobs []gitlab.Job) []string {
+func jobOutput(jobs []*gitlab.Job) []string {
 	var outputs []string
 	for _, job := range jobs {
 		output := strings.Join([]string{

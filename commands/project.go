@@ -43,7 +43,7 @@ type ProjectCommand struct {
 }
 
 func (c *ProjectCommand) Synopsis() string {
-	return "Show project"
+	return "List project"
 }
 
 func (c *ProjectCommand) Help() string {

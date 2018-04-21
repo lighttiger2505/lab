@@ -44,7 +44,7 @@ type UserCommand struct {
 }
 
 func (c *UserCommand) Synopsis() string {
-	return "Show pipeline"
+	return "List user"
 }
 
 func (c *UserCommand) Help() string {

@@ -63,7 +63,12 @@
 
 [[projects]]
   name = "github.com/posener/complete"
-  packages = [".","cmd","cmd/install","match"]
+  packages = [
+    ".",
+    "cmd",
+    "cmd/install",
+    "match"
+  ]
   revision = "98eb9847f27ba2008d380a32c98be474dea55bdf"
   version = "v1.1.1"
 
@@ -76,8 +81,8 @@
 [[projects]]
   name = "github.com/xanzy/go-gitlab"
   packages = ["."]
-  revision = "49516bf8be8b49d0b246029e6208516902466f07"
-  version = "v0.8.1"
+  revision = "109fd962a3876c6e486a5bc9507289d060e3c587"
+  version = "v0.9.0"
 
 [[projects]]
   branch = "master"
@@ -94,6 +99,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5d829ebddb0cc390a479a4208ab60e94dacd5bd7b44a5317f76b097664a87032"
+  inputs-digest = "f76c3368681d7802e6459cf3da85f723056b847f4de3a0139ac3f0be1a152f57"
   solver-name = "gps-cdcl"
   solver-version = 1

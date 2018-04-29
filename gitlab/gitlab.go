@@ -13,7 +13,6 @@ import (
 
 type Provider interface {
 	Init() error
-	GetSpecificRemote(namespace, project string) *git.RemoteInfo
 	GetCurrentRemote() (*git.RemoteInfo, error)
 	GetClient(remote *git.RemoteInfo) (Client, error)
 	GetIssueClient(remote *git.RemoteInfo) (Issue, error)
@@ -44,15 +43,6 @@ func (p *GitlabProvider) Init() error {
 		return err
 	}
 	return nil
-}
-
-func (p *GitlabProvider) GetSpecificRemote(namespace, project string) *git.RemoteInfo {
-	domain := p.ConfigManager.GetTopDomain()
-	return &git.RemoteInfo{
-		Domain:     domain,
-		NameSpace:  namespace,
-		Repository: project,
-	}
 }
 
 func (p *GitlabProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
@@ -197,10 +187,6 @@ type MockProvider struct {
 
 func (m *MockProvider) Init() error {
 	return m.MockInit()
-}
-
-func (m *MockProvider) GetSpecificRemote(namespace, project string) *git.RemoteInfo {
-	return m.MockGetSpecificRemote(namespace, project)
 }
 
 func (m *MockProvider) GetCurrentRemote() (*git.RemoteInfo, error) {

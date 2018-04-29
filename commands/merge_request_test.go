@@ -61,13 +61,6 @@ var mockGitlabMergeRequestClient = &lab.MockLabMergeRequestClient{
 
 var mockMergeRequestProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
-	MockGetSpecificRemote: func(namespace, project string) *git.RemoteInfo {
-		return &git.RemoteInfo{
-			Domain:     "domain",
-			NameSpace:  "namespace",
-			Repository: "repository",
-		}
-	},
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
 		return &git.RemoteInfo{
 			Domain:     "domain",

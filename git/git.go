@@ -27,15 +27,25 @@ func NewGitClient() Client {
 
 func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	// Get remote repositorys
-	remotes := cmd.GitOutputs("git", []string{"remote"})
+	remotes, err := gitOutput("remote")
+	if err != nil {
+		return nil, fmt.Errorf("Failed collect git remove infos. %s", err)
+	}
 	if len(remotes) == 0 {
 		return nil, errors.New("No remote setting in this repository")
 	}
+
 	// Extract domain, namespace, repository name from git remote url
 	var remoteInfos []*RemoteInfo
 	for _, remote := range remotes {
-		url := cmd.GitOutput("git", []string{"remote", "get-url", remote})
-		remoteInfo := NewRemoteInfo(remote, url)
+		url, err := gitOutput("remote", "get-url", remote)
+		if err != nil {
+			return nil, fmt.Errorf("Failed get git remote url. %s", err)
+		}
+		if len(url) > 0 {
+			return nil, errors.New("Git remote url is empty")
+		}
+		remoteInfo := NewRemoteInfo(remote, url[0])
 		remoteInfos = append(remoteInfos, remoteInfo)
 	}
 	return remoteInfos, nil
@@ -43,7 +53,10 @@ func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 
 func (g *GitClient) CurrentBranch(remote *RemoteInfo) (string, error) {
 	// Get remote repositorys
-	branches := cmd.GitOutputs("git", []string{"branch", "-a"})
+	branches, err := gitOutput("branch", "-a")
+	if err != nil {
+		return "", fmt.Errorf("Failed get git branches. %s", err)
+	}
 
 	currentPrefix := "*"
 	currentBranch := ""
@@ -72,7 +85,10 @@ func (g *GitClient) CurrentBranch(remote *RemoteInfo) (string, error) {
 
 func GitCurrentBranch() (string, error) {
 	// Get remote repositorys
-	branches := cmd.GitOutputs("git", []string{"branch"})
+	branches, err := gitOutput("branch")
+	if err != nil {
+		return "", fmt.Errorf("Failed get git branches. %s", err)
+	}
 
 	currentPrefix := "*"
 	currentBranch := ""

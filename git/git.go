@@ -3,13 +3,10 @@ package git
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/lighttiger2505/lab/cmd"
 )
 
 type Client interface {
@@ -39,11 +36,9 @@ func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	var remoteInfos []*RemoteInfo
 	for _, remote := range remotes {
 		url, err := gitOutput("remote", "get-url", remote)
+		fmt.Println(url)
 		if err != nil {
 			return nil, fmt.Errorf("Failed get git remote url. %s", err)
-		}
-		if len(url) > 0 {
-			return nil, errors.New("Git remote url is empty")
 		}
 		remoteInfo := NewRemoteInfo(remote, url[0])
 		remoteInfos = append(remoteInfos, remoteInfo)
@@ -113,7 +108,6 @@ func GitEditor() (string, error) {
 	return os.ExpandEnv(outputs[0]), nil
 }
 
-var GlobalFlags []string
 var cachedDir string
 
 func GitDir() (string, error) {
@@ -126,29 +120,12 @@ func GitDir() (string, error) {
 		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
 	}
 
-	var chdir string
-	for i, flag := range GlobalFlags {
-		if flag == "-C" {
-			dir := GlobalFlags[i+1]
-			if filepath.IsAbs(dir) {
-				chdir = dir
-			} else {
-				chdir = filepath.Join(chdir, dir)
-			}
-		}
-	}
 	gitDir := outputs[0]
-
 	if !filepath.IsAbs(gitDir) {
-		if chdir != "" {
-			gitDir = filepath.Join(chdir, gitDir)
-		}
-
 		gitDir, err := filepath.Abs(gitDir)
 		if err != nil {
 			return "", err
 		}
-
 		gitDir = filepath.Clean(gitDir)
 	}
 
@@ -156,39 +133,17 @@ func GitDir() (string, error) {
 	return gitDir, nil
 }
 
-func gitOutput(input ...string) (outputs []string, err error) {
-	cmd := gitCmd(input...)
+// For os/exec test
+var execCommand = exec.Command
 
-	out, err := cmd.CombinedOutput()
-	for _, line := range strings.Split(out, "\n") {
+func gitOutput(input ...string) (outputs []string, err error) {
+	output, err := execCommand("git", input...).CombinedOutput()
+	for _, line := range strings.Split(string(output), "\n") {
 		if strings.TrimSpace(line) != "" {
 			outputs = append(outputs, string(line))
 		}
 	}
-
 	return outputs, err
-}
-
-func gitCmd(args ...string) *cmd.BasicCmd {
-	cmd := cmd.NewBasicCmd("git")
-
-	for _, v := range GlobalFlags {
-		cmd.WithArg(v)
-	}
-
-	for _, a := range args {
-		cmd.WithArg(a)
-	}
-
-	return cmd
-}
-
-func cmdOutput(name string, args []string) string {
-	out, err := exec.Command(name, args...).CombinedOutput()
-	if err != nil {
-		log.Println(err)
-	}
-	return string(out)
 }
 
 func CommentChar() string {

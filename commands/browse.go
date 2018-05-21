@@ -69,21 +69,16 @@ func (c *BrowseCommand) Run(args []string) int {
 	var browseCommnadOption BrowseCommandOption
 	browseOptionParser := newBrowseOptionParser(&browseCommnadOption)
 	// Parse option
-	if _, err := browseOptionParser.ParseArgs(args); err != nil {
+	parseArgs, err := browseOptionParser.ParseArgs(args)
+	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
+	fmt.Println(browseOptionParser.FindOptionByLongName("path").IsSet())
 
 	// Validate option
 	globalOpt := browseCommnadOption.GlobalOpt
 	if err := globalOpt.IsValid(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	// Parse args
-	parseArgs, err := browseOptionParser.ParseArgs(args)
-	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}

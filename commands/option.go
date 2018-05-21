@@ -13,7 +13,7 @@ type OptionValidator interface {
 
 type BrowseOption struct {
 	Project string `short:"p" long:"project" description:"command target specific project"`
-	Project string `short:"p" long:"project" description:"command target specific project"`
+	Path    string `short:"s" long:"path" description:"open browse to specific path or file"`
 }
 
 func newBrowseOption() *BrowseOption {

@@ -124,6 +124,40 @@ func GitDir() (string, error) {
 	return gitDir, nil
 }
 
+func Root() (string, error) {
+	outputs, err := gitOutput("rev-parse", "--show-toplevel")
+	if err != nil {
+		return "", fmt.Errorf("Can't read git root")
+	}
+
+	gitRoot := outputs[0]
+	if !filepath.IsAbs(gitRoot) {
+		gitRoot, err := filepath.Abs(gitRoot)
+		if err != nil {
+			return "", err
+		}
+		gitRoot = filepath.Clean(gitRoot)
+	}
+	return outputs[0], nil
+}
+
+func AbsDir() (string, error) {
+	outputs, err := gitOutput("rev-parse", "--show-cdup")
+	if err != nil {
+		return "", fmt.Errorf("Can't read git root")
+	}
+
+	gitRoot := outputs[0]
+	if !filepath.IsAbs(gitRoot) {
+		gitRoot, err := filepath.Abs(gitRoot)
+		if err != nil {
+			return "", err
+		}
+		gitRoot = filepath.Clean(gitRoot)
+	}
+	return outputs[0], nil
+}
+
 // For os/exec test
 var execCommand = exec.Command
 

@@ -111,9 +111,10 @@ Synopsis:
 }
 
 type MergeRequestCommand struct {
-	Ui       ui.Ui
-	Provider lab.Provider
-	EditFunc func(program, file string) error
+	Ui        ui.Ui
+	Provider  lab.Provider
+	GitClient git.Client
+	EditFunc  func(program, file string) error
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
@@ -231,7 +232,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	case CreateMergeRequest:
 		// Get source branch. current branch from local repository when non specific flags
 		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
-		currentBranch, err := git.GitCurrentBranch()
+		currentBranch, err := git.CurrentBranch()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -265,7 +266,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		}
 
 		// Get source branch. current branch from local repository when non specific flags
-		currentBranch, err := git.GitCurrentBranch()
+		currentBranch, err := git.CurrentBranch()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError

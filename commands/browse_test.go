@@ -24,7 +24,7 @@ var mockGitClient = &git.MockClient{
 			},
 		}, nil
 	},
-	MockCurrentBranch: func() (string, error) {
+	MockCurrentRemoteBranch: func() (string, error) {
 		return "currentBranch", nil
 	},
 }

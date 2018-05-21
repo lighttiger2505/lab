@@ -11,7 +11,7 @@ import (
 
 type Client interface {
 	RemoteInfos() ([]*RemoteInfo, error)
-	CurrentBranch(remote *RemoteInfo) (string, error)
+	CurrentRemoteBranch(remote *RemoteInfo) (string, error)
 }
 
 type GitClient struct {
@@ -46,25 +46,16 @@ func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return remoteInfos, nil
 }
 
-func (g *GitClient) CurrentBranch(remote *RemoteInfo) (string, error) {
+func (g *GitClient) CurrentRemoteBranch(remote *RemoteInfo) (string, error) {
 	// Get remote repositorys
 	branches, err := gitOutput("branch", "-a")
 	if err != nil {
 		return "", fmt.Errorf("Failed get git branches. %s", err)
 	}
 
-	currentPrefix := "*"
-	currentBranch := ""
-	for _, branch := range branches {
-		if strings.HasPrefix(branch, currentPrefix) {
-			trimPrefix := strings.TrimPrefix(branch, currentPrefix)
-			currentBranch = strings.Trim(trimPrefix, " ")
-			break
-		}
-	}
-
-	if currentBranch == "" {
-		return "", errors.New("Not found current branch")
+	currentBranch, err := CurrentBranch()
+	if err != nil {
+		return "", err
 	}
 
 	remoteBranch := fmt.Sprintf("%s/%s", remote.Remote, currentBranch)
@@ -78,7 +69,7 @@ func (g *GitClient) CurrentBranch(remote *RemoteInfo) (string, error) {
 
 }
 
-func GitCurrentBranch() (string, error) {
+func CurrentBranch() (string, error) {
 	// Get remote repositorys
 	branches, err := gitOutput("branch")
 	if err != nil {
@@ -178,14 +169,14 @@ func gitConfigCommand(args []string) []string {
 }
 
 type MockClient struct {
-	MockRemoteInfos   func() ([]*RemoteInfo, error)
-	MockCurrentBranch func() (string, error)
+	MockRemoteInfos         func() ([]*RemoteInfo, error)
+	MockCurrentRemoteBranch func() (string, error)
 }
 
 func (m *MockClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return m.MockRemoteInfos()
 }
 
-func (m *MockClient) CurrentBranch(remote *RemoteInfo) (string, error) {
-	return m.MockCurrentBranch()
+func (m *MockClient) CurrentRemoteBranch(remote *RemoteInfo) (string, error) {
+	return m.MockCurrentRemoteBranch()
 }

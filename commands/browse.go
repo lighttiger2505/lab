@@ -36,11 +36,11 @@ var browseTypePrefix = map[string]BrowseType{
 }
 
 type BrowseCommandOption struct {
-	GlobalOpt *GlobalOption `group:"Global Options"`
+	GlobalOpt *BrowseOption `group:"Global Options"`
 }
 
 func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
-	opt.GlobalOpt = newGlobalOption()
+	opt.GlobalOpt = newBrowseOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "browse [options]"
 	return parser

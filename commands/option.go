@@ -11,17 +11,18 @@ type OptionValidator interface {
 	IsValid(error)
 }
 
-type GlobalOption struct {
+type BrowseOption struct {
+	Project string `short:"p" long:"project" description:"command target specific project"`
 	Project string `short:"p" long:"project" description:"command target specific project"`
 }
 
-func newGlobalOption() *GlobalOption {
-	global := flags.NewNamedParser("lab", flags.Default)
-	global.AddGroup("Global Options", "", &GlobalOption{})
-	return &GlobalOption{}
+func newBrowseOption() *BrowseOption {
+	browse := flags.NewNamedParser("lab", flags.Default)
+	browse.AddGroup("Browse Options", "", &BrowseOption{})
+	return &BrowseOption{}
 }
 
-func (g *GlobalOption) IsValid() error {
+func (g *BrowseOption) IsValid() error {
 	var errMsg []string
 	var tmpErr error
 
@@ -31,7 +32,7 @@ func (g *GlobalOption) IsValid() error {
 	}
 
 	if len(errMsg) > 0 {
-		return fmt.Errorf("Invalid value in global option. %v", errMsg)
+		return fmt.Errorf("Invalid value in browse option. %v", errMsg)
 	}
 	return nil
 }
@@ -44,7 +45,7 @@ func validRepository(value string) error {
 	return nil
 }
 
-func (g *GlobalOption) NameSpaceAndProject() (namespace, project string) {
+func (g *BrowseOption) NameSpaceAndProject() (namespace, project string) {
 	splited := strings.Split(g.Project, "/")
 	namespace = splited[0]
 	project = splited[1]

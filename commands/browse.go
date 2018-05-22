@@ -38,11 +38,11 @@ var browseTypePrefix = map[string]BrowseType{
 }
 
 type BrowseCommandOption struct {
-	GlobalOpt *BrowseOption `group:"Global Options"`
+	BrowseOption *BrowseOption `group:"Global Options"`
 }
 
 func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
-	opt.GlobalOpt = newBrowseOption()
+	opt.BrowseOption = newBrowseOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "browse [options]"
 	return parser
@@ -78,8 +78,8 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	// Validate option
-	globalOpt := browseCommnadOption.GlobalOpt
-	if err := globalOpt.IsValid(); err != nil {
+	browseOption := browseCommnadOption.BrowseOption
+	if err := browseOption.IsValid(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
@@ -96,14 +96,14 @@ func (c *BrowseCommand) Run(args []string) int {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-	if globalOpt.Project != "" {
-		namespace, project := globalOpt.NameSpaceAndProject()
+	if browseOption.Project != "" {
+		namespace, project := browseOption.NameSpaceAndProject()
 		gitlabRemote.NameSpace = namespace
 		gitlabRemote.Repository = project
 	}
 
-	if globalOpt.Path != "" {
-		path := globalOpt.Path
+	if browseOption.Path != "" {
+		path := browseOption.Path
 		fullpath, err := filepath.Abs(path)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -135,7 +135,7 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeOK
 	}
 
-	if globalOpt.CurrentPath {
+	if browseOption.CurrentPath {
 		currentDir, err := os.Getwd()
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -164,7 +164,7 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	// Getting browse repository
 	var url = ""
-	if globalOpt.Project != "" {
+	if browseOption.Project != "" {
 		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, gitlabRemote.Domain)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -235,9 +235,6 @@ func getUrlByUserSpecific(gitlabRemote *git.RemoteInfo, args []string, domain st
 		}
 	}
 	return "", fmt.Errorf("Not found browse url.")
-}
-
-func doBrowse(browser, url string) {
 }
 
 func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {

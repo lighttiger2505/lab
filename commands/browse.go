@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/git"
+	gitpath "github.com/lighttiger2505/lab/git/path"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 )
@@ -102,69 +102,35 @@ func (c *BrowseCommand) Run(args []string) int {
 		gitlabRemote.Repository = project
 	}
 
-	if browseOption.Path != "" {
-		path := browseOption.Path
-		fullpath, err := filepath.Abs(path)
-		if err != nil {
-			c.Ui.Error(err.Error())
-		}
-
-		if !isFileExist(fullpath) {
-			c.Ui.Error(fmt.Sprintf("Not found file or path. Path:%s", fullpath))
-			return ExitCodeError
-		}
-
-		gitroot, err := git.Root()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
-		gitAbsPath := strings.Replace(strings.Replace(fullpath, gitroot, "", -1), "/", "", 1)
-		gitlabPath := gitlabRemote.BranchPath(branch, gitAbsPath)
-
-		browser := searchBrowserLauncher(runtime.GOOS)
-		c.Cmd.SetCmd(browser)
-		c.Cmd.WithArg(gitlabPath)
-		if err := c.Cmd.Spawn(); err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		return ExitCodeOK
-	}
-
-	if browseOption.CurrentPath {
-		currentDir, err := os.Getwd()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		gitroot, err := git.Root()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
-		gitAbsPath := strings.Replace(strings.Replace(currentDir, gitroot, "", -1), "/", "", 1)
-		gitlabPath := gitlabRemote.BranchPath(branch, gitAbsPath)
-
-		browser := searchBrowserLauncher(runtime.GOOS)
-		c.Cmd.SetCmd(browser)
-		c.Cmd.WithArg(gitlabPath)
-		if err := c.Cmd.Spawn(); err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		return ExitCodeOK
-	}
-
-	// Getting browse repository
 	var url = ""
-	if browseOption.Project != "" {
+
+	if browseOption.Path != "" {
+		gitAbsPath, err := gitpath.Abs(browseOption.Path)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		url = gitlabRemote.BranchPath(branch, gitAbsPath)
+	} else if browseOption.CurrentPath {
+		gitAbsPath, err := gitpath.Current()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		url = gitlabRemote.BranchPath(branch, gitAbsPath)
+	} else if browseOption.Project != "" {
 		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, gitlabRemote.Domain)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -183,16 +149,22 @@ func (c *BrowseCommand) Run(args []string) int {
 		}
 	}
 
-	browser := searchBrowserLauncher(runtime.GOOS)
-
-	c.Cmd.SetCmd(browser)
-	c.Cmd.WithArg(url)
-	if err := c.Cmd.Spawn(); err != nil {
+	if err := c.doBrowse(url); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
 	return ExitCodeOK
+}
+
+func (c *BrowseCommand) doBrowse(url string) error {
+	browser := searchBrowserLauncher(runtime.GOOS)
+	c.Cmd.SetCmd(browser)
+	c.Cmd.WithArg(url)
+	if err := c.Cmd.Spawn(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func getUrlByRemote(gitlabRemote *git.RemoteInfo, args []string, branch string) (string, error) {

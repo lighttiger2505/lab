@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -74,7 +76,6 @@ func (c *BrowseCommand) Run(args []string) int {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-	fmt.Println(browseOptionParser.FindOptionByLongName("path").IsSet())
 
 	// Validate option
 	globalOpt := browseCommnadOption.GlobalOpt
@@ -99,6 +100,66 @@ func (c *BrowseCommand) Run(args []string) int {
 		namespace, project := globalOpt.NameSpaceAndProject()
 		gitlabRemote.NameSpace = namespace
 		gitlabRemote.Repository = project
+	}
+
+	if globalOpt.Path != "" {
+		path := globalOpt.Path
+		fullpath, err := filepath.Abs(path)
+		if err != nil {
+			c.Ui.Error(err.Error())
+		}
+
+		if !isFileExist(fullpath) {
+			c.Ui.Error(fmt.Sprintf("Not found file or path. Path:%s", fullpath))
+			return ExitCodeError
+		}
+
+		gitroot, err := git.Root()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
+		gitAbsPath := strings.Replace(strings.Replace(fullpath, gitroot, "", -1), "/", "", 1)
+		gitlabPath := gitlabRemote.BranchPath(branch, gitAbsPath)
+
+		browser := searchBrowserLauncher(runtime.GOOS)
+		c.Cmd.SetCmd(browser)
+		c.Cmd.WithArg(gitlabPath)
+		if err := c.Cmd.Spawn(); err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		return ExitCodeOK
+	}
+
+	if globalOpt.CurrentPath {
+		currentDir, err := os.Getwd()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		gitroot, err := git.Root()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
+		gitAbsPath := strings.Replace(strings.Replace(currentDir, gitroot, "", -1), "/", "", 1)
+		gitlabPath := gitlabRemote.BranchPath(branch, gitAbsPath)
+
+		browser := searchBrowserLauncher(runtime.GOOS)
+		c.Cmd.SetCmd(browser)
+		c.Cmd.WithArg(gitlabPath)
+		if err := c.Cmd.Spawn(); err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		return ExitCodeOK
 	}
 
 	// Getting browse repository
@@ -250,4 +311,9 @@ func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
 		}
 	}
 	return 0, 0, errors.New(fmt.Sprintf("Invalid arg. %s", arg))
+}
+
+func isFileExist(fPath string) bool {
+	_, err := os.Stat(fPath)
+	return err == nil || !os.IsNotExist(err)
 }

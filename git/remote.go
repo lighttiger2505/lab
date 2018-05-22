@@ -39,6 +39,10 @@ func (r *RemoteInfo) BranchUrl(branch string) string {
 	return strings.Join([]string{r.BaseUrl(), r.RepositoryFullName(), "tree", branch}, "/")
 }
 
+func (r *RemoteInfo) BranchPath(branch string, path string) string {
+	return strings.Join([]string{r.BranchUrl(branch), path}, "/")
+}
+
 func (r *RemoteInfo) IssueUrl() string {
 	return strings.Join([]string{r.RepositoryUrl(), "issues"}, "/")
 }

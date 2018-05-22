@@ -55,6 +55,68 @@ func TestBrowseCommandRun(t *testing.T) {
 	}
 }
 
+func TestBrowseCommandRun_Path(t *testing.T) {
+	mockUI := ui.NewMockUi()
+
+	f, _ := ioutil.TempFile("", "test")
+	tmppath := f.Name()
+	f.Write([]byte(config.ConfigDataTest))
+	f.Close()
+	defer os.Remove(tmppath)
+	configManager := config.NewConfigManagerPath(tmppath)
+
+	// Initialize provider
+	provider := gitlab.NewProvider(mockUI, mockGitClient, configManager)
+	provider.Init()
+
+	c := BrowseCommand{
+		Ui:        mockUI,
+		Provider:  provider,
+		GitClient: mockGitClient,
+		Cmd:       cmd.NewMockCmd("browse"),
+	}
+	args := []string{"--path=hoge"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
+	}
+	got := mockUI.Writer.String()
+	want := "browse path\n"
+	if got != want {
+		t.Fatalf("Invalid output. \n got:%q\nwant:%q", got, want)
+	}
+}
+
+func TestBrowseCommandRun_Path2(t *testing.T) {
+	mockUI := ui.NewMockUi()
+
+	f, _ := ioutil.TempFile("", "test")
+	tmppath := f.Name()
+	f.Write([]byte(config.ConfigDataTest))
+	f.Close()
+	defer os.Remove(tmppath)
+	configManager := config.NewConfigManagerPath(tmppath)
+
+	// Initialize provider
+	provider := gitlab.NewProvider(mockUI, mockGitClient, configManager)
+	provider.Init()
+
+	c := BrowseCommand{
+		Ui:        mockUI,
+		Provider:  provider,
+		GitClient: mockGitClient,
+		Cmd:       cmd.NewMockCmd("browse"),
+	}
+	args := []string{"--path"}
+	if code := c.Run(args); code != 0 {
+		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
+	}
+	got := mockUI.Writer.String()
+	want := "browse path\n"
+	if got != want {
+		t.Fatalf("Invalid output. \n got:%q\nwant:%q", got, want)
+	}
+}
+
 var gitlabRemoteTest = &git.RemoteInfo{
 	Domain:     "domain",
 	NameSpace:  "namespace",

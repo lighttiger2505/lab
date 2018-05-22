@@ -36,7 +36,6 @@ func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	var remoteInfos []*RemoteInfo
 	for _, remote := range remotes {
 		url, err := gitOutput("remote", "get-url", remote)
-		fmt.Println(url)
 		if err != nil {
 			return nil, fmt.Errorf("Failed get git remote url. %s", err)
 		}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/git"
+	gitpath "github.com/lighttiger2505/lab/git/path"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 )
@@ -36,11 +38,11 @@ var browseTypePrefix = map[string]BrowseType{
 }
 
 type BrowseCommandOption struct {
-	GlobalOpt *GlobalOption `group:"Global Options"`
+	BrowseOption *BrowseOption `group:"Global Options"`
 }
 
 func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
-	opt.GlobalOpt = newGlobalOption()
+	opt.BrowseOption = newBrowseOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "browse [options]"
 	return parser
@@ -69,21 +71,15 @@ func (c *BrowseCommand) Run(args []string) int {
 	var browseCommnadOption BrowseCommandOption
 	browseOptionParser := newBrowseOptionParser(&browseCommnadOption)
 	// Parse option
-	if _, err := browseOptionParser.ParseArgs(args); err != nil {
+	parseArgs, err := browseOptionParser.ParseArgs(args)
+	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
 	// Validate option
-	globalOpt := browseCommnadOption.GlobalOpt
-	if err := globalOpt.IsValid(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	// Parse args
-	parseArgs, err := browseOptionParser.ParseArgs(args)
-	if err != nil {
+	browseOption := browseCommnadOption.BrowseOption
+	if err := browseOption.IsValid(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
@@ -100,22 +96,48 @@ func (c *BrowseCommand) Run(args []string) int {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-	if globalOpt.Project != "" {
-		namespace, project := globalOpt.NameSpaceAndProject()
+	if browseOption.Project != "" {
+		namespace, project := browseOption.NameSpaceAndProject()
 		gitlabRemote.NameSpace = namespace
 		gitlabRemote.Repository = project
 	}
 
-	// Getting browse repository
 	var url = ""
-	if globalOpt.Project != "" {
+
+	if browseOption.Path != "" {
+		gitAbsPath, err := gitpath.Abs(browseOption.Path)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		url = gitlabRemote.BranchPath(branch, gitAbsPath)
+	} else if browseOption.CurrentPath {
+		gitAbsPath, err := gitpath.Current()
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+
+		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
+		if err != nil {
+			c.Ui.Error(err.Error())
+			return ExitCodeError
+		}
+		url = gitlabRemote.BranchPath(branch, gitAbsPath)
+	} else if browseOption.Project != "" {
 		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, gitlabRemote.Domain)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
 	} else {
-		branch, err := c.GitClient.CurrentBranch(gitlabRemote)
+		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -127,16 +149,22 @@ func (c *BrowseCommand) Run(args []string) int {
 		}
 	}
 
-	browser := searchBrowserLauncher(runtime.GOOS)
-
-	c.Cmd.SetCmd(browser)
-	c.Cmd.WithArg(url)
-	if err := c.Cmd.Spawn(); err != nil {
+	if err := c.doBrowse(url); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
 	return ExitCodeOK
+}
+
+func (c *BrowseCommand) doBrowse(url string) error {
+	browser := searchBrowserLauncher(runtime.GOOS)
+	c.Cmd.SetCmd(browser)
+	c.Cmd.WithArg(url)
+	if err := c.Cmd.Spawn(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func getUrlByRemote(gitlabRemote *git.RemoteInfo, args []string, branch string) (string, error) {
@@ -179,9 +207,6 @@ func getUrlByUserSpecific(gitlabRemote *git.RemoteInfo, args []string, domain st
 		}
 	}
 	return "", fmt.Errorf("Not found browse url.")
-}
-
-func doBrowse(browser, url string) {
 }
 
 func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
@@ -255,4 +280,9 @@ func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
 		}
 	}
 	return 0, 0, errors.New(fmt.Sprintf("Invalid arg. %s", arg))
+}
+
+func isFileExist(fPath string) bool {
+	_, err := os.Stat(fPath)
+	return err == nil || !os.IsNotExist(err)
 }

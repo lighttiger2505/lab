@@ -153,15 +153,15 @@ func getUrlByRemote(gitlabRemote *git.RemoteInfo, args []string, branch string) 
 			return "", err
 		}
 		return makeGitlabResourceUrl(gitlabRemote, browseType, number), nil
-	} else {
-		if branch == "master" {
-			// Repository top page
-			return gitlabRemote.RepositoryUrl(), nil
-		} else {
-			// Current branch top page
-			return gitlabRemote.BranchUrl(branch), nil
-		}
 	}
+
+	if branch == "master" {
+		// Repository top page
+		return gitlabRemote.RepositoryUrl(), nil
+	}
+
+	// Current branch top page
+	return gitlabRemote.BranchUrl(branch), nil
 }
 
 func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {

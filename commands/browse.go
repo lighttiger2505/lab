@@ -116,7 +116,11 @@ func (c *BrowseCommand) Run(args []string) int {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		url = gitlabRemote.BranchPath(branch, gitAbsPath)
+		if browseOption.Line != "" {
+			url = gitlabRemote.BranchFileWithLine(branch, gitAbsPath, browseOption.Line)
+		} else {
+			url = gitlabRemote.BranchPath(branch, gitAbsPath)
+		}
 	} else if browseOption.CurrentPath {
 		gitAbsPath, err := gitpath.Current()
 		if err != nil {

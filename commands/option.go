@@ -15,6 +15,7 @@ type BrowseOption struct {
 	Project     string `short:"p" long:"project" description:"command target specific project"`
 	Path        string `short:"s" long:"path" description:"open browse to specific path or file"`
 	CurrentPath bool   `short:"c" long:"current-path" description:"open browse with current path"`
+	Line        string `short:"n" long:"line" description:"open brwose link of file line"`
 }
 
 func newBrowseOption() *BrowseOption {

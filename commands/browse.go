@@ -102,6 +102,12 @@ func (c *BrowseCommand) Run(args []string) int {
 		gitlabRemote.Repository = project
 	}
 
+	branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
 	var url = ""
 
 	if browseOption.Path != "" {
@@ -111,11 +117,6 @@ func (c *BrowseCommand) Run(args []string) int {
 			return ExitCodeError
 		}
 
-		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
 		if browseOption.Line != "" {
 			url = gitlabRemote.BranchFileWithLine(branch, gitAbsPath, browseOption.Line)
 		} else {
@@ -128,18 +129,8 @@ func (c *BrowseCommand) Run(args []string) int {
 			return ExitCodeError
 		}
 
-		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
 		url = gitlabRemote.BranchPath(branch, gitAbsPath)
 	} else {
-		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
 		url, err = getUrlByRemote(gitlabRemote, parseArgs, branch)
 		if err != nil {
 			c.Ui.Error(err.Error())

@@ -134,12 +134,6 @@ func (c *BrowseCommand) Run(args []string) int {
 			return ExitCodeError
 		}
 		url = gitlabRemote.BranchPath(branch, gitAbsPath)
-	} else if browseOption.Project != "" {
-		url, err = getUrlByUserSpecific(gitlabRemote, parseArgs, gitlabRemote.Domain)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
 	} else {
 		branch, err := c.GitClient.CurrentRemoteBranch(gitlabRemote)
 		if err != nil {
@@ -188,29 +182,6 @@ func getUrlByRemote(gitlabRemote *git.RemoteInfo, args []string, branch string) 
 			return gitlabRemote.BranchUrl(branch), nil
 		}
 	}
-}
-
-func getUrlByUserSpecific(gitlabRemote *git.RemoteInfo, args []string, domain string) (string, error) {
-	// Browse current repository page
-	if gitlabRemote != nil {
-		if len(args) > 0 {
-			// Gitlab resource page
-			browseType, number, err := splitPrefixAndNumber(args[0])
-			if err != nil {
-				return "", err
-			}
-			return makeGitlabResourceUrl(gitlabRemote, browseType, number), nil
-		} else {
-			// Repository top page
-			return gitlabRemote.RepositoryUrl(), nil
-		}
-	} else {
-		if domain != "" {
-			// Browse current domain page
-			return "https://" + domain, nil
-		}
-	}
-	return "", fmt.Errorf("Not found browse url.")
 }
 
 func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {

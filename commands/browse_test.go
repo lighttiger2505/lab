@@ -131,21 +131,6 @@ type getUrlByUserSpecificTest struct {
 	err          error
 }
 
-var getUrlByUserSpecificTests = []getUrlByUserSpecificTest{
-	{gitlabRemote: gitlabRemoteTest, args: []string{"#12", "#13"}, domain: "specific", url: "https://domain/namespace/project/issues/12", err: nil},
-	{gitlabRemote: gitlabRemoteTest, args: []string{}, domain: "specific", url: "https://domain/namespace/project", err: nil},
-	{gitlabRemote: nil, args: []string{}, domain: "specific", url: "https://specific", err: nil},
-}
-
-func TestGetUrlByUserSpecific(t *testing.T) {
-	for i, test := range getUrlByUserSpecificTests {
-		url, err := getUrlByUserSpecific(test.gitlabRemote, test.args, test.domain)
-		if test.url != url || !reflect.DeepEqual(test.err, err) {
-			t.Errorf("#%d: bad return value \nwant %#v %#v \ngot  %#v %#v", i, test.url, test.err, url, err)
-		}
-	}
-}
-
 type getUrlByRemoteTest struct {
 	gitlabRemote *git.RemoteInfo
 	args         []string

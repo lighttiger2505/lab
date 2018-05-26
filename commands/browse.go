@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -122,51 +123,44 @@ func (c *BrowseCommand) Run(args []string) int {
 }
 
 func (c *BrowseCommand) getURL(args []string, remote *git.RemoteInfo, branch string, opt *BrowseOption) (string, error) {
-	var url = ""
-	if opt.Path != "" {
-		gitAbsPath, err := gitpath.Abs(opt.Path)
+	if len(args) < 1 {
+		// TODO You need to ignore the branch when the project is specified as an option
+		if branch == "master" {
+			return remote.RepositoryUrl(), nil
+		}
+		return remote.BranchUrl(branch), nil
+	}
+
+	arg := args[0]
+	// TODO In order to display an appropriate error message, it is necessary to check whether the argument is a file path
+	if isFilePath(arg) {
+		result, err := isDir(arg)
 		if err != nil {
 			return "", err
 		}
+		if result {
+			gitAbsPath, err := gitpath.Current()
+			if err != nil {
+				return "", err
+			}
+			return remote.BranchPath(branch, gitAbsPath), nil
+		}
 
+		gitAbsPath, err := gitpath.Abs(arg)
+		if err != nil {
+			return "", err
+		}
 		if opt.Line != "" {
-			url = remote.BranchFileWithLine(branch, gitAbsPath, opt.Line)
+			return remote.BranchFileWithLine(branch, gitAbsPath, opt.Line), nil
 		}
-		url = remote.BranchPath(branch, gitAbsPath)
-	} else if opt.CurrentPath {
-		gitAbsPath, err := gitpath.Current()
-		if err != nil {
-			return "", err
-		}
-
-		url = remote.BranchPath(branch, gitAbsPath)
-	} else {
-		hogeurl, err := getUrlByRemote(remote, args, branch)
-		if err != nil {
-			return "", err
-		}
-		url = hogeurl
-	}
-	return url, nil
-}
-
-func getUrlByRemote(gitlabRemote *git.RemoteInfo, args []string, branch string) (string, error) {
-	if len(args) > 0 {
-		// Gitlab resource page
-		browseType, number, err := splitPrefixAndNumber(args[0])
-		if err != nil {
-			return "", err
-		}
-		return makeGitlabResourceUrl(gitlabRemote, browseType, number), nil
+		return remote.BranchPath(branch, gitAbsPath), nil
 	}
 
-	if branch == "master" {
-		// Repository top page
-		return gitlabRemote.RepositoryUrl(), nil
+	browseType, number, err := splitPrefixAndNumber(args[0])
+	if err != nil {
+		return "", err
 	}
-
-	// Current branch top page
-	return gitlabRemote.BranchUrl(branch), nil
+	return makeGitlabResourceUrl(remote, browseType, number), nil
 }
 
 func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
@@ -213,6 +207,31 @@ func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
 		}
 	}
 	return 0, 0, fmt.Errorf("Invalid arg. %s", arg)
+}
+
+func isFilePath(value string) bool {
+	absPath, _ := filepath.Abs(value)
+	if isFileExist(absPath) {
+		return true
+	}
+	return false
+}
+
+func isDir(path string) (bool, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return false, err
+	}
+
+	fi, err := file.Stat()
+	switch {
+	case err != nil:
+		return false, err
+	case fi.IsDir():
+		return true, nil
+	default:
+		return false, nil
+	}
 }
 
 func isFileExist(fPath string) bool {

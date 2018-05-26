@@ -146,16 +146,6 @@ func (c *BrowseCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *BrowseCommand) doBrowse(url string) error {
-	browser := searchBrowserLauncher(runtime.GOOS)
-	c.Cmd.SetCmd(browser)
-	c.Cmd.WithArg(url)
-	if err := c.Cmd.Spawn(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func getUrlByRemote(gitlabRemote *git.RemoteInfo, args []string, branch string) (string, error) {
 	if len(args) > 0 {
 		// Gitlab resource page
@@ -203,6 +193,39 @@ func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, 
 	return url
 }
 
+func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
+	for k, v := range browseTypePrefix {
+		if strings.HasPrefix(arg, k) {
+			numberStr := strings.TrimPrefix(arg, k)
+			if numberStr == "" {
+				return v, 0, nil
+			} else {
+				number, err := strconv.Atoi(numberStr)
+				if err != nil {
+					return 0, 0, errors.New(fmt.Sprintf("Invalid browse number. \"%s\"", numberStr))
+				}
+				return v, number, nil
+			}
+		}
+	}
+	return 0, 0, errors.New(fmt.Sprintf("Invalid arg. %s", arg))
+}
+
+func isFileExist(fPath string) bool {
+	_, err := os.Stat(fPath)
+	return err == nil || !os.IsNotExist(err)
+}
+
+func (c *BrowseCommand) doBrowse(url string) error {
+	browser := searchBrowserLauncher(runtime.GOOS)
+	c.Cmd.SetCmd(browser)
+	c.Cmd.WithArg(url)
+	if err := c.Cmd.Spawn(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func searchBrowserLauncher(goos string) (browser string) {
 	switch goos {
 	case "darwin":
@@ -228,27 +251,4 @@ func searchBrowserLauncher(goos string) (browser string) {
 		}
 	}
 	return browser
-}
-
-func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
-	for k, v := range browseTypePrefix {
-		if strings.HasPrefix(arg, k) {
-			numberStr := strings.TrimPrefix(arg, k)
-			if numberStr == "" {
-				return v, 0, nil
-			} else {
-				number, err := strconv.Atoi(numberStr)
-				if err != nil {
-					return 0, 0, errors.New(fmt.Sprintf("Invalid browse number. \"%s\"", numberStr))
-				}
-				return v, number, nil
-			}
-		}
-	}
-	return 0, 0, errors.New(fmt.Sprintf("Invalid arg. %s", arg))
-}
-
-func isFileExist(fPath string) bool {
-	_, err := os.Stat(fPath)
-	return err == nil || !os.IsNotExist(err)
 }

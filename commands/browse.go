@@ -2,7 +2,6 @@ package commands
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -199,16 +198,16 @@ func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
 			numberStr := strings.TrimPrefix(arg, k)
 			if numberStr == "" {
 				return v, 0, nil
-			} else {
-				number, err := strconv.Atoi(numberStr)
-				if err != nil {
-					return 0, 0, errors.New(fmt.Sprintf("Invalid browse number. \"%s\"", numberStr))
-				}
-				return v, number, nil
 			}
+
+			number, err := strconv.Atoi(numberStr)
+			if err != nil {
+				return 0, 0, fmt.Errorf("Invalid browse number. \"%s\"", numberStr)
+			}
+			return v, number, nil
 		}
 	}
-	return 0, 0, errors.New(fmt.Sprintf("Invalid arg. %s", arg))
+	return 0, 0, fmt.Errorf("Invalid arg. %s", arg)
 }
 
 func isFileExist(fPath string) bool {

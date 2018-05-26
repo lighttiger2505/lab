@@ -107,34 +107,10 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	var url = ""
-
-	if browseOption.Path != "" {
-		gitAbsPath, err := gitpath.Abs(browseOption.Path)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		if browseOption.Line != "" {
-			url = gitlabRemote.BranchFileWithLine(branch, gitAbsPath, browseOption.Line)
-		} else {
-			url = gitlabRemote.BranchPath(branch, gitAbsPath)
-		}
-	} else if browseOption.CurrentPath {
-		gitAbsPath, err := gitpath.Current()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		url = gitlabRemote.BranchPath(branch, gitAbsPath)
-	} else {
-		url, err = getUrlByRemote(gitlabRemote, parseArgs, branch)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
+	url, err := c.getURL(parseArgs, gitlabRemote, branch, browseOption)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
 	}
 
 	if err := c.doBrowse(url); err != nil {
@@ -143,6 +119,35 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	return ExitCodeOK
+}
+
+func (c *BrowseCommand) getURL(args []string, remote *git.RemoteInfo, branch string, opt *BrowseOption) (string, error) {
+	var url = ""
+	if opt.Path != "" {
+		gitAbsPath, err := gitpath.Abs(opt.Path)
+		if err != nil {
+			return "", err
+		}
+
+		if opt.Line != "" {
+			url = remote.BranchFileWithLine(branch, gitAbsPath, opt.Line)
+		}
+		url = remote.BranchPath(branch, gitAbsPath)
+	} else if opt.CurrentPath {
+		gitAbsPath, err := gitpath.Current()
+		if err != nil {
+			return "", err
+		}
+
+		url = remote.BranchPath(branch, gitAbsPath)
+	} else {
+		hogeurl, err := getUrlByRemote(remote, args, branch)
+		if err != nil {
+			return "", err
+		}
+		url = hogeurl
+	}
+	return url, nil
 }
 
 func getUrlByRemote(gitlabRemote *git.RemoteInfo, args []string, branch string) (string, error) {

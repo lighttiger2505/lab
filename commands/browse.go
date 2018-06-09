@@ -125,8 +125,8 @@ func (c *BrowseCommand) getURL(args []string, remote *git.RemoteInfo, branch str
 			if err != nil {
 				return "", err
 			}
-			if opt.Line != "" {
-				return remote.BranchFileWithLine(branch, gitAbsPath, opt.Line), nil
+			if opt.Subpage != "" {
+				return remote.BranchFileWithLine(branch, gitAbsPath, opt.Subpage), nil
 			}
 			return remote.BranchPath(branch, gitAbsPath), nil
 		}

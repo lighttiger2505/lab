@@ -197,7 +197,7 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 
 		// Print created Issue IID
-		c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
+		c.Ui.Message(fmt.Sprintf("%d", issue.IID))
 
 	case CreateIssueOnEditor:
 		// Starting editor for edit title and description
@@ -220,7 +220,7 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 
 		// Print created Issue IID
-		c.Ui.Message(fmt.Sprintf("#%d", issue.IID))
+		c.Ui.Message(fmt.Sprintf("%d", issue.IID))
 
 	case ShowIssue:
 		// Do get issue detail
@@ -347,7 +347,7 @@ func updateIssue(client lab.Issue, project string, iid int, opt *CreateUpdateIss
 	}
 
 	// Print update Issue IID
-	return fmt.Sprintf("#%d", updatedIssue.IID), nil
+	return fmt.Sprintf("%d", updatedIssue.IID), nil
 }
 
 func updateIssueOnEditor(client lab.Issue, project string, iid int, opt *CreateUpdateIssueOption, editFunc func(program, file string) error) (string, error) {
@@ -383,7 +383,7 @@ func updateIssueOnEditor(client lab.Issue, project string, iid int, opt *CreateU
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("#%d", updatedIssue.IID), nil
+	return fmt.Sprintf("%d", updatedIssue.IID), nil
 }
 
 func makeProjectIssueOption(issueListOption *ListIssueOption) *gitlab.ListProjectIssuesOptions {
@@ -446,7 +446,7 @@ func issueOutput(issues []*gitlab.Issue) []string {
 	for _, issue := range issues {
 		data := strings.Join([]string{
 			lab.ParceRepositoryFullName(issue.WebURL),
-			fmt.Sprintf("#%d", issue.IID),
+			fmt.Sprintf("%d", issue.IID),
 			issue.Title,
 		}, "|")
 		datas = append(datas, data)
@@ -482,7 +482,7 @@ func projectIssueOutput(issues []*gitlab.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
-			fmt.Sprintf("#%d", issue.IID),
+			fmt.Sprintf("%d", issue.IID),
 			issue.Title,
 		}, "|")
 		datas = append(datas, data)

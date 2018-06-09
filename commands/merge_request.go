@@ -111,9 +111,10 @@ Synopsis:
 }
 
 type MergeRequestCommand struct {
-	Ui       ui.Ui
-	Provider lab.Provider
-	EditFunc func(program, file string) error
+	Ui        ui.Ui
+	Provider  lab.Provider
+	GitClient git.Client
+	EditFunc  func(program, file string) error
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
@@ -194,7 +195,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		}
 
 		// Print update Issue IID
-		c.Ui.Message(fmt.Sprintf("!%d", updatedMergeRequest.IID))
+		c.Ui.Message(fmt.Sprintf("%d", updatedMergeRequest.IID))
 
 	case UpdateMergeRequestOnEditor:
 		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
@@ -226,12 +227,12 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		}
 
 		// Print update Issue IID
-		c.Ui.Message(fmt.Sprintf("!%d", updatedMergeRequest.IID))
+		c.Ui.Message(fmt.Sprintf("%d", updatedMergeRequest.IID))
 
 	case CreateMergeRequest:
 		// Get source branch. current branch from local repository when non specific flags
 		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
-		currentBranch, err := git.GitCurrentBranch()
+		currentBranch, err := git.CurrentBranch()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -252,7 +253,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		}
 
 		// Print created merge request IID
-		c.Ui.Message(fmt.Sprintf("!%d", mergeRequest.IID))
+		c.Ui.Message(fmt.Sprintf("%d", mergeRequest.IID))
 
 	case CreateMergeRequestOnEditor:
 		// Starting editor for edit title and description
@@ -265,7 +266,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		}
 
 		// Get source branch. current branch from local repository when non specific flags
-		currentBranch, err := git.GitCurrentBranch()
+		currentBranch, err := git.CurrentBranch()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
@@ -286,7 +287,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		}
 
 		// Print created merge request IID
-		c.Ui.Message(fmt.Sprintf("!%d", mergeRequest.IID))
+		c.Ui.Message(fmt.Sprintf("%d", mergeRequest.IID))
 
 	case ShowMergeRequest:
 		// Do get merge request
@@ -448,7 +449,7 @@ func outMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
 	for _, mergeRequest := range mergeRequsets {
 		output := strings.Join([]string{
 			lab.ParceRepositoryFullName(mergeRequest.WebURL),
-			fmt.Sprintf("!%d", mergeRequest.IID),
+			fmt.Sprintf("%d", mergeRequest.IID),
 			mergeRequest.Title,
 		}, "|")
 		outputs = append(outputs, output)
@@ -482,7 +483,7 @@ func outProjectMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
 	outputs := []string{}
 	for _, mergeRequest := range mergeRequsets {
 		output := strings.Join([]string{
-			fmt.Sprintf("!%d", mergeRequest.IID),
+			fmt.Sprintf("%d", mergeRequest.IID),
 			mergeRequest.Title,
 		}, "|")
 		outputs = append(outputs, output)

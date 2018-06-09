@@ -1,136 +1,118 @@
 package git
 
 import (
+	"fmt"
+	"os"
+	"os/exec"
 	"reflect"
 	"testing"
 )
 
-type newGitRemoteTest struct {
-	url        string
-	remoteInfo *RemoteInfo
+func helperCommand(command string, args ...string) *exec.Cmd {
+	cs := []string{"-test.run=TestHelperProcess", "--", command}
+	cs = append(cs, args...)
+	cmd := exec.Command(os.Args[0], cs...)
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	return cmd
 }
 
-var newRemoteTests = []newGitRemoteTest{
-	{
-		url: "ssh://git@gitlab.ssl.domain.jp/namespace/repository.git",
-		remoteInfo: &RemoteInfo{
-			Remote:     "origin",
-			Domain:     "gitlab.ssl.domain.jp",
-			NameSpace:  "namespace",
-			Repository: "repository",
-		},
-	},
-	{
-		url: "git@gitlab.ssl.domain.jp:namespace/repository.git",
-		remoteInfo: &RemoteInfo{
-			Remote:     "origin",
-			Domain:     "gitlab.ssl.domain.jp",
-			NameSpace:  "namespace",
-			Repository: "repository",
-		},
-	},
-	{
-		url: "https://gitlab.ssl.domain.jp/namespace/repository",
-		remoteInfo: &RemoteInfo{
-			Remote:     "origin",
-			Domain:     "gitlab.ssl.domain.jp",
-			NameSpace:  "namespace",
-			Repository: "repository",
-		},
-	},
-}
+func TestHelperProcess(*testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+		return
+	}
+	defer os.Exit(0)
 
-func TestNewGitRemote(t *testing.T) {
-	for i, test := range newRemoteTests {
-		got := NewRemoteInfo("origin", test.url)
-		if !reflect.DeepEqual(test.remoteInfo, got) {
-			t.Errorf("#%d: bad return value want %#v got %#v", i, test.remoteInfo, got)
+	args := os.Args
+	for len(args) > 0 {
+		if args[0] == "--" {
+			args = args[1:]
+			break
 		}
+		args = args[1:]
+	}
+	if len(args) == 0 {
+		fmt.Fprintf(os.Stderr, "No command\n")
+		os.Exit(2)
+	}
+
+	cmd, args := args[0], args[1:]
+	switch cmd {
+	case "git":
+		switch args[0] {
+		case "remote":
+			remoteArgs := args[1:]
+			if len(remoteArgs) < 1 {
+				fmt.Println("origin\ngithub\ngitlab")
+			}
+			switch remoteArgs[0] {
+			case "get-url":
+				fmt.Println("git@gitlab.com:lighttiger2505/lab.git")
+			default:
+				fmt.Fprintf(os.Stderr, "Unknown remote args %v\n", args)
+				os.Exit(2)
+			}
+		case "var":
+			fmt.Println("vim")
+		case "rev-parse":
+			fmt.Println("/Users/lighttiger2505/dev/src/github.com/lighttiger2505/lab/.git")
+		default:
+			fmt.Fprintf(os.Stderr, "Unknown git command %v\n", args)
+			os.Exit(2)
+		}
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown command %q\n", cmd)
+		os.Exit(2)
 	}
 }
 
-var testRemoteInfo = &RemoteInfo{
-	Domain:     "gitlab.ssl.domain.jp",
-	NameSpace:  "Namespace",
-	Repository: "Repository",
-}
+func TestRemoteInfos(t *testing.T) {
+	execCommand = helperCommand
+	defer func() { execCommand = exec.Command }()
 
-func TestRepositoryUrl(t *testing.T) {
-	got := testRemoteInfo.RepositoryUrl()
-	want := "https://gitlab.ssl.domain.jp/Namespace/Repository"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
+	client := NewGitClient()
+	results, err := client.RemoteInfos()
+	if err != nil {
+		t.Errorf("echo: %v", err)
+	}
+
+	got := results[0]
+	want := &RemoteInfo{
+		Remote:     "origin",
+		Domain:     "gitlab.com",
+		NameSpace:  "lighttiger2505",
+		Repository: "lab",
+	}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("Invalid return value. want %v, got %v", want, got)
 	}
 }
 
-func TestBranchUrl(t *testing.T) {
-	got := testRemoteInfo.BranchUrl("Branch")
-	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/tree/Branch"
+func TestGitEditor(t *testing.T) {
+	execCommand = helperCommand
+	defer func() { execCommand = exec.Command }()
+
+	got, err := GitEditor()
+	if err != nil {
+		t.Errorf("echo: %v", err)
+	}
+
+	want := "vim"
 	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
+		t.Errorf("Invalid return value. want %q, got %q", want, got)
 	}
 }
 
-func TestIssueUrl(t *testing.T) {
-	got := testRemoteInfo.IssueUrl()
-	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/issues"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
+func TestGitDir(t *testing.T) {
+	execCommand = helperCommand
+	defer func() { execCommand = exec.Command }()
 
-func TestIssueDetailUrl(t *testing.T) {
-	got := testRemoteInfo.IssueDetailUrl(12)
-	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/issues/12"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
+	got, err := GitDir()
+	if err != nil {
+		t.Errorf("echo: %v", err)
 	}
-}
 
-func TestMergeRequestUrl(t *testing.T) {
-	got := testRemoteInfo.MergeRequestUrl()
-	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/merge_requests"
+	want := "/Users/lighttiger2505/dev/src/github.com/lighttiger2505/lab/.git"
 	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestMergeRequestDetailUrl(t *testing.T) {
-	got := testRemoteInfo.MergeRequestDetailUrl(12)
-	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/merge_requests/12"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestPipeLineUrl(t *testing.T) {
-	got := testRemoteInfo.PipeLineUrl()
-	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/pipelines"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestPipeLineDetailUrl(t *testing.T) {
-	got := testRemoteInfo.PipeLineDetailUrl(12)
-	want := "https://gitlab.ssl.domain.jp/Namespace/Repository/pipelines/12"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestBaseUrl(t *testing.T) {
-	got := testRemoteInfo.BaseUrl()
-	want := "https://gitlab.ssl.domain.jp"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestApiUrl(t *testing.T) {
-	got := testRemoteInfo.ApiUrl()
-	want := "https://gitlab.ssl.domain.jp/api/v4"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
+		t.Errorf("Invalid return value. want %q, got %q", want, got)
 	}
 }

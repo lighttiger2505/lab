@@ -93,7 +93,7 @@ func TestMergeRequestCommandRun_List(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "!12  Title12\n!13  Title13\n"
+	want := "12  Title12\n13  Title13\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}
@@ -112,7 +112,7 @@ func TestMergeRequestCommandRun_ListAll(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "namespace/repo12  !12  Title12\nnamespace/repo13  !13  Title13\n"
+	want := "namespace/repo12  12  Title12\nnamespace/repo13  13  Title13\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}
@@ -131,7 +131,7 @@ func TestMergeRequestCommandRun_Create(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "!12\n"
+	want := "12\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}
@@ -153,7 +153,7 @@ func TestMergeRequestCommandRun_CreateOnEditor(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "!12\n"
+	want := "12\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}
@@ -172,7 +172,7 @@ func TestMergeRequestCommandRun_Update(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "!12\n"
+	want := "12\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}
@@ -194,7 +194,7 @@ func TestMergeRequestCommandRun_UpdateOnEditor(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "!12\n"
+	want := "12\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}

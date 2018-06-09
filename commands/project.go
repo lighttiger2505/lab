@@ -13,28 +13,26 @@ import (
 )
 
 type ProjectCommnadOption struct {
-	ProjectOption *ProjectOption `group:"Project Options"`
-	OutputOption  *OutputOption  `group:"Output Options"`
+	OutputOption *ListProjectOption `group:"List Options"`
 }
 
 func newIssueCommandParser(opt *ProjectCommnadOption) *flags.Parser {
-	opt.ProjectOption = newProjectOption()
-	opt.OutputOption = newOutputOption()
+	opt.OutputOption = newListProjectOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "project [options]"
 	return parser
 }
 
-type ProjectOption struct {
+type ListProjectOption struct {
+	Num        int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of project to output."`
+	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print project ordered in \"asc\" or \"desc\" order."`
 	OrderBy    string `short:"o" long:"orderby" default:"updated_at" default-mask:"updated_at" description:"ordered by id, name, path, created_at, updated_at, or last_activity_at fields"`
 	Owned      bool   `short:"w" long:"owned" description:"Limit by projects owned by the current user"`
 	Membership bool   `short:"m" long:"member-ship" description:"Limit by projects that the current user is a member of"`
 }
 
-func newProjectOption() *ProjectOption {
-	project := flags.NewNamedParser("lab", flags.Default)
-	project.AddGroup("Project Options", "", &ProjectOption{})
-	return &ProjectOption{}
+func newListProjectOption() *ListProjectOption {
+	return &ListProjectOption{}
 }
 
 type ProjectCommand struct {
@@ -83,7 +81,7 @@ func (c *ProjectCommand) Run(args []string) int {
 	}
 
 	projects, err := client.Projects(
-		makeProjectOptions(projectCommandOption.ProjectOption, projectCommandOption.OutputOption),
+		makeProjectOptions(projectCommandOption.OutputOption),
 	)
 	if err != nil {
 		c.UI.Error(err.Error())
@@ -96,19 +94,19 @@ func (c *ProjectCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeProjectOptions(projectOption *ProjectOption, outputOption *OutputOption) *gitlab.ListProjectsOptions {
+func makeProjectOptions(listProjectOption *ListProjectOption) *gitlab.ListProjectsOptions {
 	listOption := &gitlab.ListOptions{
 		Page:    1,
-		PerPage: outputOption.Line,
+		PerPage: listProjectOption.Num,
 	}
 	listProjectsOptions := &gitlab.ListProjectsOptions{
 		Archived:    gitlab.Bool(false),
-		OrderBy:     gitlab.String(projectOption.OrderBy),
-		Sort:        gitlab.String(outputOption.Sort),
+		OrderBy:     gitlab.String(listProjectOption.OrderBy),
+		Sort:        gitlab.String(listProjectOption.Sort),
 		Search:      gitlab.String(""),
 		Simple:      gitlab.Bool(false),
-		Owned:       gitlab.Bool(projectOption.Owned),
-		Membership:  gitlab.Bool(projectOption.Membership),
+		Owned:       gitlab.Bool(listProjectOption.Owned),
+		Membership:  gitlab.Bool(listProjectOption.Membership),
 		Starred:     gitlab.Bool(false),
 		Statistics:  gitlab.Bool(false),
 		Visibility:  gitlab.Visibility("private"),

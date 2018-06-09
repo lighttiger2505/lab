@@ -44,7 +44,7 @@ func (r *RemoteInfo) BranchPath(branch string, path string) string {
 }
 
 func (r *RemoteInfo) BranchFileWithLine(branch string, path string, line string) string {
-	return strings.Join([]string{r.BranchPath(branch, path), line}, "#")
+	return strings.Join([]string{r.BranchPath(branch, path), line}, "/")
 }
 
 func (r *RemoteInfo) Subpage(subpage string) string {

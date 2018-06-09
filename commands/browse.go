@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -99,40 +100,38 @@ func (c *BrowseCommand) Run(args []string) int {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-
-	// if err := c.doBrowse(url); err != nil {
-	// 	c.Ui.Error(err.Error())
-	// 	return ExitCodeError
-	// }
 	return ExitCodeOK
 }
 
 func (c *BrowseCommand) getURL(args []string, remote *git.RemoteInfo, branch string, opt *BrowseOption) (string, error) {
 	if len(args) > 0 {
 		arg := args[0]
-		// TODO In order to display an appropriate error message, it is necessary to check whether the argument is a file path
-		if isFilePath(arg) {
-			// result, err := isDir(arg)
-			// if err != nil {
-			// 	return "", err
-			// }
-			// if result {
-			// 	gitAbsPath, err := gitpath.Current()
-			// 	if err != nil {
-			// 		return "", err
-			// 	}
-			// 	return remote.BranchPath(branch, gitAbsPath), nil
-			// }
-
-			gitAbsPath, err := gitpath.Abs(arg)
-			if err != nil {
-				return "", err
-			}
-			if opt.Subpage != "" {
-				return remote.BranchFileWithLine(branch, gitAbsPath, opt.Subpage), nil
-			}
-			return remote.BranchPath(branch, gitAbsPath), nil
+		if !isFilePath(arg) {
+			return "", fmt.Errorf("Invalid path")
 		}
+
+		// TODO In order to display an appropriate error message, it is necessary to check whether the argument is a file path
+		// result, err := isDir(arg)
+		// if err != nil {
+		// 	return "", err
+		// }
+		// if result {
+		// 	gitAbsPath, err := gitpath.Current()
+		// 	if err != nil {
+		// 		return "", err
+		// 	}
+		// 	return remote.BranchPath(branch, gitAbsPath), nil
+		// }
+
+		gitAbsPath, err := gitpath.Abs(arg)
+		if err != nil {
+			return "", err
+		}
+
+		if opt.Subpage != "" {
+			return remote.BranchFileWithLine(branch, gitAbsPath, opt.Subpage), nil
+		}
+		return remote.BranchPath(branch, gitAbsPath), nil
 	}
 
 	if opt.Subpage != "" {

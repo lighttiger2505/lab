@@ -47,6 +47,10 @@ func (r *RemoteInfo) BranchFileWithLine(branch string, path string, line string)
 	return strings.Join([]string{r.BranchPath(branch, path), line}, "#")
 }
 
+func (r *RemoteInfo) Subpage(subpage string) string {
+	return strings.Join([]string{r.RepositoryUrl(), subpage}, "/")
+}
+
 func (r *RemoteInfo) IssueUrl() string {
 	return strings.Join([]string{r.RepositoryUrl(), "issues"}, "/")
 }

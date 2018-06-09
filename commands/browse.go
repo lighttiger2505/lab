@@ -2,13 +2,10 @@ package commands
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
-	"strings"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
@@ -17,25 +14,6 @@ import (
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 )
-
-type BrowseType int
-
-const (
-	Issue BrowseType = iota
-	MergeRequest
-	PipeLine
-)
-
-var browseTypePrefix = map[string]BrowseType{
-	"#": Issue,
-	"i": Issue,
-	"I": Issue,
-	"!": MergeRequest,
-	"m": MergeRequest,
-	"M": MergeRequest,
-	"p": PipeLine,
-	"P": PipeLine,
-}
 
 type BrowseCommandOption struct {
 	BrowseOption *BrowseOption `group:"Global Options"`
@@ -114,99 +92,55 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	if browseOption.URL {
+		c.Ui.Message(url)
+		return ExitCodeOK
+	}
+
 	if err := c.doBrowse(url); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-
 	return ExitCodeOK
 }
 
 func (c *BrowseCommand) getURL(args []string, remote *git.RemoteInfo, branch string, opt *BrowseOption) (string, error) {
-	if len(args) < 1 {
-		// TODO You need to ignore the branch when the project is specified as an option
-		if branch == "master" {
-			return remote.RepositoryUrl(), nil
-		}
-		return remote.BranchUrl(branch), nil
-	}
+	if len(args) > 0 {
+		arg := args[0]
+		// TODO In order to display an appropriate error message, it is necessary to check whether the argument is a file path
+		if isFilePath(arg) {
+			// result, err := isDir(arg)
+			// if err != nil {
+			// 	return "", err
+			// }
+			// if result {
+			// 	gitAbsPath, err := gitpath.Current()
+			// 	if err != nil {
+			// 		return "", err
+			// 	}
+			// 	return remote.BranchPath(branch, gitAbsPath), nil
+			// }
 
-	arg := args[0]
-	// TODO In order to display an appropriate error message, it is necessary to check whether the argument is a file path
-	if isFilePath(arg) {
-		result, err := isDir(arg)
-		if err != nil {
-			return "", err
-		}
-		if result {
-			gitAbsPath, err := gitpath.Current()
+			gitAbsPath, err := gitpath.Abs(arg)
 			if err != nil {
 				return "", err
 			}
+			if opt.Line != "" {
+				return remote.BranchFileWithLine(branch, gitAbsPath, opt.Line), nil
+			}
 			return remote.BranchPath(branch, gitAbsPath), nil
 		}
-
-		gitAbsPath, err := gitpath.Abs(arg)
-		if err != nil {
-			return "", err
-		}
-		if opt.Line != "" {
-			return remote.BranchFileWithLine(branch, gitAbsPath, opt.Line), nil
-		}
-		return remote.BranchPath(branch, gitAbsPath), nil
 	}
 
-	browseType, number, err := splitPrefixAndNumber(args[0])
-	if err != nil {
-		return "", err
+	if opt.Subpage != "" {
+		return remote.Subpage(opt.Subpage), nil
 	}
-	return makeGitlabResourceUrl(remote, browseType, number), nil
-}
 
-func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
-	var url string
-	if number > 0 {
-		switch browseType {
-		case Issue:
-			url = gitlabRemote.IssueDetailUrl(number)
-		case MergeRequest:
-			url = gitlabRemote.MergeRequestDetailUrl(number)
-		case PipeLine:
-			url = gitlabRemote.PipeLineDetailUrl(number)
-		default:
-			url = ""
-		}
-	} else {
-		switch browseType {
-		case Issue:
-			url = gitlabRemote.IssueUrl()
-		case MergeRequest:
-			url = gitlabRemote.MergeRequestUrl()
-		case PipeLine:
-			url = gitlabRemote.PipeLineUrl()
-		default:
-			url = ""
-		}
+	// TODO You need to ignore the branch when the project is specified as an option
+	if branch == "master" {
+		return remote.RepositoryUrl(), nil
 	}
-	return url
-}
-
-func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
-	for k, v := range browseTypePrefix {
-		if strings.HasPrefix(arg, k) {
-			numberStr := strings.TrimPrefix(arg, k)
-			if numberStr == "" {
-				return v, 0, nil
-			}
-
-			number, err := strconv.Atoi(numberStr)
-			if err != nil {
-				return 0, 0, fmt.Errorf("Invalid browse number. \"%s\"", numberStr)
-			}
-			return v, number, nil
-		}
-	}
-	return 0, 0, fmt.Errorf("Invalid arg. %s", arg)
+	return remote.BranchUrl(branch), nil
 }
 
 func isFilePath(value string) bool {

@@ -3,9 +3,7 @@ package commands
 import (
 	"bytes"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
@@ -30,7 +28,7 @@ type BrowseCommand struct {
 	Ui        ui.Ui
 	Provider  lab.Provider
 	GitClient git.Client
-	Cmd       cmd.Cmd
+	Opener    cmd.URLOpener
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -97,10 +95,15 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeOK
 	}
 
-	if err := c.doBrowse(url); err != nil {
+	if err := c.Opener.Open(url); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
+
+	// if err := c.doBrowse(url); err != nil {
+	// 	c.Ui.Error(err.Error())
+	// 	return ExitCodeError
+	// }
 	return ExitCodeOK
 }
 
@@ -171,41 +174,4 @@ func isDir(path string) (bool, error) {
 func isFileExist(fPath string) bool {
 	_, err := os.Stat(fPath)
 	return err == nil || !os.IsNotExist(err)
-}
-
-func (c *BrowseCommand) doBrowse(url string) error {
-	browser := searchBrowserLauncher(runtime.GOOS)
-	c.Cmd.SetCmd(browser)
-	c.Cmd.WithArg(url)
-	if err := c.Cmd.Spawn(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func searchBrowserLauncher(goos string) (browser string) {
-	switch goos {
-	case "darwin":
-		browser = "open"
-	case "windows":
-		browser = "cmd /c start"
-	default:
-		candidates := []string{
-			"xdg-open",
-			"cygstart",
-			"x-www-browser",
-			"firefox",
-			"opera",
-			"mozilla",
-			"netscape",
-		}
-		for _, b := range candidates {
-			path, err := exec.LookPath(b)
-			if err == nil {
-				browser = path
-				break
-			}
-		}
-	}
-	return browser
 }

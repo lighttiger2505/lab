@@ -58,7 +58,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Ui:        ui,
 				Provider:  provider,
 				GitClient: &git.GitClient{},
-				Cmd:       cmd.NewBasicCmd(""),
+				Opener:    &cmd.Browser{},
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {

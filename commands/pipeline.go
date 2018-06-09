@@ -14,13 +14,13 @@ import (
 )
 
 type PipelineCommandOption struct {
-	PipelineOption *PipelineOption `group:"Pipeline Options"`
-	OutputOption   *OutputOption   `group:"Output Options"`
+	PipelineOption *PipelineOption     `group:"Pipeline Options"`
+	OutputOption   *ListPipelineOption `group:"Output Options"`
 }
 
 func newPipelineCommandParser(opt *PipelineCommandOption) *flags.Parser {
 	opt.PipelineOption = newPipelineOption()
-	opt.OutputOption = newOutputOption()
+	opt.OutputOption = newListPipelineOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `pipeline [options]
 
@@ -44,6 +44,15 @@ func newPipelineOption() *PipelineOption {
 	pipeline := flags.NewNamedParser("lab", flags.Default)
 	pipeline.AddGroup("Pipeline Options", "", &PipelineOption{})
 	return &PipelineOption{}
+}
+
+type ListPipelineOption struct {
+	Num  int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of pipeline to output."`
+	Sort string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print pipeline ordered in \"asc\" or \"desc\" order."`
+}
+
+func newListPipelineOption() *ListPipelineOption {
+	return &ListPipelineOption{}
 }
 
 type PipelineOperation int
@@ -137,7 +146,7 @@ func pipelineOperation(opt PipelineCommandOption, args []string) PipelineOperati
 	return ListPipeline
 }
 
-func makePipelineOptions(pipelineOption *PipelineOption, outputOption *OutputOption) *gitlab.ListProjectPipelinesOptions {
+func makePipelineOptions(pipelineOption *PipelineOption, outputOption *ListPipelineOption) *gitlab.ListProjectPipelinesOptions {
 	var scope *string
 	if pipelineOption.Scope != "" {
 		scope = gitlab.String(pipelineOption.Scope)
@@ -149,7 +158,7 @@ func makePipelineOptions(pipelineOption *PipelineOption, outputOption *OutputOpt
 	}
 	listOption := &gitlab.ListOptions{
 		Page:    1,
-		PerPage: outputOption.Line,
+		PerPage: outputOption.Num,
 	}
 	listPipelinesOptions := &gitlab.ListProjectPipelinesOptions{
 		Scope:       scope,

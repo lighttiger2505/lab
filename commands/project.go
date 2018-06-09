@@ -13,13 +13,13 @@ import (
 )
 
 type ProjectCommnadOption struct {
-	ProjectOption *ProjectOption `group:"Project Options"`
-	OutputOption  *OutputOption  `group:"Output Options"`
+	ProjectOption *ProjectOption     `group:"Project Options"`
+	OutputOption  *ListProjectOption `group:"List Options"`
 }
 
 func newIssueCommandParser(opt *ProjectCommnadOption) *flags.Parser {
 	opt.ProjectOption = newProjectOption()
-	opt.OutputOption = newOutputOption()
+	opt.OutputOption = newListProjectOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "project [options]"
 	return parser
@@ -35,6 +35,15 @@ func newProjectOption() *ProjectOption {
 	project := flags.NewNamedParser("lab", flags.Default)
 	project.AddGroup("Project Options", "", &ProjectOption{})
 	return &ProjectOption{}
+}
+
+type ListProjectOption struct {
+	Num  int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of project to output."`
+	Sort string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print project ordered in \"asc\" or \"desc\" order."`
+}
+
+func newListProjectOption() *ListProjectOption {
+	return &ListProjectOption{}
 }
 
 type ProjectCommand struct {
@@ -96,10 +105,10 @@ func (c *ProjectCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func makeProjectOptions(projectOption *ProjectOption, outputOption *OutputOption) *gitlab.ListProjectsOptions {
+func makeProjectOptions(projectOption *ProjectOption, outputOption *ListProjectOption) *gitlab.ListProjectsOptions {
 	listOption := &gitlab.ListOptions{
 		Page:    1,
-		PerPage: outputOption.Line,
+		PerPage: outputOption.Num,
 	}
 	listProjectsOptions := &gitlab.ListProjectsOptions{
 		Archived:    gitlab.Bool(false),

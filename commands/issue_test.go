@@ -129,7 +129,7 @@ func TestIssueCommandRun_ListIssue(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "#12  Title12\n#13  Title13\n"
+	want := "12  Title12\n13  Title13\n"
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", got, want)
@@ -149,7 +149,7 @@ func TestIssueCommandRun_ListProjectIssue(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "namespace/repo12  #12  Title12\nnamespace/repo13  #13  Title13\n"
+	want := "namespace/repo12  12  Title12\nnamespace/repo13  13  Title13\n"
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", got, want)
@@ -169,7 +169,7 @@ func TestIssueCommandRun_CreateIssue(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "#12\n"
+	want := "12\n"
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
@@ -192,7 +192,7 @@ func TestIssueCommandRun_CreateIssueOnEditor(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "#12\n"
+	want := "12\n"
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
@@ -212,7 +212,7 @@ func TestIssueCommandRun_UpdateIssue(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "#12\n"
+	want := "12\n"
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
@@ -235,7 +235,7 @@ func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "#12\n"
+	want := "12\n"
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
@@ -245,8 +245,8 @@ func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
 func TestIssueOutput(t *testing.T) {
 	got := issueOutput(issues)
 	want := []string{
-		"namespace/repo12|#12|Title12",
-		"namespace/repo13|#13|Title13",
+		"namespace/repo12|12|Title12",
+		"namespace/repo13|13|Title13",
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("bad return value \nwant %#v \ngot  %#v", got, want)
@@ -256,8 +256,8 @@ func TestIssueOutput(t *testing.T) {
 func TestProjectIssueOutput(t *testing.T) {
 	got := projectIssueOutput(issues)
 	want := []string{
-		"#12|Title12",
-		"#13|Title13",
+		"12|Title12",
+		"13|Title13",
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("bad return value \nwant %#v \ngot  %#v", got, want)

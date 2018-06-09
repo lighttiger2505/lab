@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
@@ -13,6 +14,48 @@ import (
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 )
+
+type BrowseOption struct {
+	Subpage string `short:"s" long:"subpage" description:"open project sub page"`
+	URL     bool   `short:"u" long:"url" description:"show project url"`
+	Project string `short:"p" long:"project" description:"command target specific project"`
+}
+
+func newBrowseOption() *BrowseOption {
+	browse := flags.NewNamedParser("lab", flags.Default)
+	browse.AddGroup("Browse Options", "", &BrowseOption{})
+	return &BrowseOption{}
+}
+
+func (g *BrowseOption) IsValid() error {
+	var errMsg []string
+	var tmpErr error
+
+	tmpErr = validRepository(g.Project)
+	if tmpErr != nil {
+		errMsg = append(errMsg, tmpErr.Error())
+	}
+
+	if len(errMsg) > 0 {
+		return fmt.Errorf("Invalid value in browse option. %v", errMsg)
+	}
+	return nil
+}
+
+func validRepository(value string) error {
+	splited := strings.Split(value, "/")
+	if value != "" && len(splited) != 2 {
+		return fmt.Errorf("Invalid repository \"%s\". Assumed input style is \"Namespace/Project\".", value)
+	}
+	return nil
+}
+
+func (g *BrowseOption) NameSpaceAndProject() (namespace, project string) {
+	splited := strings.Split(g.Project, "/")
+	namespace = splited[0]
+	project = splited[1]
+	return
+}
 
 type BrowseCommandOption struct {
 	BrowseOption *BrowseOption `group:"Global Options"`

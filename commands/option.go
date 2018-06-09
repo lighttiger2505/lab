@@ -12,9 +12,9 @@ type OptionValidator interface {
 }
 
 type BrowseOption struct {
+	Subpage string `short:"-" long:"subpage" description:"open project sub page"`
 	URL     bool   `short:"u" long:"url" description:"show project url"`
 	Project string `short:"p" long:"project" description:"command target specific project"`
-	Subpage string `short:"s" long:"subpage" description:"open project sub page"`
 	Line    string `short:"n" long:"line" description:"open brwose link of file line"`
 }
 

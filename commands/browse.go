@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/git"
@@ -18,6 +19,7 @@ import (
 type BrowseOption struct {
 	Subpage string `short:"s" long:"subpage" description:"open project sub page"`
 	URL     bool   `short:"u" long:"url" description:"show project url"`
+	Copy    bool   `short:"c" long:"copy" description:"copy project url to clipboard"`
 	Project string `short:"p" long:"project" description:"command target specific project"`
 }
 
@@ -136,6 +138,13 @@ func (c *BrowseCommand) Run(args []string) int {
 
 	if browseOption.URL {
 		c.Ui.Message(url)
+		return ExitCodeOK
+	}
+
+	if browseOption.Copy {
+		if err := clipboard.WriteAll(url); err != nil {
+			c.Ui.Error(fmt.Sprintf("Error copying %s to clipboard:\n%s\n", url, err))
+		}
 		return ExitCodeOK
 	}
 

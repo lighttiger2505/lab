@@ -125,7 +125,7 @@ func (c *PipelineCommand) Run(args []string) int {
 	case ShowPipeline:
 		pid, err := strconv.Atoi(parseArgs[0])
 		if err != nil {
-			fmt.Errorf("Invalid pipeline iid. value: %s, error: %s", parseArgs[0], err)
+			c.UI.Error(fmt.Sprintf("Invalid pipeline iid. value: %s, error: %s", parseArgs[0], err))
 		}
 		jobs, err := client.ProjectPipelineJobs(
 			gitlabRemote.RepositoryFullName(),

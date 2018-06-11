@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
-	"strconv"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/git"
@@ -18,23 +16,47 @@ import (
 	"github.com/lighttiger2505/lab/ui"
 )
 
-type BrowseType int
+type BrowseOption struct {
+	Subpage string `short:"s" long:"subpage" description:"open project sub page"`
+	URL     bool   `short:"u" long:"url" description:"show project url"`
+	Copy    bool   `short:"c" long:"copy" description:"copy project url to clipboard"`
+	Project string `short:"p" long:"project" description:"command target specific project"`
+}
 
-const (
-	Issue BrowseType = iota
-	MergeRequest
-	PipeLine
-)
+func newBrowseOption() *BrowseOption {
+	browse := flags.NewNamedParser("lab", flags.Default)
+	browse.AddGroup("Browse Options", "", &BrowseOption{})
+	return &BrowseOption{}
+}
 
-var browseTypePrefix = map[string]BrowseType{
-	"#": Issue,
-	"i": Issue,
-	"I": Issue,
-	"!": MergeRequest,
-	"m": MergeRequest,
-	"M": MergeRequest,
-	"p": PipeLine,
-	"P": PipeLine,
+func (g *BrowseOption) IsValid() error {
+	var errMsg []string
+	var tmpErr error
+
+	tmpErr = validRepository(g.Project)
+	if tmpErr != nil {
+		errMsg = append(errMsg, tmpErr.Error())
+	}
+
+	if len(errMsg) > 0 {
+		return fmt.Errorf("Invalid value in browse option. %v", errMsg)
+	}
+	return nil
+}
+
+func validRepository(value string) error {
+	splited := strings.Split(value, "/")
+	if value != "" && len(splited) != 2 {
+		return fmt.Errorf("Invalid repository \"%s\". Assumed input style is \"Namespace/Project\".", value)
+	}
+	return nil
+}
+
+func (g *BrowseOption) NameSpaceAndProject() (namespace, project string) {
+	splited := strings.Split(g.Project, "/")
+	namespace = splited[0]
+	project = splited[1]
+	return
 }
 
 type BrowseCommandOption struct {
@@ -52,7 +74,7 @@ type BrowseCommand struct {
 	Ui        ui.Ui
 	Provider  lab.Provider
 	GitClient git.Client
-	Cmd       cmd.Cmd
+	Opener    cmd.URLOpener
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -114,99 +136,65 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	if err := c.doBrowse(url); err != nil {
+	if browseOption.URL {
+		c.Ui.Message(url)
+		return ExitCodeOK
+	}
+
+	if browseOption.Copy {
+		if err := clipboard.WriteAll(url); err != nil {
+			c.Ui.Error(fmt.Sprintf("Error copying %s to clipboard:\n%s\n", url, err))
+		}
+		return ExitCodeOK
+	}
+
+	if err := c.Opener.Open(url); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-
 	return ExitCodeOK
 }
 
 func (c *BrowseCommand) getURL(args []string, remote *git.RemoteInfo, branch string, opt *BrowseOption) (string, error) {
-	if len(args) < 1 {
-		// TODO You need to ignore the branch when the project is specified as an option
-		if branch == "master" {
-			return remote.RepositoryUrl(), nil
+	if len(args) > 0 {
+		arg := args[0]
+		if !isFilePath(arg) {
+			return "", fmt.Errorf("Invalid path")
 		}
-		return remote.BranchUrl(branch), nil
-	}
 
-	arg := args[0]
-	// TODO In order to display an appropriate error message, it is necessary to check whether the argument is a file path
-	if isFilePath(arg) {
-		result, err := isDir(arg)
-		if err != nil {
-			return "", err
-		}
-		if result {
-			gitAbsPath, err := gitpath.Current()
-			if err != nil {
-				return "", err
-			}
-			return remote.BranchPath(branch, gitAbsPath), nil
-		}
+		// TODO In order to display an appropriate error message, it is necessary to check whether the argument is a file path
+		// result, err := isDir(arg)
+		// if err != nil {
+		// 	return "", err
+		// }
+		// if result {
+		// 	gitAbsPath, err := gitpath.Current()
+		// 	if err != nil {
+		// 		return "", err
+		// 	}
+		// 	return remote.BranchPath(branch, gitAbsPath), nil
+		// }
 
 		gitAbsPath, err := gitpath.Abs(arg)
 		if err != nil {
 			return "", err
 		}
-		if opt.Line != "" {
-			return remote.BranchFileWithLine(branch, gitAbsPath, opt.Line), nil
+
+		if opt.Subpage != "" {
+			return remote.BranchFileWithLine(branch, gitAbsPath, opt.Subpage), nil
 		}
 		return remote.BranchPath(branch, gitAbsPath), nil
 	}
 
-	browseType, number, err := splitPrefixAndNumber(args[0])
-	if err != nil {
-		return "", err
+	if opt.Subpage != "" {
+		return remote.Subpage(opt.Subpage), nil
 	}
-	return makeGitlabResourceUrl(remote, browseType, number), nil
-}
 
-func makeGitlabResourceUrl(gitlabRemote *git.RemoteInfo, browseType BrowseType, number int) string {
-	var url string
-	if number > 0 {
-		switch browseType {
-		case Issue:
-			url = gitlabRemote.IssueDetailUrl(number)
-		case MergeRequest:
-			url = gitlabRemote.MergeRequestDetailUrl(number)
-		case PipeLine:
-			url = gitlabRemote.PipeLineDetailUrl(number)
-		default:
-			url = ""
-		}
-	} else {
-		switch browseType {
-		case Issue:
-			url = gitlabRemote.IssueUrl()
-		case MergeRequest:
-			url = gitlabRemote.MergeRequestUrl()
-		case PipeLine:
-			url = gitlabRemote.PipeLineUrl()
-		default:
-			url = ""
-		}
+	// TODO You need to ignore the branch when the project is specified as an option
+	if branch == "master" {
+		return remote.RepositoryUrl(), nil
 	}
-	return url
-}
-
-func splitPrefixAndNumber(arg string) (BrowseType, int, error) {
-	for k, v := range browseTypePrefix {
-		if strings.HasPrefix(arg, k) {
-			numberStr := strings.TrimPrefix(arg, k)
-			if numberStr == "" {
-				return v, 0, nil
-			}
-
-			number, err := strconv.Atoi(numberStr)
-			if err != nil {
-				return 0, 0, fmt.Errorf("Invalid browse number. \"%s\"", numberStr)
-			}
-			return v, number, nil
-		}
-	}
-	return 0, 0, fmt.Errorf("Invalid arg. %s", arg)
+	return remote.BranchUrl(branch), nil
 }
 
 func isFilePath(value string) bool {
@@ -237,41 +225,4 @@ func isDir(path string) (bool, error) {
 func isFileExist(fPath string) bool {
 	_, err := os.Stat(fPath)
 	return err == nil || !os.IsNotExist(err)
-}
-
-func (c *BrowseCommand) doBrowse(url string) error {
-	browser := searchBrowserLauncher(runtime.GOOS)
-	c.Cmd.SetCmd(browser)
-	c.Cmd.WithArg(url)
-	if err := c.Cmd.Spawn(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func searchBrowserLauncher(goos string) (browser string) {
-	switch goos {
-	case "darwin":
-		browser = "open"
-	case "windows":
-		browser = "cmd /c start"
-	default:
-		candidates := []string{
-			"xdg-open",
-			"cygstart",
-			"x-www-browser",
-			"firefox",
-			"opera",
-			"mozilla",
-			"netscape",
-		}
-		for _, b := range candidates {
-			path, err := exec.LookPath(b)
-			if err == nil {
-				browser = path
-				break
-			}
-		}
-	}
-	return browser
 }

@@ -14,13 +14,11 @@ import (
 )
 
 type PipelineCommandOption struct {
-	PipelineOption *PipelineOption `group:"Pipeline Options"`
-	OutputOption   *OutputOption   `group:"Output Options"`
+	ListOption *ListPipelineOption `group:"List Options"`
 }
 
 func newPipelineCommandParser(opt *PipelineCommandOption) *flags.Parser {
-	opt.PipelineOption = newPipelineOption()
-	opt.OutputOption = newOutputOption()
+	opt.ListOption = newListPipelineOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `pipeline [options]
 
@@ -35,15 +33,24 @@ Synopsis:
 }
 
 type PipelineOption struct {
-	Scope   string `short:"c" long:"scope" description:"The scope of pipelines, one of: running, pending, finished, branches, tags"`
-	States  string `short:"t" long:"states" description:" The status of pipelines, one of: running, pending, success, failed, canceled, skipped"`
-	OrderBy string `short:"o" long:"orderby" default:"id" default-mask:"id" description:"Order pipelines by id, status, ref, or user_id"`
 }
 
 func newPipelineOption() *PipelineOption {
 	pipeline := flags.NewNamedParser("lab", flags.Default)
 	pipeline.AddGroup("Pipeline Options", "", &PipelineOption{})
 	return &PipelineOption{}
+}
+
+type ListPipelineOption struct {
+	Num     int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of pipeline to output."`
+	Sort    string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print pipeline ordered in \"asc\" or \"desc\" order."`
+	Scope   string `short:"c" long:"scope" description:"The scope of pipelines, one of: running, pending, finished, branches, tags"`
+	States  string `short:"t" long:"states" description:" The status of pipelines, one of: running, pending, success, failed, canceled, skipped"`
+	OrderBy string `short:"o" long:"orderby" default:"id" default-mask:"id" description:"Order pipelines by id, status, ref, or user_id"`
+}
+
+func newListPipelineOption() *ListPipelineOption {
+	return &ListPipelineOption{}
 }
 
 type PipelineOperation int
@@ -104,7 +111,7 @@ func (c *PipelineCommand) Run(args []string) int {
 	case ListPipeline:
 		pipelines, err := client.ProjectPipelines(
 			gitlabRemote.RepositoryFullName(),
-			makePipelineOptions(pipelineCommandOption.PipelineOption, pipelineCommandOption.OutputOption),
+			makePipelineOptions(pipelineCommandOption.ListOption),
 		)
 		if err != nil {
 			c.UI.Error(err.Error())
@@ -116,7 +123,7 @@ func (c *PipelineCommand) Run(args []string) int {
 	case ShowPipeline:
 		pid, err := strconv.Atoi(parseArgs[0])
 		if err != nil {
-			fmt.Errorf("Invalid pipeline iid. value: %s, error: %s", parseArgs[0], err)
+			c.UI.Error(fmt.Sprintf("Invalid pipeline iid. value: %s, error: %s", parseArgs[0], err))
 		}
 		jobs, err := client.ProjectPipelineJobs(
 			gitlabRemote.RepositoryFullName(),
@@ -137,19 +144,19 @@ func pipelineOperation(opt PipelineCommandOption, args []string) PipelineOperati
 	return ListPipeline
 }
 
-func makePipelineOptions(pipelineOption *PipelineOption, outputOption *OutputOption) *gitlab.ListProjectPipelinesOptions {
+func makePipelineOptions(listPipelineOption *ListPipelineOption) *gitlab.ListProjectPipelinesOptions {
 	var scope *string
-	if pipelineOption.Scope != "" {
-		scope = gitlab.String(pipelineOption.Scope)
+	if listPipelineOption.Scope != "" {
+		scope = gitlab.String(listPipelineOption.Scope)
 	}
 	var status *gitlab.BuildStateValue
-	if pipelineOption.States != "" {
-		v := gitlab.BuildStateValue(pipelineOption.States)
+	if listPipelineOption.States != "" {
+		v := gitlab.BuildStateValue(listPipelineOption.States)
 		status = &v
 	}
 	listOption := &gitlab.ListOptions{
 		Page:    1,
-		PerPage: outputOption.Line,
+		PerPage: listPipelineOption.Num,
 	}
 	listPipelinesOptions := &gitlab.ListProjectPipelinesOptions{
 		Scope:       scope,
@@ -158,8 +165,8 @@ func makePipelineOptions(pipelineOption *PipelineOption, outputOption *OutputOpt
 		YamlErrors:  gitlab.Bool(false),
 		Name:        gitlab.String(""),
 		Username:    gitlab.String(""),
-		OrderBy:     gitlab.OrderBy(gitlab.OrderByValue(pipelineOption.OrderBy)),
-		Sort:        gitlab.String(outputOption.Sort),
+		OrderBy:     gitlab.OrderBy(gitlab.OrderByValue(listPipelineOption.OrderBy)),
+		Sort:        gitlab.String(listPipelineOption.Sort),
 		ListOptions: *listOption,
 	}
 	return listPipelinesOptions

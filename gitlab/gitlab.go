@@ -16,6 +16,7 @@ type Provider interface {
 	GetSpecificRemote(namespace, project string) *git.RemoteInfo
 	GetCurrentRemote() (*git.RemoteInfo, error)
 	GetClient(remote *git.RemoteInfo) (Client, error)
+	GetJobClient(remote *git.RemoteInfo) (Job, error)
 	GetIssueClient(remote *git.RemoteInfo) (Issue, error)
 	GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error)
 }
@@ -134,6 +135,14 @@ func (p *GitlabProvider) GetMergeRequestClient(remote *git.RemoteInfo) (MergeReq
 		return nil, err
 	}
 	return NewMergeRequestClient(gitlabClient), nil
+}
+
+func (p *GitlabProvider) GetJobClient(remote *git.RemoteInfo) (Job, error) {
+	gitlabClient, err := p.makeGitLabClient(remote)
+	if err != nil {
+		return nil, err
+	}
+	return NewJobClient(gitlabClient), nil
 }
 
 func (p *GitlabProvider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {

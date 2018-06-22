@@ -116,6 +116,10 @@ func projectJobOutput(jobs []gitlab.Job) []string {
 	for _, job := range jobs {
 		output := strings.Join([]string{
 			strconv.Itoa(job.ID),
+			job.Ref,
+			job.Commit.ShortID,
+			job.User.Username,
+			job.Stage,
 			job.Name,
 		}, "|")
 		outputs = append(outputs, output)

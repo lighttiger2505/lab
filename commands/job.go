@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -58,7 +59,8 @@ func (c *JobCommand) Run(args []string) int {
 	// Parse flags
 	var jobCommnadOption JobCommandOption
 	jobCommnadOptionParser := newJobOptionParser(&jobCommnadOption)
-	if _, err := jobCommnadOptionParser.ParseArgs(args); err != nil {
+	parseArgs, err := jobCommnadOptionParser.ParseArgs(args)
+	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
@@ -82,19 +84,31 @@ func (c *JobCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	listOpt := jobCommnadOption.ListOption
-	var result string
-	jobs, err := client.GetProjectJobs(
-		makeProjectJobsOption(listOpt),
-		gitlabRemote.RepositoryFullName(),
-	)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
+	if len(parseArgs) > 0 {
+		jid, err := strconv.Atoi(parseArgs[0])
+		if err != nil {
+			c.UI.Error(fmt.Sprintf("Invalid job id. value: %s, error: %s", parseArgs[0], err))
+		}
+		job, err := client.GetJob(gitlabRemote.RepositoryFullName(), jid)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeError
+		}
+		c.UI.Message(jobDetailOutput(job))
+	} else {
+		listOpt := jobCommnadOption.ListOption
+		var result string
+		jobs, err := client.GetProjectJobs(
+			makeProjectJobsOption(listOpt),
+			gitlabRemote.RepositoryFullName(),
+		)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeError
+		}
+		result = columnize.SimpleFormat(projectJobOutput(jobs))
+		c.UI.Message(result)
 	}
-	result = columnize.SimpleFormat(projectJobOutput(jobs))
-
-	c.UI.Message(result)
 
 	return ExitCodeOK
 }
@@ -125,4 +139,24 @@ func projectJobOutput(jobs []gitlab.Job) []string {
 		outputs = append(outputs, output)
 	}
 	return outputs
+}
+
+func jobDetailOutput(job *gitlab.Job) string {
+	base := `%d
+Ref: %s
+Commit: %s
+User: %s
+Stage: %s
+Name: %s
+`
+	detial := fmt.Sprintf(
+		base,
+		job.ID,
+		job.Ref,
+		job.Commit.ShortID,
+		job.User.Username,
+		job.Stage,
+		job.Name,
+	)
+	return detial
 }

@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"fmt"
+	"io"
 
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -9,6 +10,7 @@ import (
 type Job interface {
 	GetProjectJobs(opt *gitlab.ListJobsOptions, repositoryName string) ([]gitlab.Job, error)
 	GetJob(repositoryName string, jobID int) (*gitlab.Job, error)
+	GetTraceFile(repositoryName string, jobID int) (io.Reader, error)
 }
 
 type JobClient struct {
@@ -34,6 +36,14 @@ func (c *JobClient) GetJob(repositoryName string, jobID int) (*gitlab.Job, error
 		return nil, fmt.Errorf("Failed get job. %s", err.Error())
 	}
 	return job, nil
+}
+
+func (c *JobClient) GetTraceFile(repositoryName string, jobID int) (io.Reader, error) {
+	trace, _, err := c.Client.Jobs.GetTraceFile(repositoryName, jobID)
+	if err != nil {
+		return nil, fmt.Errorf("Failed get trace file. %s", err.Error())
+	}
+	return trace, nil
 }
 
 type MockLabJobClient struct {

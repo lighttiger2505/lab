@@ -130,6 +130,10 @@ func (c *PipelineCommand) Run(args []string) int {
 			makePiplineJobsOptions(),
 			pid,
 		)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeError
+		}
 		result := columnize.SimpleFormat(jobOutput(jobs))
 		c.UI.Message(result)
 	}

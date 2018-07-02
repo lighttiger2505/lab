@@ -200,6 +200,9 @@ func jobOutput(jobs []*gitlab.Job) []string {
 		output := strings.Join([]string{
 			strconv.Itoa(job.ID),
 			job.Status,
+			job.Ref,
+			job.Commit.ShortID,
+			job.User.Username,
 			job.Stage,
 			job.Name,
 		}, "|")

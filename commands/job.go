@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"strings"
 
@@ -30,7 +31,8 @@ Synopsis:
 }
 
 type ListJobOption struct {
-	Num int `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of search to output."`
+	Num int  `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of search to output."`
+	Log bool `short:"t" long:"log" description:"Get a trace of a specific job of a project."`
 	// Scope string `long:"scope" value-name:"<scope>" default:"all" default-mask:"all" description:"Print only given scope. created, pending, running, failed, success, canceled, skipped, manual"`
 }
 
@@ -84,11 +86,31 @@ func (c *JobCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	listOpt := jobCommnadOption.ListOption
+
 	if len(parseArgs) > 0 {
 		jid, err := strconv.Atoi(parseArgs[0])
 		if err != nil {
 			c.UI.Error(fmt.Sprintf("Invalid job id. value: %s, error: %s", parseArgs[0], err))
 		}
+
+		if listOpt.Log {
+			trace, err := client.GetTraceFile(gitlabRemote.RepositoryFullName(), jid)
+			if err != nil {
+				c.UI.Error(err.Error())
+				return ExitCodeError
+			}
+
+			b, err := ioutil.ReadAll(trace)
+			if err != nil {
+				c.UI.Error(err.Error())
+				return ExitCodeError
+			}
+
+			c.UI.Message(string(b))
+			return ExitCodeOK
+		}
+
 		job, err := client.GetJob(gitlabRemote.RepositoryFullName(), jid)
 		if err != nil {
 			c.UI.Error(err.Error())
@@ -96,7 +118,6 @@ func (c *JobCommand) Run(args []string) int {
 		}
 		c.UI.Message(jobDetailOutput(job))
 	} else {
-		listOpt := jobCommnadOption.ListOption
 		var result string
 		jobs, err := client.GetProjectJobs(
 			makeProjectJobsOption(listOpt),
@@ -130,6 +151,7 @@ func projectJobOutput(jobs []gitlab.Job) []string {
 	for _, job := range jobs {
 		output := strings.Join([]string{
 			strconv.Itoa(job.ID),
+			job.Status,
 			job.Ref,
 			job.Commit.ShortID,
 			job.User.Username,

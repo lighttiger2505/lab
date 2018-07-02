@@ -130,6 +130,10 @@ func (c *PipelineCommand) Run(args []string) int {
 			makePiplineJobsOptions(),
 			pid,
 		)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeError
+		}
 		result := columnize.SimpleFormat(jobOutput(jobs))
 		c.UI.Message(result)
 	}
@@ -196,6 +200,9 @@ func jobOutput(jobs []*gitlab.Job) []string {
 		output := strings.Join([]string{
 			strconv.Itoa(job.ID),
 			job.Status,
+			job.Ref,
+			job.Commit.ShortID,
+			job.User.Username,
 			job.Stage,
 			job.Name,
 		}, "|")

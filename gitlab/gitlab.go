@@ -13,9 +13,9 @@ import (
 
 type Provider interface {
 	Init() error
-	GetSpecificRemote(namespace, project string) *git.RemoteInfo
 	GetCurrentRemote() (*git.RemoteInfo, error)
 	GetClient(remote *git.RemoteInfo) (Client, error)
+	GetJobClient(remote *git.RemoteInfo) (Job, error)
 	GetIssueClient(remote *git.RemoteInfo) (Issue, error)
 	GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error)
 }
@@ -44,15 +44,6 @@ func (p *GitlabProvider) Init() error {
 		return err
 	}
 	return nil
-}
-
-func (p *GitlabProvider) GetSpecificRemote(namespace, project string) *git.RemoteInfo {
-	domain := p.ConfigManager.GetTopDomain()
-	return &git.RemoteInfo{
-		Domain:     domain,
-		NameSpace:  namespace,
-		Repository: project,
-	}
 }
 
 func (p *GitlabProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
@@ -136,6 +127,14 @@ func (p *GitlabProvider) GetMergeRequestClient(remote *git.RemoteInfo) (MergeReq
 	return NewMergeRequestClient(gitlabClient), nil
 }
 
+func (p *GitlabProvider) GetJobClient(remote *git.RemoteInfo) (Job, error) {
+	gitlabClient, err := p.makeGitLabClient(remote)
+	if err != nil {
+		return nil, err
+	}
+	return NewJobClient(gitlabClient), nil
+}
+
 func (p *GitlabProvider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	p.UI.Message("That repository existing multi gitlab remote repository.")
@@ -197,10 +196,6 @@ type MockProvider struct {
 
 func (m *MockProvider) Init() error {
 	return m.MockInit()
-}
-
-func (m *MockProvider) GetSpecificRemote(namespace, project string) *git.RemoteInfo {
-	return m.MockGetSpecificRemote(namespace, project)
 }
 
 func (m *MockProvider) GetCurrentRemote() (*git.RemoteInfo, error) {

@@ -73,6 +73,12 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Provider: provider,
 			}, nil
 		},
+		"mr": func() (cli.Command, error) {
+			return &commands.MergeRequestCommand{
+				Ui:       ui,
+				Provider: provider,
+			}, nil
+		},
 		"project": func() (cli.Command, error) {
 			return &commands.ProjectCommand{
 				UI:       ui,
@@ -81,6 +87,12 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"pipeline": func() (cli.Command, error) {
 			return &commands.PipelineCommand{
+				UI:       ui,
+				Provider: provider,
+			}, nil
+		},
+		"job": func() (cli.Command, error) {
+			return &commands.JobCommand{
 				UI:       ui,
 				Provider: provider,
 			}, nil

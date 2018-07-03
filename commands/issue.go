@@ -98,8 +98,7 @@ Synopsis:
   lab issue <Issue IID> [-e] [-i <title>] [-m <message>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show issue
-  lab issue <Issue IID>
-`
+  lab issue <Issue IID>`
 	return parser
 }
 

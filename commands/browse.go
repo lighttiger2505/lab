@@ -66,7 +66,20 @@ type BrowseCommandOption struct {
 func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
 	opt.BrowseOption = newBrowseOption()
 	parser := flags.NewParser(opt, flags.Default)
-	parser.Usage = "browse [options]"
+	parser.Usage = `browse - Browse project page
+
+Synopsis:
+  # Browse project page (Show url or Copy url to clipboard by using option)
+  lab browse [-u | -c]
+
+  # Browse project file
+  lab browse ./README.md
+
+  # Browse issue page
+  lab browse -s issues
+
+  # Browse specific project page
+  lab browse -p <namespace>/<project>`
 	return parser
 }
 
@@ -78,7 +91,7 @@ type BrowseCommand struct {
 }
 
 func (c *BrowseCommand) Synopsis() string {
-	return "Browse repository page"
+	return "Browse project page"
 }
 
 func (c *BrowseCommand) Help() string {

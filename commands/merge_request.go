@@ -105,8 +105,7 @@ Synopsis:
   lab merge-request <MergeRequest IID> [-t <title>] [-d <description>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show merge request
-  lab merge-request <MergeRequest IID>
-`
+  lab merge-request <MergeRequest IID>`
 	return parser
 }
 

@@ -18,6 +18,7 @@ type Provider interface {
 	GetJobClient(remote *git.RemoteInfo) (Job, error)
 	GetIssueClient(remote *git.RemoteInfo) (Issue, error)
 	GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error)
+	GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error)
 }
 
 type GitlabProvider struct {
@@ -133,6 +134,14 @@ func (p *GitlabProvider) GetJobClient(remote *git.RemoteInfo) (Job, error) {
 		return nil, err
 	}
 	return NewJobClient(gitlabClient), nil
+}
+
+func (p *GitlabProvider) GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error) {
+	gitlabClient, err := p.makeGitLabClient(remote)
+	if err != nil {
+		return nil, err
+	}
+	return NewProjectVariableClient(gitlabClient), nil
 }
 
 func (p *GitlabProvider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {

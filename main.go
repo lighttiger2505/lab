@@ -109,6 +109,12 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Provider: provider,
 			}, nil
 		},
+		"project-variable": func() (cli.Command, error) {
+			return &commands.ProjectVariableCommand{
+				UI:       ui,
+				Provider: provider,
+			}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

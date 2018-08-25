@@ -195,12 +195,13 @@ func ParceRepositoryFullName(webURL string) string {
 
 type MockProvider struct {
 	Provider
-	MockInit                  func() error
-	MockGetSpecificRemote     func(namespace, project string) *git.RemoteInfo
-	MockGetCurrentRemote      func() (*git.RemoteInfo, error)
-	MockGetClient             func(remote *git.RemoteInfo) (Client, error)
-	MockGetIssueClient        func(remote *git.RemoteInfo) (Issue, error)
-	MockGetMergeRequestClient func(remote *git.RemoteInfo) (MergeRequest, error)
+	MockInit                     func() error
+	MockGetSpecificRemote        func(namespace, project string) *git.RemoteInfo
+	MockGetCurrentRemote         func() (*git.RemoteInfo, error)
+	MockGetClient                func(remote *git.RemoteInfo) (Client, error)
+	MockGetIssueClient           func(remote *git.RemoteInfo) (Issue, error)
+	MockGetMergeRequestClient    func(remote *git.RemoteInfo) (MergeRequest, error)
+	MockGetProjectVariableClient func(remote *git.RemoteInfo) (ProjectVariable, error)
 }
 
 func (m *MockProvider) Init() error {
@@ -221,4 +222,8 @@ func (m *MockProvider) GetIssueClient(remote *git.RemoteInfo) (Issue, error) {
 
 func (m *MockProvider) GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error) {
 	return m.MockGetMergeRequestClient(remote)
+}
+
+func (m *MockProvider) GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error) {
+	return m.MockGetProjectVariableClient(remote)
 }

@@ -37,8 +37,7 @@ install: $(SRCS)
 
 .PHONY: coverage
 coverage:
-	go get -u github.com/haya14busa/goverage
-	goverage -v -coverprofile=coverage.out ./...
+	go test -v -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
 
 .PHONY: cross-build

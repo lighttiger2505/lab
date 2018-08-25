@@ -169,7 +169,7 @@ func makePipelineOptions(listPipelineOption *ListPipelineOption) *gitlab.ListPro
 		YamlErrors:  gitlab.Bool(false),
 		Name:        gitlab.String(""),
 		Username:    gitlab.String(""),
-		OrderBy:     gitlab.OrderBy(gitlab.OrderByValue(listPipelineOption.OrderBy)),
+		OrderBy:     gitlab.String(listPipelineOption.OrderBy),
 		Sort:        gitlab.String(listPipelineOption.Sort),
 		ListOptions: *listOption,
 	}

@@ -121,7 +121,7 @@ preferreddomains:
 ## ToDos
 
 - variable command
-    - [ ] Project-level Variables
+    - [x] Project-level Variables
     - [ ] Group-level Variables
 - use template
     - [ ] issue template

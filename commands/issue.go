@@ -435,7 +435,7 @@ func makeUpdateIssueOption(opt *CreateUpdateIssueOption, title, description stri
 		updateIssueOption.StateEvent = gitlab.String(opt.StateEvent)
 	}
 	if opt.AssigneeID != 0 {
-		updateIssueOption.AssigneeID = gitlab.Int(opt.AssigneeID)
+		updateIssueOption.AssigneeIDs = []int{opt.AssigneeID}
 	}
 	return updateIssueOption
 }

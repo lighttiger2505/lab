@@ -117,3 +117,24 @@ preferreddomains:
 - gitlab.ssl.sample.jp
 - gitlab.ssl.lowpriority.jp
 ```
+
+## ToDos
+
+- variable command
+    - [ ] Project-level Variables
+    - [ ] Group-level Variables
+- use template
+    - [ ] issue template
+    - [ ] merge request template
+- [ ] pipeline actions
+    - [ ] cancel
+    - [ ] retry
+- [ ] tags command
+- [ ] project-member command
+- workflow automation command
+    - [ ] create
+        - create new project and cloning repository
+    - [ ] fork
+        - create fork project and cloning repository
+    - [ ] flow
+        - create issue and create `WIP:` merge request

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
@@ -49,7 +50,7 @@ func projectVaribaleOperation(opt ProjectVaribleCommandOption, args []string) Pr
 	createUpdateOption := opt.CreateUpdateOption
 
 	if createUpdateOption.Add {
-		return UpdateProjectVariable
+		return CreateProjectVariable
 	}
 	if createUpdateOption.Update {
 		return UpdateProjectVariable
@@ -96,6 +97,12 @@ func (c *ProjectVariableCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	op := projectVaribaleOperation(opt, parseArgs)
+	if err := validProjectVariableArgs(op, parseArgs); err != nil {
+		c.UI.Error(err.Error())
+		return ExitCodeError
+	}
+
 	// Initialize provider
 	if err := c.Provider.Init(); err != nil {
 		c.UI.Error(err.Error())
@@ -116,20 +123,82 @@ func (c *ProjectVariableCommand) Run(args []string) int {
 	}
 
 	// Do issue operation
-	switch projectVaribaleOperation(opt, parseArgs) {
+	switch op {
+	case CreateProjectVariable:
+		_, err := client.CreateVariable(
+			gitlabRemote.RepositoryFullName(),
+			makeCreateProjectVariableOption(parseArgs[0], parseArgs[1]),
+		)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeError
+		}
+	case UpdateProjectVariable:
+		_, err := client.UpdateVariable(
+			gitlabRemote.RepositoryFullName(),
+			parseArgs[0],
+			makeUpdateProjectVariableOption(parseArgs[0], parseArgs[1]),
+		)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeError
+		}
+	case RemoveProjectVariable:
+		err := client.RemoveVariable(
+			gitlabRemote.RepositoryFullName(),
+			parseArgs[0],
+		)
+		if err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeError
+		}
 	case ListProjectVariable:
-		users, err := client.GetVariables(
+		variables, err := client.GetVariables(
 			gitlabRemote.RepositoryFullName(),
 		)
 		if err != nil {
 			c.UI.Error(err.Error())
 			return ExitCodeError
 		}
-		result := columnize.SimpleFormat(projectVariableOutput(users))
+		result := columnize.SimpleFormat(projectVariableOutput(variables))
 		c.UI.Message(result)
 	}
 
 	return ExitCodeOK
+}
+
+func validProjectVariableArgs(op ProjectVariableOperation, args []string) error {
+	switch op {
+	case CreateProjectVariable:
+		if len(args) < 2 {
+			return fmt.Errorf("Usage: lab project-variable -a <key> <value>")
+		}
+	case UpdateProjectVariable:
+		if len(args) < 2 {
+			return fmt.Errorf("Usage: lab project-variable -u <key> <value>")
+		}
+	case RemoveProjectVariable:
+		if len(args) < 1 {
+			return fmt.Errorf("Usage: lab project-variable -d <key>")
+		}
+	}
+	return nil
+}
+
+func makeCreateProjectVariableOption(key, value string) *gitlab.CreateVariableOptions {
+	opt := &gitlab.CreateVariableOptions{
+		Key:   gitlab.String(key),
+		Value: gitlab.String(value),
+	}
+	return opt
+}
+
+func makeUpdateProjectVariableOption(key, value string) *gitlab.UpdateVariableOptions {
+	opt := &gitlab.UpdateVariableOptions{
+		Key:   gitlab.String(key),
+		Value: gitlab.String(value),
+	}
+	return opt
 }
 
 func projectVariableOutput(variables []*gitlab.ProjectVariable) []string {

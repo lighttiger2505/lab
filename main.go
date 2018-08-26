@@ -115,6 +115,12 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Provider: provider,
 			}, nil
 		},
+		"issue-template": func() (cli.Command, error) {
+			return &commands.IssueTemplateCommand{
+				UI:       ui,
+				Provider: provider,
+			}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

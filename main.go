@@ -121,6 +121,12 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Provider: provider,
 			}, nil
 		},
+		"merge-request-template": func() (cli.Command, error) {
+			return &commands.MergeRequestTemplateCommand{
+				UI:       ui,
+				Provider: provider,
+			}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

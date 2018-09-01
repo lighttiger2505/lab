@@ -21,8 +21,7 @@ Darwin) os="darwin";;
 *)      echo "OS not supported" && exit 1;;
 esac
 
-github_url="https://github.com/lighttiger2505/lab"
-latest=$(curl -sL "${github_url}/tags" | grep tag-name | grep --only '>v[0-9\.]\+<' | head -n1 | cut -c 3- | rev | cut -c 2- | rev)
-curl -sL "${github_url}/releases/download/v${latest}/lab-v${latest}-${os}-${machine}.tar.gz" | tar -C /tmp/ -xzf -
+latest=$(curl -sL 'https://api.github.com/repos/lighttiger2505/lab/releases/latest' | grep tag_name | grep --only 'v[0-9\.]\+' | cut -c2-)
+curl -sL "https://github.com/lighttiger2505/lab/releases/download/v${latest}/lab-v${latest}-${os}-${machine}.tar.gz" | tar -C /tmp/ -xzf -
 cp /tmp/${os}-${machine}/lab /usr/local/bin/lab
 echo "Successfully installed lab into /usr/local/bin/"

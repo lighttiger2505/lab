@@ -16,7 +16,7 @@ var mockGitClient = &git.MockClient{
 		return []*git.RemoteInfo{
 			&git.RemoteInfo{
 				Domain:     "gitlab.ssl.domain1.jp",
-				NameSpace:  "namespace",
+				Group:      "group",
 				Repository: "project",
 			},
 		}, nil

@@ -49,7 +49,7 @@ var mockUserProvider = &lab.MockProvider{
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
 		return &git.RemoteInfo{
 			Domain:     "domain",
-			NameSpace:  "namespace",
+			Group:      "group",
 			Repository: "repository",
 		}, nil
 	},

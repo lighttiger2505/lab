@@ -91,7 +91,7 @@ func TestGetClient_TokenNotFound(t *testing.T) {
 
 	remoteInfo := &git.RemoteInfo{
 		Domain:     "gitlab.ssl.unknown.jp",
-		NameSpace:  "namespace",
+		Group:      "group",
 		Repository: "repository",
 	}
 

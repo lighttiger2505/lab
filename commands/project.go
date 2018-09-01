@@ -16,7 +16,7 @@ type ProjectCommnadOption struct {
 	OutputOption *ListProjectOption `group:"List Options"`
 }
 
-func newIssueCommandParser(opt *ProjectCommnadOption) *flags.Parser {
+func newProjectCommandParser(opt *ProjectCommnadOption) *flags.Parser {
 	opt.OutputOption = newListProjectOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = "project [options]"
@@ -47,7 +47,7 @@ func (c *ProjectCommand) Synopsis() string {
 func (c *ProjectCommand) Help() string {
 	buf := &bytes.Buffer{}
 	var projectCommandOption ProjectCommnadOption
-	projectCommandParser := newIssueCommandParser(&projectCommandOption)
+	projectCommandParser := newProjectCommandParser(&projectCommandOption)
 	projectCommandParser.WriteHelp(buf)
 	return buf.String()
 }
@@ -55,7 +55,7 @@ func (c *ProjectCommand) Help() string {
 func (c *ProjectCommand) Run(args []string) int {
 	// Parse flags
 	var projectCommandOption ProjectCommnadOption
-	projectCommandParser := newIssueCommandParser(&projectCommandOption)
+	projectCommandParser := newProjectCommandParser(&projectCommandOption)
 	if _, err := projectCommandParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError

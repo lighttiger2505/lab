@@ -10,11 +10,25 @@ type RemoteInfo struct {
 	Remote     string
 	Domain     string
 	NameSpace  string
+	SubGroup   string
 	Repository string
 }
 
 func NewRemoteInfo(remote, url string) *RemoteInfo {
-	splitUrl := regexp.MustCompile("/|:|@").Split(url, -1)
+	url = strings.TrimPrefix(url, "ssh://")
+	url = strings.TrimPrefix(url, "https://")
+	url = strings.TrimPrefix(url, "git@")
+	splitUrl := regexp.MustCompile("/|:").Split(url, -1)
+	if len(splitUrl) > 3 {
+		// Apply subgroup
+		return &RemoteInfo{
+			Remote:     remote,
+			Repository: strings.TrimSuffix(splitUrl[len(splitUrl)-1], ".git"),
+			SubGroup:   splitUrl[len(splitUrl)-2],
+			NameSpace:  splitUrl[len(splitUrl)-3],
+			Domain:     splitUrl[len(splitUrl)-4],
+		}
+	}
 	return &RemoteInfo{
 		Remote:     remote,
 		Repository: strings.TrimSuffix(splitUrl[len(splitUrl)-1], ".git"),
@@ -24,6 +38,9 @@ func NewRemoteInfo(remote, url string) *RemoteInfo {
 }
 
 func (r *RemoteInfo) RepositoryFullName() string {
+	if r.SubGroup != "" {
+		return fmt.Sprintf("%s/%s/%s", r.NameSpace, r.SubGroup, r.Repository)
+	}
 	return fmt.Sprintf("%s/%s", r.NameSpace, r.Repository)
 }
 

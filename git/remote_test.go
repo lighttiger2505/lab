@@ -38,13 +38,43 @@ var newRemoteTests = []newGitRemoteTest{
 			Repository: "repository",
 		},
 	},
+	{
+		url: "ssh://git@gitlab.ssl.domain.jp/namespace/subgroup/repository.git",
+		remoteInfo: &RemoteInfo{
+			Remote:     "origin",
+			Domain:     "gitlab.ssl.domain.jp",
+			NameSpace:  "namespace",
+			SubGroup:   "subgroup",
+			Repository: "repository",
+		},
+	},
+	{
+		url: "git@gitlab.ssl.domain.jp:namespace/subgroup/repository.git",
+		remoteInfo: &RemoteInfo{
+			Remote:     "origin",
+			Domain:     "gitlab.ssl.domain.jp",
+			NameSpace:  "namespace",
+			SubGroup:   "subgroup",
+			Repository: "repository",
+		},
+	},
+	{
+		url: "https://gitlab.ssl.domain.jp/namespace/subgroup/repository",
+		remoteInfo: &RemoteInfo{
+			Remote:     "origin",
+			Domain:     "gitlab.ssl.domain.jp",
+			NameSpace:  "namespace",
+			SubGroup:   "subgroup",
+			Repository: "repository",
+		},
+	},
 }
 
 func TestNewGitRemote(t *testing.T) {
 	for i, test := range newRemoteTests {
 		got := NewRemoteInfo("origin", test.url)
 		if !reflect.DeepEqual(test.remoteInfo, got) {
-			t.Errorf("#%d: bad return value want %#v got %#v", i, test.remoteInfo, got)
+			t.Errorf("#%d: bad return value \nwant %#v \ngot  %#v", i, test.remoteInfo, got)
 		}
 	}
 }
@@ -53,6 +83,21 @@ var testRemoteInfo = &RemoteInfo{
 	Domain:     "gitlab.ssl.domain.jp",
 	NameSpace:  "Namespace",
 	Repository: "Repository",
+}
+
+var testRemoteInfoWithSubgroup = &RemoteInfo{
+	Domain:     "gitlab.ssl.domain.jp",
+	NameSpace:  "Namespace",
+	SubGroup:   "subgroup",
+	Repository: "Repository",
+}
+
+func TestRepositoryFullName(t *testing.T) {
+	got := testRemoteInfoWithSubgroup.RepositoryUrl()
+	want := "https://gitlab.ssl.domain.jp/Namespace/subgroup/Repository"
+	if want != got {
+		t.Errorf("bad return value \nwant %#v \ngot  %#v", want, got)
+	}
 }
 
 func TestRepositoryUrl(t *testing.T) {

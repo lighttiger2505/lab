@@ -133,7 +133,7 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 	if browseOption.Project != "" {
 		namespace, project := browseOption.NameSpaceAndProject()
-		gitlabRemote.NameSpace = namespace
+		gitlabRemote.Group = namespace
 		gitlabRemote.Repository = project
 	}
 

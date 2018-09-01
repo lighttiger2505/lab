@@ -79,7 +79,7 @@ func TestRemoteInfos(t *testing.T) {
 	want := &RemoteInfo{
 		Remote:     "origin",
 		Domain:     "gitlab.com",
-		NameSpace:  "lighttiger2505",
+		Group:      "lighttiger2505",
 		Repository: "lab",
 	}
 	if !reflect.DeepEqual(want, got) {

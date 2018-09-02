@@ -11,8 +11,6 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-const MERGE_REQUEST_TEMPLATE = ".gitlab/merge_request_templates"
-
 type MergeRequestTemplateCommnadOption struct {
 }
 
@@ -69,7 +67,7 @@ func (c *MergeRequestTemplateCommand) Run(args []string) int {
 	}
 
 	if len(parceArgs) > 0 {
-		filename := MERGE_REQUEST_TEMPLATE + "/" + parceArgs[0]
+		filename := MergeRequestTemplateDir + "/" + parceArgs[0]
 		res, err := client.GetFile(
 			gitlabRemote.RepositoryFullName(),
 			filename,
@@ -98,7 +96,7 @@ func (c *MergeRequestTemplateCommand) Run(args []string) int {
 
 func makeMergeRequestTemplateOption() *gitlab.ListTreeOptions {
 	opt := &gitlab.ListTreeOptions{
-		Path: gitlab.String(MERGE_REQUEST_TEMPLATE),
+		Path: gitlab.String(MergeRequestTemplateDir),
 		Ref:  gitlab.String("master"),
 	}
 	return opt

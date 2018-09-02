@@ -18,6 +18,7 @@ type CreateUpdateMergeRequestOption struct {
 	Edit         bool   `short:"e" long:"edit" description:"Edit the merge request on editor. Start the editor with the contents in the given title and message options."`
 	Title        string `short:"i" long:"title" value-name:"<title>" description:"The title of an merge request"`
 	Message      string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
+	Template     string `short:"p" long:"template" value-name:"<merge request template>" description:"The template of an merge request"`
 	SourceBranch string `short:"s" long:"source" description:"The source branch"`
 	TargetBranch string `short:"t" long:"target" default:"master" default-mask:"master" description:"The target branch"`
 	StateEvent   string `long:"state-event" description:"Change the status. \"opened\", \"closed\""`
@@ -257,7 +258,23 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	case CreateMergeRequestOnEditor:
 		// Starting editor for edit title and description
 		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
-		template := editMergeRequestTemplate(createUpdateOption.Title, createUpdateOption.Message)
+
+		var title, message string
+		title = createUpdateOption.Title
+		templateFilename := mergeRequestCommandOption.CreateUpdateOption.Template
+		if templateFilename != "" {
+			templateContent, err := c.getMergeRequestTemplateContent(templateFilename, gitlabRemote)
+			if err != nil {
+				c.Ui.Error(err.Error())
+				return ExitCodeError
+			}
+			message = templateContent
+		}
+		if createUpdateOption.Message != "" {
+			message = createUpdateOption.Message
+		}
+
+		template := editMergeRequestTemplate(title, message)
 		title, message, err := editIssueTitleAndDesc(template, c.EditFunc)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -491,12 +508,29 @@ func outProjectMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
 }
 
 func editMergeRequestTemplate(title, description string) string {
-	message := `<!-- Write a message for this merge request. The first block of text is the title -->
-%s
+	message := `%s
 
-<!-- the rest is the description.  -->
 %s
 `
 	message = fmt.Sprintf(message, title, description)
 	return message
+}
+
+func (c *MergeRequestCommand) getMergeRequestTemplateContent(templateFilename string, gitlabRemote *git.RemoteInfo) (string, error) {
+	templateClient, err := c.Provider.GetRepositoryClient(gitlabRemote)
+	if err != nil {
+		return "", err
+	}
+
+	filename := MergeRequestTemplateDir + "/" + templateFilename
+	res, err := templateClient.GetFile(
+		gitlabRemote.RepositoryFullName(),
+		filename,
+		makeShowMergeRequestTemplateOption(),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return res, nil
 }

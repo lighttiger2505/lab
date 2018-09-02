@@ -259,10 +259,8 @@ func TestProjectIssueOutput(t *testing.T) {
 
 func TestEditIssueMessage(t *testing.T) {
 	got := editIssueMessage("title", "description")
-	want := `<!-- Write a message for this issue. The first block of text is the title -->
-title
+	want := `title
 
-<!-- the rest is the description.  -->
 description
 `
 	if got != want {

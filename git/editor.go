@@ -155,10 +155,8 @@ func readTitleAndBody(reader io.Reader, cs string) (title, body string, err erro
 	}
 	text := string(b)
 
-	// Sweep markdown text
-	sweepText := sweepMarkdownComment(text)
 	// Parce title and body from message file
-	title, body = parceTitleAndBody(sweepText)
+	title, body = parceTitleAndBody(text)
 	return
 }
 

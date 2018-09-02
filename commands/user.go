@@ -19,12 +19,11 @@ type UserCommandOption struct {
 func newUserOptionParser(opt *UserCommandOption) *flags.Parser {
 	opt.ListOption = newListUserOption()
 	parser := flags.NewParser(opt, flags.Default)
-	parser.Usage = "user [options]"
-	parser.Usage = `issue - list a user
+	parser.Usage = `user - list a user
 
 Synopsis:
   # List user
-  lab issue [-n <num>] [--search=<search word>] [-A]`
+  lab user [-n <num>] [--search=<search word>] [-A]`
 	return parser
 }
 

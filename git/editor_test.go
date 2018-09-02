@@ -59,7 +59,6 @@ A title continues
 
 A body
 A body continues
-<!-- comment -->
 `
 	r := strings.NewReader(message)
 	reader := bufio.NewReader(r)

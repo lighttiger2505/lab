@@ -124,13 +124,13 @@ preferreddomains:
     - [x] Project-level Variables
     - [ ] Group-level Variables
 - use template
-    - [ ] issue template
-    - [ ] merge request template
+    - [x] issue template
+    - [x] merge request template
 - [ ] pipeline actions
     - [ ] cancel
     - [ ] retry
-- [ ] tags command
-- [ ] project-member command
+- [ ] label command
+- [x] project-member command
 - workflow automation command
     - [ ] create
         - create new project and cloning repository

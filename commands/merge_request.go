@@ -522,7 +522,7 @@ func (c *MergeRequestCommand) getMergeRequestTemplateContent(templateFilename st
 		return "", err
 	}
 
-	filename := MERGE_REQUEST_TEMPLATE_DIR + "/" + templateFilename
+	filename := MergeRequestTemplateDir + "/" + templateFilename
 	res, err := templateClient.GetFile(
 		gitlabRemote.RepositoryFullName(),
 		filename,

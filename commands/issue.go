@@ -540,7 +540,7 @@ func (c *IssueCommand) getIssueTemplateContent(templateFilename string, gitlabRe
 		return "", err
 	}
 
-	filename := ISSUE_TEMPLATE_DIR + "/" + templateFilename
+	filename := IssueTemplateDir + "/" + templateFilename
 	res, err := issueTemplateClient.GetFile(
 		gitlabRemote.RepositoryFullName(),
 		filename,

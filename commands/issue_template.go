@@ -11,8 +11,6 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-const ISSUE_TEMPLATE = ".gitlab/issue_templates"
-
 type IssueTemplateCommnadOption struct {
 }
 
@@ -69,7 +67,7 @@ func (c *IssueTemplateCommand) Run(args []string) int {
 	}
 
 	if len(parceArgs) > 0 {
-		filename := ISSUE_TEMPLATE + "/" + parceArgs[0]
+		filename := IssueTemplateDir + "/" + parceArgs[0]
 		res, err := client.GetFile(
 			gitlabRemote.RepositoryFullName(),
 			filename,
@@ -98,7 +96,7 @@ func (c *IssueTemplateCommand) Run(args []string) int {
 
 func makeIssueTemplateOption() *gitlab.ListTreeOptions {
 	opt := &gitlab.ListTreeOptions{
-		Path: gitlab.String(ISSUE_TEMPLATE),
+		Path: gitlab.String(IssueTemplateDir),
 		Ref:  gitlab.String("master"),
 	}
 	return opt

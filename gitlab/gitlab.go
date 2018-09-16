@@ -198,8 +198,22 @@ func registedDomainRemote(remoteInfos []*git.RemoteInfo, resistedDomains []strin
 }
 
 func ParceRepositoryFullName(webURL string) string {
-	sp := strings.Split(webURL, "/")
-	return strings.Join([]string{sp[3], sp[4]}, "/")
+	splitURL := strings.Split(webURL, "/")[3:]
+
+	subPageWords := []string{
+		"issues",
+		"merge_requests",
+	}
+	var subPageIndex int
+	for i, word := range splitURL {
+		for _, subPageWord := range subPageWords {
+			if word == subPageWord {
+				subPageIndex = i
+			}
+		}
+	}
+
+	return strings.Join(splitURL[:subPageIndex], "/")
 }
 
 type MockProvider struct {

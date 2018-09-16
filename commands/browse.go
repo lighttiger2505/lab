@@ -29,32 +29,15 @@ func newBrowseOption() *BrowseOption {
 	return &BrowseOption{}
 }
 
-func (g *BrowseOption) IsValid() error {
-	var errMsg []string
-	var tmpErr error
-
-	tmpErr = validRepository(g.Project)
-	if tmpErr != nil {
-		errMsg = append(errMsg, tmpErr.Error())
-	}
-
-	if len(errMsg) > 0 {
-		return fmt.Errorf("Invalid value in browse option. %v", errMsg)
-	}
-	return nil
-}
-
-func validRepository(value string) error {
-	splited := strings.Split(value, "/")
-	if value != "" && len(splited) != 2 {
-		return fmt.Errorf("Invalid repository \"%s\". Assumed input style is \"Namespace/Project\".", value)
-	}
-	return nil
-}
-
-func (g *BrowseOption) NameSpaceAndProject() (namespace, project string) {
+func (g *BrowseOption) NameSpaceAndProject() (group, subgroup, project string) {
 	splited := strings.Split(g.Project, "/")
-	namespace = splited[0]
+	if len(splited) == 3 {
+		group = splited[0]
+		subgroup = splited[1]
+		project = splited[2]
+		return
+	}
+	group = splited[0]
 	project = splited[1]
 	return
 }
@@ -112,12 +95,7 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Validate option
 	browseOption := browseCommnadOption.BrowseOption
-	if err := browseOption.IsValid(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
 
 	// Initialize provider
 	if err := c.Provider.Init(); err != nil {
@@ -132,8 +110,9 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 	if browseOption.Project != "" {
-		namespace, project := browseOption.NameSpaceAndProject()
-		gitlabRemote.Group = namespace
+		group, subgroup, project := browseOption.NameSpaceAndProject()
+		gitlabRemote.Group = group
+		gitlabRemote.SubGroup = subgroup
 		gitlabRemote.Repository = project
 	}
 

@@ -44,8 +44,8 @@ var issue = &gitlab.Issue{
 }
 
 var issues = []*gitlab.Issue{
-	&gitlab.Issue{IID: 12, Title: "Title12", WebURL: "http://gitlab.jp/namespace/repo12"},
-	&gitlab.Issue{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
+	&gitlab.Issue{IID: 12, Title: "Title12", WebURL: "http://gitlab.jp/namespace/repo/issues/12"},
+	&gitlab.Issue{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo/issues/13"},
 }
 
 var mockGitlabIssueClient = &lab.MockLabIssueClient{
@@ -142,7 +142,7 @@ func TestIssueCommandRun_ListProjectIssue(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "namespace/repo12  12  Title12\nnamespace/repo13  13  Title13\n"
+	want := "namespace/repo  12  Title12\nnamespace/repo  13  Title13\n"
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", got, want)
@@ -238,8 +238,8 @@ func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
 func TestIssueOutput(t *testing.T) {
 	got := issueOutput(issues)
 	want := []string{
-		"namespace/repo12|12|Title12",
-		"namespace/repo13|13|Title13",
+		"namespace/repo|12|Title12",
+		"namespace/repo|13|Title13",
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("bad return value \nwant %#v \ngot  %#v", got, want)

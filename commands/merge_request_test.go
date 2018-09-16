@@ -38,8 +38,8 @@ var mergeRequest = &gitlab.MergeRequest{
 }
 
 var mergeRequests []*gitlab.MergeRequest = []*gitlab.MergeRequest{
-	&gitlab.MergeRequest{IID: 12, Title: "Title12", WebURL: "http://gitlab.jp/namespace/repo12"},
-	&gitlab.MergeRequest{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo13"},
+	&gitlab.MergeRequest{IID: 12, Title: "Title12", WebURL: "http://gitlab.jp/namespace/repo/merge_requests/12"},
+	&gitlab.MergeRequest{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo/merge_requests/13"},
 }
 
 var mockGitlabMergeRequestClient = &lab.MockLabMergeRequestClient{
@@ -105,7 +105,7 @@ func TestMergeRequestCommandRun_ListAll(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "namespace/repo12  12  Title12\nnamespace/repo13  13  Title13\n"
+	want := "namespace/repo  12  Title12\nnamespace/repo  13  Title13\n"
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}

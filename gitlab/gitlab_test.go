@@ -256,9 +256,37 @@ func TestRegistedDomainRemote_ReturnNil(t *testing.T) {
 }
 
 func TestParceRepositoryFullName(t *testing.T) {
-	got := ParceRepositoryFullName("https://gitlab.ssl.iridge.jp/proj/repo/issues/12")
-	want := "proj/repo"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
+	tests := []struct {
+		name string
+		arg  string
+		want string
+	}{
+		{
+			"project issue",
+			"https://gitlab.com/group/project/issues/12",
+			"group/project",
+		},
+		{
+			"subgroup issue",
+			"https://gitlab.com/group/subgroup/project/issues/12",
+			"group/subgroup/project",
+		},
+		{
+			"project mr",
+			"https://gitlab.com/group/project/issues/12",
+			"group/project",
+		},
+		{
+			"subgroup mr",
+			"https://gitlab.com/group/subgroup/project/issues/12",
+			"group/subgroup/project",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParceRepositoryFullName(tt.arg); got != tt.want {
+				t.Errorf("ParceRepositoryFullName() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

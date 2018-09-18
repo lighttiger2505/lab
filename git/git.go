@@ -26,7 +26,7 @@ func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	// Get remote repositorys
 	remotes, err := gitOutput("remote")
 	if err != nil {
-		return nil, fmt.Errorf("Failed collect git remove infos. %s", err)
+		return nil, fmt.Errorf("Failed collect git remote. %s", err)
 	}
 	if len(remotes) == 0 {
 		return nil, errors.New("No remote setting in this repository")
@@ -162,12 +162,16 @@ var execCommand = exec.Command
 
 func gitOutput(input ...string) (outputs []string, err error) {
 	output, err := execCommand("git", input...).CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("failed git command.\n%s\n%s", output, err)
+	}
+
 	for _, line := range strings.Split(string(output), "\n") {
 		if strings.TrimSpace(line) != "" {
 			outputs = append(outputs, string(line))
 		}
 	}
-	return outputs, err
+	return outputs, nil
 }
 
 func CommentChar() string {

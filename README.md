@@ -17,7 +17,7 @@ make ensure
 go install
 ```
 
-### Binary dowmload
+### Binary download
 
 Please run the install script:
 

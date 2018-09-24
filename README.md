@@ -17,13 +17,15 @@ make ensure
 go install
 ```
 
-### Binary donwload
+### Binary download
 
-Please running install script.
+Please run the install script:
 
 ```sh
 curl -s https://raw.githubusercontent.com/lighttiger2505/lab/master/install.sh | bash
 ```
+
+The script installs the `lab` command in `/usr/local/bin`. For more details, see the `install.sh` [source code](install.sh).
 
 ## Features
 

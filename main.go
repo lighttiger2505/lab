@@ -127,6 +127,12 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Provider: provider,
 			}, nil
 		},
+		"label": func() (cli.Command, error) {
+			return &commands.LabelCommand{
+				UI:       ui,
+				Provider: provider,
+			}, nil
+		},
 	}
 
 	exitStatus, err := c.Run()

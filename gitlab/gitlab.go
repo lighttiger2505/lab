@@ -61,14 +61,18 @@ func (p *GitlabProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
 		return nil, fmt.Errorf("Failed getting remote info. Error: %v", err.Error())
 	}
 
-	if len(gitlabRemotes) == 1 {
-		return gitlabRemotes[0], nil
-	} else if len(gitlabRemotes) < 1 {
+	if len(gitlabRemotes) == 0 {
 		// Current directory is not git repository
 		return nil, fmt.Errorf("Not found gitlab remote repository")
 	}
 
-	gitlabRemote := registedDomainRemote(gitlabRemotes, p.ConfigManager.Config.PreferredDomains)
+	processedRemotes := excludeDuplicateDomain(gitlabRemotes)
+
+	if len(gitlabRemotes) == 1 {
+		return gitlabRemotes[0], nil
+	}
+
+	gitlabRemote := registedDomainRemote(processedRemotes, p.ConfigManager.Config.PreferredDomains)
 	if gitlabRemote == nil {
 		// Get remote repository selected by user input
 		var err error
@@ -83,6 +87,27 @@ func (p *GitlabProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
 		}
 	}
 	return gitlabRemote, nil
+}
+
+func excludeDuplicateDomain(remotes []*git.RemoteInfo) []*git.RemoteInfo {
+	domainRemotesMap := map[string][]*git.RemoteInfo{}
+	for _, remote := range remotes {
+		domain := remote.Domain
+		domainRemotesMap[domain] = append(domainRemotesMap[domain], remote)
+	}
+
+	processedRemotes := []*git.RemoteInfo{}
+	for _, v := range domainRemotesMap {
+		var tmpRemote = v[0]
+		for _, remote := range v {
+			if remote.Remote == "origin" {
+				tmpRemote = remote
+				break
+			}
+		}
+		processedRemotes = append(processedRemotes, tmpRemote)
+	}
+	return processedRemotes
 }
 
 func (p *GitlabProvider) makeGitLabClient(remote *git.RemoteInfo) (*gitlab.Client, error) {

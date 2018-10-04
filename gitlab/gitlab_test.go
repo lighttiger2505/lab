@@ -290,3 +290,116 @@ func TestParceRepositoryFullName(t *testing.T) {
 		})
 	}
 }
+
+func Test_excludeDuplicateDomain(t *testing.T) {
+	tests := []struct {
+		name string
+		arg  []*git.RemoteInfo
+		want []*git.RemoteInfo
+	}{
+		{
+			name: "has git submodule",
+			arg: []*git.RemoteInfo{
+				&git.RemoteInfo{
+					Remote: "origin",
+					Domain: "gitlab.com",
+				},
+				&git.RemoteInfo{
+					Remote: "lib1",
+					Domain: "gitlab.com",
+				},
+				&git.RemoteInfo{
+					Remote: "lib2",
+					Domain: "gitlab.com",
+				},
+			},
+			want: []*git.RemoteInfo{
+				&git.RemoteInfo{
+					Remote: "origin",
+					Domain: "gitlab.com",
+				},
+			},
+		},
+		{
+			name: "has git submodule no origin",
+			arg: []*git.RemoteInfo{
+				&git.RemoteInfo{
+					Remote: "lib1",
+					Domain: "gitlab.com",
+				},
+				&git.RemoteInfo{
+					Remote: "lib2",
+					Domain: "gitlab.com",
+				},
+			},
+			want: []*git.RemoteInfo{
+				&git.RemoteInfo{
+					Remote: "lib1",
+					Domain: "gitlab.com",
+				},
+			},
+		},
+		{
+			name: "multi domain",
+			arg: []*git.RemoteInfo{
+				&git.RemoteInfo{
+					Remote: "origin",
+					Domain: "gitlab.com",
+				},
+				&git.RemoteInfo{
+					Remote: "xxx",
+					Domain: "gitlab.ssl.xxx.com",
+				},
+			},
+			want: []*git.RemoteInfo{
+				&git.RemoteInfo{
+					Remote: "origin",
+					Domain: "gitlab.com",
+				},
+				&git.RemoteInfo{
+					Remote: "xxx",
+					Domain: "gitlab.ssl.xxx.com",
+				},
+			},
+		},
+		{
+			name: "has submoduel and multi domain",
+			arg: []*git.RemoteInfo{
+				&git.RemoteInfo{
+					Remote: "origin",
+					Domain: "gitlab.com",
+				},
+				&git.RemoteInfo{
+					Remote: "lib1",
+					Domain: "gitlab.com",
+				},
+				&git.RemoteInfo{
+					Remote: "xxx1",
+					Domain: "gitlab.ssl.xxx.com",
+				},
+				&git.RemoteInfo{
+					Remote: "xxx2",
+					Domain: "gitlab.ssl.xxx.com",
+				},
+			},
+			want: []*git.RemoteInfo{
+				&git.RemoteInfo{
+					Remote: "origin",
+					Domain: "gitlab.com",
+				},
+				&git.RemoteInfo{
+					Remote: "xxx1",
+					Domain: "gitlab.ssl.xxx.com",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := excludeDuplicateDomain(tt.arg)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("excludeDuplicateDomain() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

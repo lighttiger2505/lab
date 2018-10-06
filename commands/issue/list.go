@@ -32,7 +32,7 @@ type listMethod struct {
 	project string
 }
 
-func (m *listMethod) process() (string, error) {
+func (m *listMethod) Process() (string, error) {
 	issues, err := m.client.GetProjectIssues(
 		makeProjectIssueOption(m.opt),
 		m.project,
@@ -42,6 +42,23 @@ func (m *listMethod) process() (string, error) {
 	}
 
 	output := listAllOutput(issues)
+	result := columnize.SimpleFormat(output)
+	return result, nil
+}
+
+type listAllMethod struct {
+	internal.Method
+	client lab.Issue
+	opt    *ListOption
+}
+
+func (m *listAllMethod) Process() (string, error) {
+	issues, err := m.client.GetAllProjectIssues(makeIssueOption(m.opt))
+	if err != nil {
+		return "", err
+	}
+
+	output := listOutput(issues)
 	result := columnize.SimpleFormat(output)
 	return result, nil
 }
@@ -59,18 +76,6 @@ func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssu
 		ListOptions: *listOption,
 	}
 	return listProjectIssuesOptions
-}
-
-func listAll(client lab.Issue, opt *ListOption) (string, error) {
-	issues, err := client.GetAllProjectIssues(makeIssueOption(opt))
-	if err != nil {
-		return "", err
-	}
-
-	// Print issue list
-	output := listOutput(issues)
-	result := columnize.SimpleFormat(output)
-	return result, nil
 }
 
 func listOutput(issues []*gitlab.Issue) []string {

@@ -3,12 +3,20 @@ package issue
 import (
 	"fmt"
 
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-func detail(client lab.Issue, project string, iid int) (string, error) {
-	issue, err := client.GetIssue(iid, project)
+type detailMethod struct {
+	internal.Method
+	client  lab.Issue
+	id      int
+	project string
+}
+
+func (m *detailMethod) Process() (string, error) {
+	issue, err := m.client.GetIssue(m.id, m.project)
 	if err != nil {
 		return "", err
 	}

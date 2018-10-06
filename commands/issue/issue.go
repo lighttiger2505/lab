@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -78,8 +79,8 @@ const (
 	Update
 	UpdateOnEditor
 	Detail
-	ListIssue
 	List
+	ListAll
 )
 
 type Option struct {
@@ -149,123 +150,101 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := c.Provider.GetIssueClient(gitlabRemote)
+	method, err := c.getMethod(opt, parseArgs, gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	iid, err := validIssueIID(parseArgs)
+	res, err := method.Process()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
+	c.Ui.Message(res)
 
-	// Do issue operation
-	switch getOperation(opt, parseArgs) {
-	case Update:
-		output, err := update(
-			client,
-			gitlabRemote.RepositoryFullName(),
-			iid,
-			opt.CreateUpdateOption,
-		)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
+	return ExitCodeOK
+}
+
+func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteInfo) (internal.Method, error) {
+	client, err := c.Provider.GetIssueClient(remote)
+	if err != nil {
+		return nil, err
+	}
+
+	iid, err := validIssueIID(args)
+	if err != nil {
+		return nil, err
+	}
+
+	createUpdateOption := opt.CreateUpdateOption
+	listOption := opt.ListOption
+	project := remote.RepositoryFullName()
+
+	// Case of getting Issue IID
+	if len(args) > 0 {
+		if createUpdateOption.Edit {
+			return &updateOnEditorMethod{
+				client:   client,
+				opt:      createUpdateOption,
+				project:  project,
+				id:       iid,
+				editFunc: c.EditFunc,
+			}, nil
 		}
-		c.Ui.Message(output)
-
-	case UpdateOnEditor:
-		output, err := updateOnEditor(
-			client,
-			gitlabRemote.RepositoryFullName(),
-			iid,
-			opt.CreateUpdateOption,
-			c.EditFunc,
-		)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
+		if hasEditIssueOption(createUpdateOption) {
+			return &updateMethod{
+				client:  client,
+				opt:     createUpdateOption,
+				project: project,
+				id:      iid,
+			}, nil
 		}
-		c.Ui.Message(output)
+		return &detailMethod{
+			client:  client,
+			project: remote.RepositoryFullName(),
+			id:      iid,
+		}, nil
+	}
 
-	case Create:
-		// Do create issue
-		createUpdateOption := opt.CreateUpdateOption
-		output, err := create(
-			client,
-			gitlabRemote.RepositoryFullName(),
-			createUpdateOption,
-		)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		c.Ui.Message(output)
-
-	case CreateOnEditor:
-		var template string
+	// Case of nothing Issue IID
+	if createUpdateOption.Edit {
 		templateFilename := opt.CreateUpdateOption.Template
+		var template string
 		if templateFilename != "" {
-			res, err := c.getIssueTemplateContent(templateFilename, gitlabRemote)
+			res, err := c.getIssueTemplateContent(templateFilename, remote)
 			if err != nil {
-				c.Ui.Error(err.Error())
-				return ExitCodeError
+				return nil, err
 			}
 			template = res
 		}
-
-		output, err := createOnEditor(
-			client,
-			gitlabRemote.RepositoryFullName(),
-			template,
-			opt.CreateUpdateOption,
-			c.EditFunc,
-		)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		c.Ui.Message(output)
-
-	case Detail:
-		res, err := detail(client, gitlabRemote.RepositoryFullName(), iid)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		c.Ui.Message(res)
-
-	case ListIssue:
-		method := &listMethod{
+		return &createOnEditorMethod{
+			client:   client,
+			opt:      createUpdateOption,
+			project:  project,
+			template: template,
+			editFunc: c.EditFunc,
+		}, nil
+	}
+	if hasEditIssueOption(createUpdateOption) {
+		return &createMethod{
 			client:  client,
-			opt:     opt.ListOption,
-			project: gitlabRemote.RepositoryFullName(),
-		}
-		res, err := method.process()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		c.Ui.Message(res)
-
-	case List:
-		// Do get issue list
-		listOption := opt.ListOption
-		res, err := listAll(client, listOption)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		c.Ui.Message(res)
-
-	default:
-		c.Ui.Error("Invalid issue operation")
-		return ExitCodeError
+			opt:     createUpdateOption,
+			project: project,
+		}, nil
+	}
+	if listOption.AllProject {
+		return &listAllMethod{
+			client: client,
+			opt:    listOption,
+		}, nil
 	}
 
-	return ExitCodeOK
+	return &listMethod{
+		client:  client,
+		opt:     listOption,
+		project: project,
+	}, nil
 }
 
 func getOperation(opt Option, args []string) Operation {
@@ -291,10 +270,10 @@ func getOperation(opt Option, args []string) Operation {
 		return Create
 	}
 	if listOption.AllProject {
-		return List
+		return ListAll
 	}
 
-	return ListIssue
+	return List
 }
 
 func hasEditIssueOption(opt *CreateUpdateOption) bool {

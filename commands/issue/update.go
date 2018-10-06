@@ -3,6 +3,7 @@ package issue
 import (
 	"fmt"
 
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -21,9 +22,17 @@ func makeUpdateIssueOption(opt *CreateUpdateOption, title, description string) *
 	return updateIssueOption
 }
 
-func update(client lab.Issue, project string, iid int, opt *CreateUpdateOption) (string, error) {
+type updateMethod struct {
+	internal.Method
+	client  lab.Issue
+	opt     *CreateUpdateOption
+	project string
+	id      int
+}
+
+func (m *updateMethod) Process() (string, error) {
 	// Getting exist issue
-	issue, err := client.GetIssue(iid, project)
+	issue, err := m.client.GetIssue(m.id, m.project)
 	if err != nil {
 		return "", err
 	}
@@ -31,18 +40,18 @@ func update(client lab.Issue, project string, iid int, opt *CreateUpdateOption) 
 	// Create new title or description
 	updatedTitle := issue.Title
 	updatedMessage := issue.Description
-	if opt.Title != "" {
-		updatedTitle = opt.Title
+	if m.opt.Title != "" {
+		updatedTitle = m.opt.Title
 	}
-	if opt.Message != "" {
-		updatedMessage = opt.Message
+	if m.opt.Message != "" {
+		updatedMessage = m.opt.Message
 	}
 
 	// Do update issue
-	updatedIssue, err := client.UpdateIssue(
-		makeUpdateIssueOption(opt, updatedTitle, updatedMessage),
-		iid,
-		project,
+	updatedIssue, err := m.client.UpdateIssue(
+		makeUpdateIssueOption(m.opt, updatedTitle, updatedMessage),
+		m.id,
+		m.project,
 	)
 	if err != nil {
 		return "", err
@@ -52,9 +61,18 @@ func update(client lab.Issue, project string, iid int, opt *CreateUpdateOption) 
 	return fmt.Sprintf("%d", updatedIssue.IID), nil
 }
 
-func updateOnEditor(client lab.Issue, project string, iid int, opt *CreateUpdateOption, editFunc func(program, file string) error) (string, error) {
+type updateOnEditorMethod struct {
+	internal.Method
+	client   lab.Issue
+	opt      *CreateUpdateOption
+	project  string
+	id       int
+	editFunc func(program, file string) error
+}
+
+func (m *updateOnEditorMethod) Process() (string, error) {
 	// Getting exist issue
-	issue, err := client.GetIssue(iid, project)
+	issue, err := m.client.GetIssue(m.id, m.project)
 	if err != nil {
 		return "", err
 	}
@@ -62,25 +80,25 @@ func updateOnEditor(client lab.Issue, project string, iid int, opt *CreateUpdate
 	// Create new title or description
 	updatedTitle := issue.Title
 	updatedMessage := issue.Description
-	if opt.Title != "" {
-		updatedTitle = opt.Title
+	if m.opt.Title != "" {
+		updatedTitle = m.opt.Title
 	}
-	if opt.Message != "" {
-		updatedMessage = opt.Message
+	if m.opt.Message != "" {
+		updatedMessage = m.opt.Message
 	}
 
 	// Starting editor for edit title and description
-	template := editIssueMessage(updatedTitle, updatedMessage)
-	title, message, err := editIssueTitleAndDesc(template, editFunc)
+	content := editIssueMessage(updatedTitle, updatedMessage)
+	title, message, err := editIssueTitleAndDesc(content, m.editFunc)
 	if err != nil {
 		return "", err
 	}
 
 	// Do update issue
-	updatedIssue, err := client.UpdateIssue(
-		makeUpdateIssueOption(opt, title, message),
-		iid,
-		project,
+	updatedIssue, err := m.client.UpdateIssue(
+		makeUpdateIssueOption(m.opt, title, message),
+		m.id,
+		m.project,
 	)
 	if err != nil {
 		return "", err

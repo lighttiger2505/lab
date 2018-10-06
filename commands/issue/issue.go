@@ -18,9 +18,9 @@ const (
 	ExitCodeFileError int = iota //2
 )
 
-const IssueTemplateDir = ".gitlab/issue_templates"
+const TemplateDir = ".gitlab/issue_templates"
 
-type CreateUpdateIssueOption struct {
+type CreateUpdateOption struct {
 	Edit       bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
 	Title      string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
 	Message    string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
@@ -29,11 +29,11 @@ type CreateUpdateIssueOption struct {
 	AssigneeID int    `long:"assignee-id" description:"The ID of assignee."`
 }
 
-func newAddIssueOption() *CreateUpdateIssueOption {
-	return &CreateUpdateIssueOption{}
+func newCreateUpdateOption() *CreateUpdateOption {
+	return &CreateUpdateOption{}
 }
 
-type ListIssueOption struct {
+type ListOption struct {
 	Num        int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of issue to output."`
 	State      string `long:"state" value-name:"<state>" default:"all" default-mask:"all" description:"Print only issue of the state just those that are \"opened\", \"closed\" or \"all\""`
 	Scope      string `long:"scope" value-name:"<scope>" default:"all" default-mask:"all" description:"Print only given scope. \"created-by-me\", \"assigned-to-me\" or \"all\"."`
@@ -46,7 +46,7 @@ type ListIssueOption struct {
 	AllProject bool   `short:"A" long:"all-project" description:"Print the issue of all projects"`
 }
 
-func (l *ListIssueOption) GetState() string {
+func (l *ListOption) GetState() string {
 	if l.Opened {
 		return "opened"
 	}
@@ -56,7 +56,7 @@ func (l *ListIssueOption) GetState() string {
 	return l.State
 }
 
-func (l *ListIssueOption) GetScope() string {
+func (l *ListOption) GetScope() string {
 	if l.CreatedMe {
 		return "created-by-me"
 	}
@@ -66,30 +66,30 @@ func (l *ListIssueOption) GetScope() string {
 	return l.Scope
 }
 
-type IssueOperation int
+type Operation int
 
 const (
-	CreateIssue IssueOperation = iota
-	CreateIssueOnEditor
-	UpdateIssue
-	UpdateIssueOnEditor
-	ShowIssue
+	Create Operation = iota
+	CreateOnEditor
+	Update
+	UpdateOnEditor
+	Detail
 	ListIssue
-	ListIssueAllProject
+	List
 )
 
-func newListIssueOption() *ListIssueOption {
-	return &ListIssueOption{}
+func newOption() *ListOption {
+	return &ListOption{}
 }
 
-type IssueCommnadOption struct {
-	CreateUpdateOption *CreateUpdateIssueOption `group:"Create, Update Options"`
-	ListOption         *ListIssueOption         `group:"List Options"`
+type Option struct {
+	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
+	ListOption         *ListOption         `group:"List Options"`
 }
 
-func newIssueOptionParser(opt *IssueCommnadOption) *flags.Parser {
-	opt.CreateUpdateOption = newAddIssueOption()
-	opt.ListOption = newListIssueOption()
+func newOptionParser(opt *Option) *flags.Parser {
+	opt.CreateUpdateOption = newCreateUpdateOption()
+	opt.ListOption = newOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `issue - Create and Edit, list a issue
 
@@ -121,16 +121,16 @@ func (c *IssueCommand) Synopsis() string {
 
 func (c *IssueCommand) Help() string {
 	buf := &bytes.Buffer{}
-	var issueCommandOption IssueCommnadOption
-	issueCommnadParser := newIssueOptionParser(&issueCommandOption)
-	issueCommnadParser.WriteHelp(buf)
+	var opt Option
+	parser := newOptionParser(&opt)
+	parser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *IssueCommand) Run(args []string) int {
-	var issueCommandOption IssueCommnadOption
-	issueCommnadParser := newIssueOptionParser(&issueCommandOption)
-	parseArgs, err := issueCommnadParser.ParseArgs(args)
+	var opt Option
+	parser := newOptionParser(&opt)
+	parseArgs, err := parser.ParseArgs(args)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -162,13 +162,13 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	// Do issue operation
-	switch issueOperation(issueCommandOption, parseArgs) {
-	case UpdateIssue:
-		output, err := updateIssue(
+	switch getOperation(opt, parseArgs) {
+	case Update:
+		output, err := update(
 			client,
 			gitlabRemote.RepositoryFullName(),
 			iid,
-			issueCommandOption.CreateUpdateOption,
+			opt.CreateUpdateOption,
 		)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -176,12 +176,12 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 		c.Ui.Message(output)
 
-	case UpdateIssueOnEditor:
-		output, err := updateIssueOnEditor(
+	case UpdateOnEditor:
+		output, err := updateOnEditor(
 			client,
 			gitlabRemote.RepositoryFullName(),
 			iid,
-			issueCommandOption.CreateUpdateOption,
+			opt.CreateUpdateOption,
 			c.EditFunc,
 		)
 		if err != nil {
@@ -190,10 +190,10 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 		c.Ui.Message(output)
 
-	case CreateIssue:
+	case Create:
 		// Do create issue
-		createUpdateOption := issueCommandOption.CreateUpdateOption
-		output, err := createIssue(
+		createUpdateOption := opt.CreateUpdateOption
+		output, err := create(
 			client,
 			gitlabRemote.RepositoryFullName(),
 			createUpdateOption,
@@ -204,9 +204,9 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 		c.Ui.Message(output)
 
-	case CreateIssueOnEditor:
+	case CreateOnEditor:
 		var template string
-		templateFilename := issueCommandOption.CreateUpdateOption.Template
+		templateFilename := opt.CreateUpdateOption.Template
 		if templateFilename != "" {
 			res, err := c.getIssueTemplateContent(templateFilename, gitlabRemote)
 			if err != nil {
@@ -216,11 +216,11 @@ func (c *IssueCommand) Run(args []string) int {
 			template = res
 		}
 
-		output, err := createIssueOnEditor(
+		output, err := createOnEditor(
 			client,
 			gitlabRemote.RepositoryFullName(),
 			template,
-			issueCommandOption.CreateUpdateOption,
+			opt.CreateUpdateOption,
 			c.EditFunc,
 		)
 		if err != nil {
@@ -229,7 +229,7 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 		c.Ui.Message(output)
 
-	case ShowIssue:
+	case Detail:
 		res, err := detail(client, gitlabRemote.RepositoryFullName(), iid)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -238,8 +238,8 @@ func (c *IssueCommand) Run(args []string) int {
 		c.Ui.Message(res)
 
 	case ListIssue:
-		listOption := issueCommandOption.ListOption
-		res, err := listOfProject(
+		listOption := opt.ListOption
+		res, err := list(
 			client,
 			gitlabRemote.RepositoryFullName(),
 			listOption,
@@ -250,9 +250,9 @@ func (c *IssueCommand) Run(args []string) int {
 		}
 		c.Ui.Message(res)
 
-	case ListIssueAllProject:
+	case List:
 		// Do get issue list
-		listOption := issueCommandOption.ListOption
+		listOption := opt.ListOption
 		res, err := listAll(client, listOption)
 		if err != nil {
 			c.Ui.Error(err.Error())
@@ -268,36 +268,36 @@ func (c *IssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func issueOperation(opt IssueCommnadOption, args []string) IssueOperation {
+func getOperation(opt Option, args []string) Operation {
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
 
 	// Case of getting Issue IID
 	if len(args) > 0 {
 		if createUpdateOption.Edit {
-			return UpdateIssueOnEditor
+			return UpdateOnEditor
 		}
 		if hasEditIssueOption(createUpdateOption) {
-			return UpdateIssue
+			return Update
 		}
-		return ShowIssue
+		return Detail
 	}
 
 	// Case of nothing Issue IID
 	if createUpdateOption.Edit {
-		return CreateIssueOnEditor
+		return CreateOnEditor
 	}
 	if hasEditIssueOption(createUpdateOption) {
-		return CreateIssue
+		return Create
 	}
 	if listOption.AllProject {
-		return ListIssueAllProject
+		return List
 	}
 
 	return ListIssue
 }
 
-func hasEditIssueOption(opt *CreateUpdateIssueOption) bool {
+func hasEditIssueOption(opt *CreateUpdateOption) bool {
 	if opt.Title != "" || opt.Message != "" || opt.StateEvent != "" || opt.AssigneeID != 0 {
 		return true
 	}
@@ -349,7 +349,7 @@ func (c *IssueCommand) getIssueTemplateContent(templateFilename string, gitlabRe
 		return "", err
 	}
 
-	filename := IssueTemplateDir + "/" + templateFilename
+	filename := TemplateDir + "/" + templateFilename
 	res, err := issueTemplateClient.GetFile(
 		gitlabRemote.RepositoryFullName(),
 		filename,

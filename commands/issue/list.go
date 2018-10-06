@@ -9,7 +9,7 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-func makeIssueOption(issueListOption *ListIssueOption) *gitlab.ListIssuesOptions {
+func makeIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOptions {
 	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: issueListOption.Num,
@@ -24,7 +24,7 @@ func makeIssueOption(issueListOption *ListIssueOption) *gitlab.ListIssuesOptions
 	return listIssuesOptions
 }
 
-func makeProjectIssueOption(issueListOption *ListIssueOption) *gitlab.ListProjectIssuesOptions {
+func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssuesOptions {
 	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: issueListOption.Num,
@@ -39,7 +39,7 @@ func makeProjectIssueOption(issueListOption *ListIssueOption) *gitlab.ListProjec
 	return listProjectIssuesOptions
 }
 
-func listOfProject(client lab.Issue, project string, opt *ListIssueOption) (string, error) {
+func list(client lab.Issue, project string, opt *ListOption) (string, error) {
 	issues, err := client.GetProjectIssues(
 		makeProjectIssueOption(opt),
 		project,
@@ -49,24 +49,24 @@ func listOfProject(client lab.Issue, project string, opt *ListIssueOption) (stri
 	}
 
 	// Print issue list
-	output := projectIssueOutput(issues)
+	output := listAllOutput(issues)
 	result := columnize.SimpleFormat(output)
 	return result, nil
 }
 
-func listAll(client lab.Issue, opt *ListIssueOption) (string, error) {
+func listAll(client lab.Issue, opt *ListOption) (string, error) {
 	issues, err := client.GetAllProjectIssues(makeIssueOption(opt))
 	if err != nil {
 		return "", err
 	}
 
 	// Print issue list
-	output := issueOutput(issues)
+	output := listOutput(issues)
 	result := columnize.SimpleFormat(output)
 	return result, nil
 }
 
-func issueOutput(issues []*gitlab.Issue) []string {
+func listOutput(issues []*gitlab.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
@@ -79,7 +79,7 @@ func issueOutput(issues []*gitlab.Issue) []string {
 	return datas
 }
 
-func projectIssueOutput(issues []*gitlab.Issue) []string {
+func listAllOutput(issues []*gitlab.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{

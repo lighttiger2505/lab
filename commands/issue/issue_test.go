@@ -236,7 +236,7 @@ func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
 }
 
 func TestIssueOutput(t *testing.T) {
-	got := issueOutput(issues)
+	got := listOutput(issues)
 	want := []string{
 		"namespace/repo|12|Title12",
 		"namespace/repo|13|Title13",
@@ -247,7 +247,7 @@ func TestIssueOutput(t *testing.T) {
 }
 
 func TestProjectIssueOutput(t *testing.T) {
-	got := projectIssueOutput(issues)
+	got := listAllOutput(issues)
 	want := []string{
 		"12|Title12",
 		"13|Title13",

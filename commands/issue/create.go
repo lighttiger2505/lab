@@ -7,7 +7,7 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-func makeCreateIssueOptions(opt *CreateUpdateIssueOption, title, description string) *gitlab.CreateIssueOptions {
+func makeCreateIssueOptions(opt *CreateUpdateOption, title, description string) *gitlab.CreateIssueOptions {
 	createIssueOption := &gitlab.CreateIssueOptions{
 		Title:       gitlab.String(title),
 		Description: gitlab.String(description),
@@ -18,7 +18,7 @@ func makeCreateIssueOptions(opt *CreateUpdateIssueOption, title, description str
 	return createIssueOption
 }
 
-func createIssue(client lab.Issue, project string, opt *CreateUpdateIssueOption) (string, error) {
+func create(client lab.Issue, project string, opt *CreateUpdateOption) (string, error) {
 	// Do create issue
 	issue, err := client.CreateIssue(
 		makeCreateIssueOptions(opt, opt.Title, opt.Message),
@@ -32,11 +32,11 @@ func createIssue(client lab.Issue, project string, opt *CreateUpdateIssueOption)
 	return fmt.Sprintf("%d", issue.IID), nil
 }
 
-func createIssueOnEditor(
+func createOnEditor(
 	client lab.Issue,
 	project string,
 	templateContent string,
-	opt *CreateUpdateIssueOption,
+	opt *CreateUpdateOption,
 	editFunc func(program, file string) error,
 ) (string, error) {
 

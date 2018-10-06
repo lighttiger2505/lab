@@ -7,7 +7,7 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-func makeUpdateIssueOption(opt *CreateUpdateIssueOption, title, description string) *gitlab.UpdateIssueOptions {
+func makeUpdateIssueOption(opt *CreateUpdateOption, title, description string) *gitlab.UpdateIssueOptions {
 	updateIssueOption := &gitlab.UpdateIssueOptions{
 		Title:       gitlab.String(title),
 		Description: gitlab.String(description),
@@ -21,7 +21,7 @@ func makeUpdateIssueOption(opt *CreateUpdateIssueOption, title, description stri
 	return updateIssueOption
 }
 
-func updateIssue(client lab.Issue, project string, iid int, opt *CreateUpdateIssueOption) (string, error) {
+func update(client lab.Issue, project string, iid int, opt *CreateUpdateOption) (string, error) {
 	// Getting exist issue
 	issue, err := client.GetIssue(iid, project)
 	if err != nil {
@@ -52,7 +52,7 @@ func updateIssue(client lab.Issue, project string, iid int, opt *CreateUpdateIss
 	return fmt.Sprintf("%d", updatedIssue.IID), nil
 }
 
-func updateIssueOnEditor(client lab.Issue, project string, iid int, opt *CreateUpdateIssueOption, editFunc func(program, file string) error) (string, error) {
+func updateOnEditor(client lab.Issue, project string, iid int, opt *CreateUpdateOption, editFunc func(program, file string) error) (string, error) {
 	// Getting exist issue
 	issue, err := client.GetIssue(iid, project)
 	if err != nil {

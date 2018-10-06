@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
-	"strings"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -244,33 +242,26 @@ func (c *IssueCommand) Run(args []string) int {
 
 	case ListIssue:
 		listOption := issueCommandOption.ListOption
-		issues, err := client.GetProjectIssues(
-			makeProjectIssueOption(listOption),
+		res, err := listOfProject(
+			client,
 			gitlabRemote.RepositoryFullName(),
+			listOption,
 		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		// Print issue list
-		output := projectIssueOutput(issues)
-		result := columnize.SimpleFormat(output)
-		c.Ui.Message(result)
+		c.Ui.Message(res)
 
 	case ListIssueAllProject:
 		// Do get issue list
 		listOption := issueCommandOption.ListOption
-		issues, err := client.GetAllProjectIssues(makeIssueOption(listOption))
+		res, err := listAll(client, listOption)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		// Print issue list
-		output := issueOutput(issues)
-		result := columnize.SimpleFormat(output)
-		c.Ui.Message(result)
+		c.Ui.Message(res)
 
 	default:
 		c.Ui.Error("Invalid issue operation")
@@ -328,49 +319,6 @@ func validIssueIID(args []string) (int, error) {
 	return iid, nil
 }
 
-func makeProjectIssueOption(issueListOption *ListIssueOption) *gitlab.ListProjectIssuesOptions {
-	listOption := &gitlab.ListOptions{
-		Page:    1,
-		PerPage: issueListOption.Num,
-	}
-	listProjectIssuesOptions := &gitlab.ListProjectIssuesOptions{
-		State:       gitlab.String(issueListOption.GetState()),
-		Scope:       gitlab.String(issueListOption.GetScope()),
-		OrderBy:     gitlab.String(issueListOption.OrderBy),
-		Sort:        gitlab.String(issueListOption.Sort),
-		ListOptions: *listOption,
-	}
-	return listProjectIssuesOptions
-}
-
-func makeIssueOption(issueListOption *ListIssueOption) *gitlab.ListIssuesOptions {
-	listOption := &gitlab.ListOptions{
-		Page:    1,
-		PerPage: issueListOption.Num,
-	}
-	listIssuesOptions := &gitlab.ListIssuesOptions{
-		State:       gitlab.String(issueListOption.GetState()),
-		Scope:       gitlab.String(issueListOption.GetScope()),
-		OrderBy:     gitlab.String(issueListOption.OrderBy),
-		Sort:        gitlab.String(issueListOption.Sort),
-		ListOptions: *listOption,
-	}
-	return listIssuesOptions
-}
-
-func issueOutput(issues []*gitlab.Issue) []string {
-	var datas []string
-	for _, issue := range issues {
-		data := strings.Join([]string{
-			lab.ParceRepositoryFullName(issue.WebURL),
-			fmt.Sprintf("%d", issue.IID),
-			issue.Title,
-		}, "|")
-		datas = append(datas, data)
-	}
-	return datas
-}
-
 func issueDetailOutput(issue *gitlab.Issue) string {
 	base := `#%d
 Title: %s
@@ -393,18 +341,6 @@ UpdatedAt: %s
 		issue.Description,
 	)
 	return detial
-}
-
-func projectIssueOutput(issues []*gitlab.Issue) []string {
-	var datas []string
-	for _, issue := range issues {
-		data := strings.Join([]string{
-			fmt.Sprintf("%d", issue.IID),
-			issue.Title,
-		}, "|")
-		datas = append(datas, data)
-	}
-	return datas
 }
 
 func editIssueMessage(title, description string) string {

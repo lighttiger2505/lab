@@ -10,6 +10,7 @@ import (
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands"
 	"github.com/lighttiger2505/lab/commands/issue"
+	"github.com/lighttiger2505/lab/commands/mr"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
@@ -69,13 +70,13 @@ func realMain(writer io.Writer, ver, rev string) int {
 			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
-			return &commands.MergeRequestCommand{
+			return &mr.MergeRequestCommand{
 				Ui:       ui,
 				Provider: provider,
 			}, nil
 		},
 		"mr": func() (cli.Command, error) {
-			return &commands.MergeRequestCommand{
+			return &mr.MergeRequestCommand{
 				Ui:       ui,
 				Provider: provider,
 			}, nil

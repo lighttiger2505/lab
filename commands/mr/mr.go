@@ -1,4 +1,4 @@
-package commands
+package mr
 
 import (
 	"bytes"
@@ -13,6 +13,14 @@ import (
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
 )
+
+const (
+	ExitCodeOK        int = iota //0
+	ExitCodeError     int = iota //1
+	ExitCodeFileError int = iota //2
+)
+
+const MergeRequestTemplateDir = ".gitlab/merge_request_templates"
 
 type CreateUpdateMergeRequestOption struct {
 	Edit         bool   `short:"e" long:"edit" description:"Edit the merge request on editor. Start the editor with the contents in the given title and message options."`
@@ -551,4 +559,11 @@ func editIssueTitleAndDesc(template string, editFunc func(program, file string) 
 	}
 
 	return title, description, nil
+}
+
+func makeShowMergeRequestTemplateOption() *gitlab.GetRawFileOptions {
+	opt := &gitlab.GetRawFileOptions{
+		Ref: gitlab.String("master"),
+	}
+	return opt
 }

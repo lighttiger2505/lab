@@ -238,12 +238,12 @@ func (c *IssueCommand) Run(args []string) int {
 		c.Ui.Message(res)
 
 	case ListIssue:
-		listOption := opt.ListOption
-		res, err := list(
-			client,
-			gitlabRemote.RepositoryFullName(),
-			listOption,
-		)
+		method := &listMethod{
+			client:  client,
+			opt:     opt.ListOption,
+			project: gitlabRemote.RepositoryFullName(),
+		}
+		res, err := method.process()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError

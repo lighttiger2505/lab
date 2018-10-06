@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -24,6 +25,27 @@ func makeIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOptions {
 	return listIssuesOptions
 }
 
+type listMethod struct {
+	internal.Method
+	client  lab.Issue
+	opt     *ListOption
+	project string
+}
+
+func (m *listMethod) process() (string, error) {
+	issues, err := m.client.GetProjectIssues(
+		makeProjectIssueOption(m.opt),
+		m.project,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	output := listAllOutput(issues)
+	result := columnize.SimpleFormat(output)
+	return result, nil
+}
+
 func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssuesOptions {
 	listOption := &gitlab.ListOptions{
 		Page:    1,
@@ -37,21 +59,6 @@ func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssu
 		ListOptions: *listOption,
 	}
 	return listProjectIssuesOptions
-}
-
-func list(client lab.Issue, project string, opt *ListOption) (string, error) {
-	issues, err := client.GetProjectIssues(
-		makeProjectIssueOption(opt),
-		project,
-	)
-	if err != nil {
-		return "", err
-	}
-
-	// Print issue list
-	output := listAllOutput(issues)
-	result := columnize.SimpleFormat(output)
-	return result, nil
 }
 
 func listAll(client lab.Issue, opt *ListOption) (string, error) {

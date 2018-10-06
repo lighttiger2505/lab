@@ -230,15 +230,12 @@ func (c *IssueCommand) Run(args []string) int {
 		c.Ui.Message(output)
 
 	case ShowIssue:
-		// Do get issue detail
-		issue, err := client.GetIssue(iid, gitlabRemote.RepositoryFullName())
+		res, err := detail(client, gitlabRemote.RepositoryFullName(), iid)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		// Print issue detail
-		c.Ui.Message(issueDetailOutput(issue))
+		c.Ui.Message(res)
 
 	case ListIssue:
 		listOption := issueCommandOption.ListOption
@@ -317,30 +314,6 @@ func validIssueIID(args []string) (int, error) {
 		return 0, fmt.Errorf("Invalid Issue IID. IID: %s", args[0])
 	}
 	return iid, nil
-}
-
-func issueDetailOutput(issue *gitlab.Issue) string {
-	base := `#%d
-Title: %s
-Assignee: %s
-Author: %s
-State: %s
-CreatedAt: %s
-UpdatedAt: %s
-
-%s`
-	detial := fmt.Sprintf(
-		base,
-		issue.IID,
-		issue.Title,
-		issue.Assignee.Name,
-		issue.Author.Name,
-		issue.State,
-		issue.CreatedAt.String(),
-		issue.UpdatedAt.String(),
-		issue.Description,
-	)
-	return detial
 }
 
 func editIssueMessage(title, description string) string {

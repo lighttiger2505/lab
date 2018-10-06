@@ -195,17 +195,16 @@ func (c *IssueCommand) Run(args []string) int {
 	case CreateIssue:
 		// Do create issue
 		createUpdateOption := issueCommandOption.CreateUpdateOption
-		issue, err := client.CreateIssue(
-			makeCreateIssueOptions(createUpdateOption, createUpdateOption.Title, createUpdateOption.Message),
+		output, err := createIssue(
+			client,
 			gitlabRemote.RepositoryFullName(),
+			createUpdateOption,
 		)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		// Print created Issue IID
-		c.Ui.Message(fmt.Sprintf("%d", issue.IID))
+		c.Ui.Message(output)
 
 	case CreateIssueOnEditor:
 		var template string

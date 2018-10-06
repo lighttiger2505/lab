@@ -534,3 +534,21 @@ func (c *MergeRequestCommand) getMergeRequestTemplateContent(templateFilename st
 
 	return res, nil
 }
+
+func editIssueTitleAndDesc(template string, editFunc func(program, file string) error) (string, string, error) {
+	editor, err := git.NewEditor("ISSUE", "issue", template, editFunc)
+	if err != nil {
+		return "", "", err
+	}
+
+	title, description, err := editor.EditTitleAndDescription()
+	if err != nil {
+		return "", "", err
+	}
+
+	if editor != nil {
+		defer editor.DeleteFile()
+	}
+
+	return title, description, nil
+}

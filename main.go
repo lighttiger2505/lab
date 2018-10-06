@@ -9,6 +9,7 @@ import (
 
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands"
+	"github.com/lighttiger2505/lab/commands/issue"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/gitlab"
@@ -62,7 +63,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {
-			return &commands.IssueCommand{
+			return &issue.IssueCommand{
 				Ui:       ui,
 				Provider: provider,
 			}, nil

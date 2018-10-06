@@ -10,6 +10,9 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
+var createdAt, _ = time.Parse("2006-01-02", "2018-02-14")
+var updatedAt, _ = time.Parse("2006-01-02", "2018-03-14")
+
 var mergeRequest = &gitlab.MergeRequest{
 	IID:   12,
 	Title: "Title12",

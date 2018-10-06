@@ -46,7 +46,11 @@ type ListOption struct {
 	AllProject bool   `short:"A" long:"all-project" description:"Print the issue of all projects"`
 }
 
-func (l *ListOption) GetState() string {
+func newListOption() *ListOption {
+	return &ListOption{}
+}
+
+func (l *ListOption) getState() string {
 	if l.Opened {
 		return "opened"
 	}
@@ -56,7 +60,7 @@ func (l *ListOption) GetState() string {
 	return l.State
 }
 
-func (l *ListOption) GetScope() string {
+func (l *ListOption) getScope() string {
 	if l.CreatedMe {
 		return "created-by-me"
 	}
@@ -78,10 +82,6 @@ const (
 	List
 )
 
-func newOption() *ListOption {
-	return &ListOption{}
-}
-
 type Option struct {
 	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
 	ListOption         *ListOption         `group:"List Options"`
@@ -89,7 +89,7 @@ type Option struct {
 
 func newOptionParser(opt *Option) *flags.Parser {
 	opt.CreateUpdateOption = newCreateUpdateOption()
-	opt.ListOption = newOption()
+	opt.ListOption = newListOption()
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `issue - Create and Edit, list a issue
 

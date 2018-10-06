@@ -15,8 +15,8 @@ func makeIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOptions {
 		PerPage: issueListOption.Num,
 	}
 	listIssuesOptions := &gitlab.ListIssuesOptions{
-		State:       gitlab.String(issueListOption.GetState()),
-		Scope:       gitlab.String(issueListOption.GetScope()),
+		State:       gitlab.String(issueListOption.getState()),
+		Scope:       gitlab.String(issueListOption.getScope()),
 		OrderBy:     gitlab.String(issueListOption.OrderBy),
 		Sort:        gitlab.String(issueListOption.Sort),
 		ListOptions: *listOption,
@@ -30,8 +30,8 @@ func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssu
 		PerPage: issueListOption.Num,
 	}
 	listProjectIssuesOptions := &gitlab.ListProjectIssuesOptions{
-		State:       gitlab.String(issueListOption.GetState()),
-		Scope:       gitlab.String(issueListOption.GetScope()),
+		State:       gitlab.String(issueListOption.getState()),
+		Scope:       gitlab.String(issueListOption.getScope()),
 		OrderBy:     gitlab.String(issueListOption.OrderBy),
 		Sort:        gitlab.String(issueListOption.Sort),
 		ListOptions: *listOption,

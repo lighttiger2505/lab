@@ -4,7 +4,22 @@ import (
 	"fmt"
 
 	lab "github.com/lighttiger2505/lab/gitlab"
+	gitlab "github.com/xanzy/go-gitlab"
 )
+
+func makeUpdateIssueOption(opt *CreateUpdateIssueOption, title, description string) *gitlab.UpdateIssueOptions {
+	updateIssueOption := &gitlab.UpdateIssueOptions{
+		Title:       gitlab.String(title),
+		Description: gitlab.String(description),
+	}
+	if opt.StateEvent != "" {
+		updateIssueOption.StateEvent = gitlab.String(opt.StateEvent)
+	}
+	if opt.AssigneeID != 0 {
+		updateIssueOption.AssigneeIDs = []int{opt.AssigneeID}
+	}
+	return updateIssueOption
+}
 
 func updateIssue(client lab.Issue, project string, iid int, opt *CreateUpdateIssueOption) (string, error) {
 	// Getting exist issue

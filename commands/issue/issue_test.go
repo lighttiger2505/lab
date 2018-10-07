@@ -72,6 +72,12 @@ var mockRepositoryClient = &lab.MockRepositoryClient{
 	},
 }
 
+var mockNoteClient = &lab.MockNoteClient{
+	MockGetIssueNotes: func(repositoryName string, iid int, opt *gitlab.ListIssueNotesOptions) ([]*gitlab.Note, error) {
+		return []*gitlab.Note{}, nil
+	},
+}
+
 var mockIssueProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
@@ -86,6 +92,9 @@ var mockIssueProvider = &lab.MockProvider{
 	},
 	MockGetRepositoryClient: func(remote *git.RemoteInfo) (lab.Repository, error) {
 		return mockRepositoryClient, nil
+	},
+	MockGetNoteClient: func(remote *git.RemoteInfo) (lab.Note, error) {
+		return mockNoteClient, nil
 	},
 }
 
@@ -102,19 +111,16 @@ func TestIssueCommandRun_ShowIssue(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := `#12
-Title: Title12
+	want := `12 Title12 [State12] (created by @AuthorName, 2018-02-14 00:00:00 +0000 UTC)
 Assignee: AssigneeName
-Author: AuthorName
-State: State12
-CreatedAt: 2018-02-14 00:00:00 +0000 UTC
-UpdatedAt: 2018-03-14 00:00:00 +0000 UTC
+Milestone: 
+Labels: 
 
 Description
 `
 
 	if got != want {
-		t.Fatalf("bad output value \nwant %s \ngot  %s", got, want)
+		t.Fatalf("bad output value \nwant %#v\ngot  %#v", got, want)
 	}
 }
 
@@ -247,8 +253,8 @@ func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
 func TestIssueOutput(t *testing.T) {
 	got := listOutput(issues)
 	want := []string{
-		"namespace/repo|12|Title12",
-		"namespace/repo|13|Title13",
+		"12|Title12",
+		"13|Title13",
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("bad return value \nwant %#v \ngot  %#v", got, want)
@@ -258,8 +264,8 @@ func TestIssueOutput(t *testing.T) {
 func TestProjectIssueOutput(t *testing.T) {
 	got := listAllOutput(issues)
 	want := []string{
-		"12|Title12",
-		"13|Title13",
+		"namespace/repo|12|Title12",
+		"namespace/repo|13|Title13",
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("bad return value \nwant %#v \ngot  %#v", got, want)

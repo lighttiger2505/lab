@@ -26,3 +26,12 @@ func (c *NoteClient) GetIssueNotes(repositoryName string, iid int, opt *gitlab.L
 	}
 	return notes, nil
 }
+
+type MockNoteClient struct {
+	Note
+	MockGetIssueNotes func(repositoryName string, iid int, opt *gitlab.ListIssueNotesOptions) ([]*gitlab.Note, error)
+}
+
+func (m *MockNoteClient) GetIssueNotes(repositoryName string, iid int, opt *gitlab.ListIssueNotesOptions) ([]*gitlab.Note, error) {
+	return m.MockGetIssueNotes(repositoryName, iid, opt)
+}

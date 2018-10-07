@@ -18,8 +18,6 @@ const (
 	ExitCodeFileError int = iota //2
 )
 
-const TemplateDir = ".gitlab/issue_templates"
-
 type CreateUpdateOption struct {
 	Edit       bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
 	Title      string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`

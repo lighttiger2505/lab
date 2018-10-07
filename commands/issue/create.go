@@ -53,11 +53,13 @@ type createOnEditorMethod struct {
 	project          string
 }
 
+const templateDir = ".gitlab/issue_templates"
+
 func (m *createOnEditorMethod) Process() (string, error) {
 	templateFilename := m.opt.Template
 	var template string
 	if templateFilename != "" {
-		filename := TemplateDir + "/" + templateFilename
+		filename := templateDir + "/" + templateFilename
 		res, err := m.repositoryClient.GetFile(
 			m.project,
 			filename,

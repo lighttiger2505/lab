@@ -27,8 +27,25 @@ type CreateUpdateOption struct {
 	AssigneeID int    `long:"assignee-id" description:"The ID of assignee."`
 }
 
-func newCreateUpdateOption() *CreateUpdateOption {
-	return &CreateUpdateOption{}
+func (o *CreateUpdateOption) hasEdit() bool {
+	if o.Edit {
+		return true
+	}
+	return false
+}
+
+func (o *CreateUpdateOption) hasCreate() bool {
+	if o.Title != "" {
+		return true
+	}
+	return false
+}
+
+func (o *CreateUpdateOption) hasUpdate() bool {
+	if o.Title != "" || o.Message != "" || o.StateEvent != "" || o.AssigneeID != 0 {
+		return true
+	}
+	return false
 }
 
 type ListOption struct {
@@ -42,10 +59,6 @@ type ListOption struct {
 	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`
 	AssignedMe bool   `short:"a" long:"assigned-me" description:"Shorthand of the scope option for \"--scope=assigned-by-me\"."`
 	AllProject bool   `short:"A" long:"all-project" description:"Print the issue of all projects"`
-}
-
-func newListOption() *ListOption {
-	return &ListOption{}
 }
 
 func (l *ListOption) getState() string {
@@ -68,26 +81,14 @@ func (l *ListOption) getScope() string {
 	return l.Scope
 }
 
-type Operation int
-
-const (
-	Create Operation = iota
-	CreateOnEditor
-	Update
-	UpdateOnEditor
-	Detail
-	List
-	ListAll
-)
-
 type Option struct {
 	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
 	ListOption         *ListOption         `group:"List Options"`
 }
 
 func newOptionParser(opt *Option) *flags.Parser {
-	opt.CreateUpdateOption = newCreateUpdateOption()
-	opt.ListOption = newListOption()
+	opt.CreateUpdateOption = &CreateUpdateOption{}
+	opt.ListOption = &ListOption{}
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `issue - Create and Edit, list a issue
 
@@ -185,7 +186,7 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 
 	// Case of getting Issue IID
 	if len(args) > 0 {
-		if createUpdateOption.Edit {
+		if createUpdateOption.hasEdit() {
 			return &updateOnEditorMethod{
 				client:   issueClient,
 				opt:      createUpdateOption,
@@ -194,7 +195,7 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 				editFunc: c.EditFunc,
 			}, nil
 		}
-		if hasEditIssueOption(createUpdateOption) {
+		if createUpdateOption.hasUpdate() {
 			return &updateMethod{
 				client:  issueClient,
 				opt:     createUpdateOption,
@@ -210,7 +211,7 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 	}
 
 	// Case of nothing Issue IID
-	if createUpdateOption.Edit {
+	if createUpdateOption.hasEdit() {
 		return &createOnEditorMethod{
 			issueClient:      issueClient,
 			repositoryClient: repositoryClient,
@@ -219,7 +220,7 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 			editFunc:         c.EditFunc,
 		}, nil
 	}
-	if hasEditIssueOption(createUpdateOption) {
+	if createUpdateOption.hasCreate() {
 		return &createMethod{
 			client:  issueClient,
 			opt:     createUpdateOption,
@@ -238,13 +239,6 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 		opt:     listOption,
 		project: project,
 	}, nil
-}
-
-func hasEditIssueOption(opt *CreateUpdateOption) bool {
-	if opt.Title != "" || opt.Message != "" || opt.StateEvent != "" || opt.AssigneeID != 0 {
-		return true
-	}
-	return false
 }
 
 func validIssueIID(args []string) (int, error) {

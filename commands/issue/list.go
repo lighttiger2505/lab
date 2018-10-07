@@ -20,6 +20,7 @@ func makeIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOptions {
 		Scope:       gitlab.String(issueListOption.getScope()),
 		OrderBy:     gitlab.String(issueListOption.OrderBy),
 		Sort:        gitlab.String(issueListOption.Sort),
+		Search:      gitlab.String(issueListOption.Search),
 		ListOptions: *listOption,
 	}
 	return listIssuesOptions

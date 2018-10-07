@@ -54,6 +54,7 @@ type ListOption struct {
 	Scope      string `long:"scope" value-name:"<scope>" default:"all" default-mask:"all" description:"Print only given scope. \"created-by-me\", \"assigned-to-me\" or \"all\"."`
 	OrderBy    string `long:"orderby" value-name:"<orderby>" default:"updated_at" default-mask:"updated_at" description:"Print issue ordered by \"created_at\" or \"updated_at\" fields."`
 	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print issue ordered in \"asc\" or \"desc\" order."`
+	Search     string `short:"s" long:"search"  value-name:"<search word>" description:"Search issues against their title and description."`
 	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
 	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`
@@ -94,7 +95,7 @@ func newOptionParser(opt *Option) *flags.Parser {
 
 Synopsis:
   # List issue
-  lab issue [-n <num>] [--state=<state> | -o | -c] [--scope=<scope> | -r | -s]
+  lab issue [-n <num>] [--state=<state> | -o | -c] [--scope=<scope> | -r | -a] [-s]
             [--orderby=<orderby>] [--sort=<sort>] [-A]
 
   # Create issue

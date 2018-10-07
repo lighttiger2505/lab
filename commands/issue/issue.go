@@ -247,35 +247,6 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 	}, nil
 }
 
-func getOperation(opt Option, args []string) Operation {
-	createUpdateOption := opt.CreateUpdateOption
-	listOption := opt.ListOption
-
-	// Case of getting Issue IID
-	if len(args) > 0 {
-		if createUpdateOption.Edit {
-			return UpdateOnEditor
-		}
-		if hasEditIssueOption(createUpdateOption) {
-			return Update
-		}
-		return Detail
-	}
-
-	// Case of nothing Issue IID
-	if createUpdateOption.Edit {
-		return CreateOnEditor
-	}
-	if hasEditIssueOption(createUpdateOption) {
-		return Create
-	}
-	if listOption.AllProject {
-		return ListAll
-	}
-
-	return List
-}
-
 func hasEditIssueOption(opt *CreateUpdateOption) bool {
 	if opt.Title != "" || opt.Message != "" || opt.StateEvent != "" || opt.AssigneeID != 0 {
 		return true

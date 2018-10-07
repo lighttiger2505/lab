@@ -67,6 +67,11 @@ Labels: %s
 		stateColor = color.New(color.FgRed).SprintFunc()
 	}
 
+	milestone := ""
+	if issue.Milestone != nil {
+		milestone = issue.Milestone.Title
+	}
+
 	detial := fmt.Sprintf(base,
 		yellow(issue.IID),
 		cyan(issue.Title),
@@ -74,7 +79,7 @@ Labels: %s
 		issue.Author.Name,
 		issue.CreatedAt.String(),
 		issue.Assignee.Name,
-		issue.Milestone.Title,
+		milestone,
 		strings.Join(issue.Labels, ", "),
 		internal.SweepMarkdownComment(issue.Description),
 	)

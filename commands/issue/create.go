@@ -19,6 +19,13 @@ func makeCreateIssueOptions(opt *CreateUpdateOption, title, description string) 
 	return createIssueOption
 }
 
+func makeIssueTemplateOption() *gitlab.GetRawFileOptions {
+	opt := &gitlab.GetRawFileOptions{
+		Ref: gitlab.String("master"),
+	}
+	return opt
+}
+
 type createMethod struct {
 	internal.Method
 	client  lab.Issue
@@ -39,17 +46,32 @@ func (m *createMethod) Process() (string, error) {
 
 type createOnEditorMethod struct {
 	internal.Method
-	client   lab.Issue
-	opt      *CreateUpdateOption
-	template string
-	editFunc func(program, file string) error
-	project  string
+	issueClient      lab.Issue
+	repositoryClient lab.Repository
+	opt              *CreateUpdateOption
+	editFunc         func(program, file string) error
+	project          string
 }
 
 func (m *createOnEditorMethod) Process() (string, error) {
+	templateFilename := m.opt.Template
+	var template string
+	if templateFilename != "" {
+		filename := TemplateDir + "/" + templateFilename
+		res, err := m.repositoryClient.GetFile(
+			m.project,
+			filename,
+			makeIssueTemplateOption(),
+		)
+		if err != nil {
+			return "", err
+		}
+		template = res
+	}
+
 	var title, message string
 	title = m.opt.Title
-	message = m.template
+	message = template
 	if m.opt.Message != "" {
 		message = m.opt.Message
 	}
@@ -59,7 +81,7 @@ func (m *createOnEditorMethod) Process() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	issue, err := m.client.CreateIssue(
+	issue, err := m.issueClient.CreateIssue(
 		makeCreateIssueOptions(m.opt, title, message),
 		m.project,
 	)

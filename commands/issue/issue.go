@@ -10,7 +10,6 @@ import (
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	gitlab "github.com/xanzy/go-gitlab"
 )
 
 const (
@@ -167,7 +166,12 @@ func (c *IssueCommand) Run(args []string) int {
 }
 
 func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteInfo) (internal.Method, error) {
-	client, err := c.Provider.GetIssueClient(remote)
+	issueClient, err := c.Provider.GetIssueClient(remote)
+	if err != nil {
+		return nil, err
+	}
+
+	repositoryClient, err := c.Provider.GetRepositoryClient(remote)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +189,7 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 	if len(args) > 0 {
 		if createUpdateOption.Edit {
 			return &updateOnEditorMethod{
-				client:   client,
+				client:   issueClient,
 				opt:      createUpdateOption,
 				project:  project,
 				id:       iid,
@@ -194,14 +198,14 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 		}
 		if hasEditIssueOption(createUpdateOption) {
 			return &updateMethod{
-				client:  client,
+				client:  issueClient,
 				opt:     createUpdateOption,
 				project: project,
 				id:      iid,
 			}, nil
 		}
 		return &detailMethod{
-			client:  client,
+			client:  issueClient,
 			project: remote.RepositoryFullName(),
 			id:      iid,
 		}, nil
@@ -209,39 +213,30 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 
 	// Case of nothing Issue IID
 	if createUpdateOption.Edit {
-		templateFilename := opt.CreateUpdateOption.Template
-		var template string
-		if templateFilename != "" {
-			res, err := c.getIssueTemplateContent(templateFilename, remote)
-			if err != nil {
-				return nil, err
-			}
-			template = res
-		}
 		return &createOnEditorMethod{
-			client:   client,
-			opt:      createUpdateOption,
-			project:  project,
-			template: template,
-			editFunc: c.EditFunc,
+			issueClient:      issueClient,
+			repositoryClient: repositoryClient,
+			opt:              createUpdateOption,
+			project:          project,
+			editFunc:         c.EditFunc,
 		}, nil
 	}
 	if hasEditIssueOption(createUpdateOption) {
 		return &createMethod{
-			client:  client,
+			client:  issueClient,
 			opt:     createUpdateOption,
 			project: project,
 		}, nil
 	}
 	if listOption.AllProject {
 		return &listAllMethod{
-			client: client,
+			client: issueClient,
 			opt:    listOption,
 		}, nil
 	}
 
 	return &listMethod{
-		client:  client,
+		client:  issueClient,
 		opt:     listOption,
 		project: project,
 	}, nil
@@ -291,30 +286,4 @@ func editIssueTitleAndDesc(template string, editFunc func(program, file string) 
 	}
 
 	return title, description, nil
-}
-
-func (c *IssueCommand) getIssueTemplateContent(templateFilename string, gitlabRemote *git.RemoteInfo) (string, error) {
-	issueTemplateClient, err := c.Provider.GetRepositoryClient(gitlabRemote)
-	if err != nil {
-		return "", err
-	}
-
-	filename := TemplateDir + "/" + templateFilename
-	res, err := issueTemplateClient.GetFile(
-		gitlabRemote.RepositoryFullName(),
-		filename,
-		makeShowIssueTemplateOption(),
-	)
-	if err != nil {
-		return "", err
-	}
-
-	return res, nil
-}
-
-func makeShowIssueTemplateOption() *gitlab.GetRawFileOptions {
-	opt := &gitlab.GetRawFileOptions{
-		Ref: gitlab.String("master"),
-	}
-	return opt
 }

@@ -66,6 +66,12 @@ var mockGitlabIssueClient = &lab.MockLabIssueClient{
 	},
 }
 
+var mockRepositoryClient = &lab.MockRepositoryClient{
+	MockGetFile: func(repositoryName string, filename string, opt *gitlab.GetRawFileOptions) (string, error) {
+		return "hogehoge", nil
+	},
+}
+
 var mockIssueProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
@@ -77,6 +83,9 @@ var mockIssueProvider = &lab.MockProvider{
 	},
 	MockGetIssueClient: func(remote *git.RemoteInfo) (lab.Issue, error) {
 		return mockGitlabIssueClient, nil
+	},
+	MockGetRepositoryClient: func(remote *git.RemoteInfo) (lab.Repository, error) {
+		return mockRepositoryClient, nil
 	},
 }
 

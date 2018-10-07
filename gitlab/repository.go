@@ -12,7 +12,7 @@ type Repository interface {
 }
 
 type RepositoryClient struct {
-	ProjectVariable
+	Repository
 	Client *gitlab.Client
 }
 
@@ -34,4 +34,18 @@ func (c *RepositoryClient) GetFile(repositoryName string, filename string, opt *
 		return "", fmt.Errorf("failed get row file. %s", err.Error())
 	}
 	return string(res), nil
+}
+
+type MockRepositoryClient struct {
+	Repository
+	MockGetTree func(repositoryName string, opt *gitlab.ListTreeOptions) ([]*gitlab.TreeNode, error)
+	MockGetFile func(repositoryName string, filename string, opt *gitlab.GetRawFileOptions) (string, error)
+}
+
+func (m *MockRepositoryClient) GetTree(repositoryName string, opt *gitlab.ListTreeOptions) ([]*gitlab.TreeNode, error) {
+	return m.MockGetTree(repositoryName, opt)
+}
+
+func (m *MockRepositoryClient) GetFile(repositoryName string, filename string, opt *gitlab.GetRawFileOptions) (string, error) {
+	return m.MockGetFile(repositoryName, filename, opt)
 }

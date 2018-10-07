@@ -250,6 +250,7 @@ type MockProvider struct {
 	MockGetIssueClient           func(remote *git.RemoteInfo) (Issue, error)
 	MockGetMergeRequestClient    func(remote *git.RemoteInfo) (MergeRequest, error)
 	MockGetProjectVariableClient func(remote *git.RemoteInfo) (ProjectVariable, error)
+	MockGetRepositoryClient      func(remote *git.RemoteInfo) (Repository, error)
 }
 
 func (m *MockProvider) Init() error {
@@ -274,4 +275,8 @@ func (m *MockProvider) GetMergeRequestClient(remote *git.RemoteInfo) (MergeReque
 
 func (m *MockProvider) GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error) {
 	return m.MockGetProjectVariableClient(remote)
+}
+
+func (m *MockProvider) GetRepositoryClient(remote *git.RemoteInfo) (Repository, error) {
+	return m.MockGetRepositoryClient(remote)
 }

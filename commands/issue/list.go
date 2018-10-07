@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/ryanuber/columnize"
@@ -42,7 +43,7 @@ func (m *listMethod) Process() (string, error) {
 		return "", err
 	}
 
-	output := listAllOutput(issues)
+	output := listOutput(issues)
 	result := columnize.SimpleFormat(output)
 	return result, nil
 }
@@ -59,7 +60,7 @@ func (m *listAllMethod) Process() (string, error) {
 		return "", err
 	}
 
-	output := listOutput(issues)
+	output := listAllOutput(issues)
 	result := columnize.SimpleFormat(output)
 	return result, nil
 }
@@ -79,12 +80,14 @@ func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssu
 	return listProjectIssuesOptions
 }
 
-func listOutput(issues []*gitlab.Issue) []string {
+func listAllOutput(issues []*gitlab.Issue) []string {
+	cyan := color.New(color.FgCyan).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
-			lab.ParceRepositoryFullName(issue.WebURL),
-			fmt.Sprintf("%d", issue.IID),
+			fmt.Sprintf("%s", cyan(lab.ParceRepositoryFullName(issue.WebURL))),
+			fmt.Sprintf("%s", yellow(issue.IID)),
 			issue.Title,
 		}, "|")
 		datas = append(datas, data)
@@ -92,11 +95,12 @@ func listOutput(issues []*gitlab.Issue) []string {
 	return datas
 }
 
-func listAllOutput(issues []*gitlab.Issue) []string {
+func listOutput(issues []*gitlab.Issue) []string {
+	yellow := color.New(color.FgYellow).SprintFunc()
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
-			fmt.Sprintf("%d", issue.IID),
+			fmt.Sprintf("%s", yellow(issue.IID)),
 			issue.Title,
 		}, "|")
 		datas = append(datas, data)

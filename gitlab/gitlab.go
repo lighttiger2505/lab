@@ -20,6 +20,7 @@ type Provider interface {
 	GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error)
 	GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error)
 	GetRepositoryClient(remote *git.RemoteInfo) (Repository, error)
+	GetNoteClient(remote *git.RemoteInfo) (Note, error)
 }
 
 type GitlabProvider struct {
@@ -176,6 +177,14 @@ func (p *GitlabProvider) GetRepositoryClient(remote *git.RemoteInfo) (Repository
 		return nil, err
 	}
 	return NewRepositoryClient(gitlabClient), nil
+}
+
+func (p *GitlabProvider) GetNoteClient(remote *git.RemoteInfo) (Note, error) {
+	gitlabClient, err := p.makeGitLabClient(remote)
+	if err != nil {
+		return nil, err
+	}
+	return NewNoteClient(gitlabClient), nil
 }
 
 func (p *GitlabProvider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {

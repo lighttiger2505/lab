@@ -2,7 +2,9 @@ package issue
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/fatih/color"
 	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -10,39 +12,86 @@ import (
 
 type detailMethod struct {
 	internal.Method
-	client  lab.Issue
-	id      int
-	project string
+	issueClient lab.Issue
+	noteClient  lab.Note
+	id          int
+	project     string
+	opt         *ShowOption
 }
 
 func (m *detailMethod) Process() (string, error) {
-	issue, err := m.client.GetIssue(m.id, m.project)
+	issue, err := m.issueClient.GetIssue(m.id, m.project)
 	if err != nil {
 		return "", err
 	}
-	return issueDetailOutput(issue), nil
+
+	notes, err := m.noteClient.GetIssueNotes(m.project, m.id, makeListIssueNotesOptions())
+	if err != nil {
+		return "", err
+	}
+
+	res := issueDetailOutput(issue)
+
+	if !m.opt.NoComment {
+		noteOutputs := make([]string, len(notes))
+		for i, note := range notes {
+			noteOutputs[i] = noteOutput(note)
+		}
+		res = res + strings.Join(noteOutputs, "\n")
+	}
+
+	return res, nil
+}
+
+func makeListIssueNotesOptions() *gitlab.ListIssueNotesOptions {
+	return &gitlab.ListIssueNotesOptions{
+		Page:    1,
+		PerPage: 20,
+	}
 }
 
 func issueDetailOutput(issue *gitlab.Issue) string {
-	base := `#%d
-Title: %s
+	base := `%s %s [%s] (created by @%s, %s)
 Assignee: %s
-Author: %s
-State: %s
-CreatedAt: %s
-UpdatedAt: %s
+Milestone: %s
+Labels: %s
 
 %s`
-	detial := fmt.Sprintf(
-		base,
-		issue.IID,
-		issue.Title,
-		issue.Assignee.Name,
+
+	cyan := color.New(color.FgCyan).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
+	var stateColor func(a ...interface{}) string
+	if issue.State == "opened" {
+		stateColor = color.New(color.FgGreen).SprintFunc()
+	} else {
+		stateColor = color.New(color.FgRed).SprintFunc()
+	}
+
+	detial := fmt.Sprintf(base,
+		yellow(issue.IID),
+		cyan(issue.Title),
+		stateColor(issue.State),
 		issue.Author.Name,
-		issue.State,
 		issue.CreatedAt.String(),
-		issue.UpdatedAt.String(),
+		issue.Assignee.Name,
+		issue.Milestone.Title,
+		strings.Join(issue.Labels, ", "),
 		issue.Description,
 	)
 	return detial
+}
+
+func noteOutput(note *gitlab.Note) string {
+	base := `
+%s (created by @%s, %s)
+
+%s`
+
+	yellow := color.New(color.FgYellow).SprintFunc()
+	return fmt.Sprintf(base,
+		yellow(fmt.Sprintf("comment %d", note.ID)),
+		note.Author.Name,
+		note.CreatedAt.String(),
+		note.Body,
+	)
 }

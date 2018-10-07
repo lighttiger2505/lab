@@ -82,14 +82,20 @@ func (l *ListOption) getScope() string {
 	return l.Scope
 }
 
+type ShowOption struct {
+	NoComment bool `long:"no-comment" description:"Not print a list of comments for a spcific issue."`
+}
+
 type Option struct {
 	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
 	ListOption         *ListOption         `group:"List Options"`
+	ShowOption         *ShowOption         `group:"Show Options"`
 }
 
 func newOptionParser(opt *Option) *flags.Parser {
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
+	opt.ShowOption = &ShowOption{}
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `issue - Create and Edit, list a issue
 
@@ -105,7 +111,7 @@ Synopsis:
   lab issue <Issue IID> [-e] [-i <title>] [-m <message>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show issue
-  lab issue <Issue IID>`
+  lab issue <Issue IID> [--no-comment]`
 	return parser
 }
 
@@ -171,6 +177,11 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 		return nil, err
 	}
 
+	noteClient, err := c.Provider.GetNoteClient(remote)
+	if err != nil {
+		return nil, err
+	}
+
 	repositoryClient, err := c.Provider.GetRepositoryClient(remote)
 	if err != nil {
 		return nil, err
@@ -183,6 +194,7 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
+	showOption := opt.ShowOption
 	project := remote.RepositoryFullName()
 
 	// Case of getting Issue IID
@@ -205,9 +217,11 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 			}, nil
 		}
 		return &detailMethod{
-			client:  issueClient,
-			project: remote.RepositoryFullName(),
-			id:      iid,
+			issueClient: issueClient,
+			noteClient:  noteClient,
+			opt:         showOption,
+			project:     remote.RepositoryFullName(),
+			id:          iid,
 		}, nil
 	}
 

@@ -76,7 +76,7 @@ Labels: %s
 		issue.Assignee.Name,
 		issue.Milestone.Title,
 		strings.Join(issue.Labels, ", "),
-		issue.Description,
+		internal.SweepMarkdownComment(issue.Description),
 	)
 	return detial
 }
@@ -92,6 +92,6 @@ func noteOutput(note *gitlab.Note) string {
 		yellow(fmt.Sprintf("comment %d", note.ID)),
 		note.Author.Name,
 		note.CreatedAt.String(),
-		note.Body,
+		internal.SweepMarkdownComment(note.Body),
 	)
 }

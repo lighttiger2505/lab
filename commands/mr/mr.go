@@ -18,7 +18,7 @@ const (
 	ExitCodeFileError int = iota //2
 )
 
-type CreateUpdateMergeRequestOption struct {
+type CreateUpdateOption struct {
 	Edit         bool   `short:"e" long:"edit" description:"Edit the merge request on editor. Start the editor with the contents in the given title and message options."`
 	Title        string `short:"i" long:"title" value-name:"<title>" description:"The title of an merge request"`
 	Message      string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
@@ -29,7 +29,7 @@ type CreateUpdateMergeRequestOption struct {
 	AssigneeID   int    `long:"assignee-id" description:"The ID of assignee."`
 }
 
-type ListMergeRequestOption struct {
+type ListOption struct {
 	Num        int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of merge request to output."`
 	State      string `long:"state" value-name:"<state>" default:"all" default-mask:"all" description:"Print only merge request of the state just those that are \"opened\", \"closed\", \"merged\" or \"all\""`
 	Scope      string `long:"scope" value-name:"<scope>" default:"all" default-mask:"all" description:"Print only given scope. \"created-by-me\", \"assigned-to-me\" or \"all\"."`
@@ -43,7 +43,7 @@ type ListMergeRequestOption struct {
 	AllProject bool   `short:"A" long:"all-project" description:"Print the merge request of all projects"`
 }
 
-func (l *ListMergeRequestOption) GetState() string {
+func (l *ListOption) getState() string {
 	if l.Opened {
 		return "opened"
 	}
@@ -56,7 +56,7 @@ func (l *ListMergeRequestOption) GetState() string {
 	return l.State
 }
 
-func (l *ListMergeRequestOption) GetScope() string {
+func (l *ListOption) getScope() string {
 	if l.CreatedMe {
 		return "created-by-me"
 	}
@@ -66,14 +66,14 @@ func (l *ListMergeRequestOption) GetScope() string {
 	return l.Scope
 }
 
-type MergeRequestCommandOption struct {
-	CreateUpdateOption *CreateUpdateMergeRequestOption `group:"Create, Update Options"`
-	ListOption         *ListMergeRequestOption         `group:"List Options"`
+type Option struct {
+	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
+	ListOption         *ListOption         `group:"List Options"`
 }
 
-func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
-	opt.CreateUpdateOption = &CreateUpdateMergeRequestOption{}
-	opt.ListOption = &ListMergeRequestOption{}
+func newOptionParser(opt *Option) *flags.Parser {
+	opt.CreateUpdateOption = &CreateUpdateOption{}
+	opt.ListOption = &ListOption{}
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `merge-request - Create and Edit, list a merge request
 
@@ -107,15 +107,15 @@ func (c *MergeRequestCommand) Synopsis() string {
 
 func (c *MergeRequestCommand) Help() string {
 	buf := &bytes.Buffer{}
-	var mergeRequestCommandOption MergeRequestCommandOption
-	mergeRequestCommandParser := newMergeRequestOptionParser(&mergeRequestCommandOption)
+	var mergeRequestCommandOption Option
+	mergeRequestCommandParser := newOptionParser(&mergeRequestCommandOption)
 	mergeRequestCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *MergeRequestCommand) Run(args []string) int {
-	var mergeRequestCommandOption MergeRequestCommandOption
-	mergeRequestCommandParser := newMergeRequestOptionParser(&mergeRequestCommandOption)
+	var mergeRequestCommandOption Option
+	mergeRequestCommandParser := newOptionParser(&mergeRequestCommandOption)
 	parseArgs, err := mergeRequestCommandParser.ParseArgs(args)
 	if err != nil {
 		c.Ui.Error(err.Error())
@@ -154,7 +154,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *MergeRequestCommand) getMethod(opt MergeRequestCommandOption, args []string, remote *git.RemoteInfo) (internal.Method, error) {
+func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.RemoteInfo) (internal.Method, error) {
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
 
@@ -233,7 +233,7 @@ func (c *MergeRequestCommand) getMethod(opt MergeRequestCommandOption, args []st
 	}, nil
 }
 
-func hasCreateUpdateOption(opt *CreateUpdateMergeRequestOption) bool {
+func hasCreateUpdateOption(opt *CreateUpdateOption) bool {
 	if opt.Title != "" || opt.Message != "" || opt.StateEvent != "" || opt.AssigneeID != 0 {
 		return true
 	}

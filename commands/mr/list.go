@@ -13,7 +13,7 @@ import (
 type listMethod struct {
 	internal.Method
 	client  lab.MergeRequest
-	opt     *ListMergeRequestOption
+	opt     *ListOption
 	project string
 }
 
@@ -32,7 +32,7 @@ func (m *listMethod) Process() (string, error) {
 type listAllMethod struct {
 	internal.Method
 	client lab.MergeRequest
-	opt    *ListMergeRequestOption
+	opt    *ListOption
 }
 
 func (m *listAllMethod) Process() (string, error) {
@@ -49,14 +49,14 @@ func (m *listAllMethod) Process() (string, error) {
 	return columnize.SimpleFormat(outputs), nil
 }
 
-func makeMergeRequestOption(listMergeRequestsOption *ListMergeRequestOption) *gitlab.ListMergeRequestsOptions {
+func makeMergeRequestOption(listMergeRequestsOption *ListOption) *gitlab.ListMergeRequestsOptions {
 	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: listMergeRequestsOption.Num,
 	}
 	listRequestsOptions := &gitlab.ListMergeRequestsOptions{
-		State:       gitlab.String(listMergeRequestsOption.GetState()),
-		Scope:       gitlab.String(listMergeRequestsOption.GetScope()),
+		State:       gitlab.String(listMergeRequestsOption.getState()),
+		Scope:       gitlab.String(listMergeRequestsOption.getScope()),
 		OrderBy:     gitlab.String(listMergeRequestsOption.OrderBy),
 		Sort:        gitlab.String(listMergeRequestsOption.Sort),
 		ListOptions: *listOption,
@@ -64,14 +64,14 @@ func makeMergeRequestOption(listMergeRequestsOption *ListMergeRequestOption) *gi
 	return listRequestsOptions
 }
 
-func makeProjectMergeRequestOption(listMergeRequestsOption *ListMergeRequestOption) *gitlab.ListProjectMergeRequestsOptions {
+func makeProjectMergeRequestOption(listMergeRequestsOption *ListOption) *gitlab.ListProjectMergeRequestsOptions {
 	listOption := &gitlab.ListOptions{
 		Page:    1,
 		PerPage: listMergeRequestsOption.Num,
 	}
 	listMergeRequestsOptions := &gitlab.ListProjectMergeRequestsOptions{
-		State:       gitlab.String(listMergeRequestsOption.GetState()),
-		Scope:       gitlab.String(listMergeRequestsOption.GetScope()),
+		State:       gitlab.String(listMergeRequestsOption.getState()),
+		Scope:       gitlab.String(listMergeRequestsOption.getScope()),
 		OrderBy:     gitlab.String(listMergeRequestsOption.OrderBy),
 		Sort:        gitlab.String(listMergeRequestsOption.Sort),
 		ListOptions: *listOption,

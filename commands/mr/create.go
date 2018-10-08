@@ -12,7 +12,7 @@ import (
 type createMethod struct {
 	internal.Method
 	client  lab.MergeRequest
-	opt     *CreateUpdateMergeRequestOption
+	opt     *CreateUpdateOption
 	project string
 }
 
@@ -44,7 +44,7 @@ type createOnEditorMethod struct {
 	internal.Method
 	client           lab.MergeRequest
 	repositoryClient lab.Repository
-	opt              *CreateUpdateMergeRequestOption
+	opt              *CreateUpdateOption
 	project          string
 	editFunc         func(program, file string) error
 }
@@ -103,7 +103,7 @@ func (m *createOnEditorMethod) Process() (string, error) {
 	return fmt.Sprintf("%d", mergeRequest.IID), nil
 }
 
-func makeCreateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, description, branch string) *gitlab.CreateMergeRequestOptions {
+func makeCreateMergeRequestOption(opt *CreateUpdateOption, title, description, branch string) *gitlab.CreateMergeRequestOptions {
 	createMergeRequestOption := &gitlab.CreateMergeRequestOptions{
 		Title:           gitlab.String(title),
 		Description:     gitlab.String(description),

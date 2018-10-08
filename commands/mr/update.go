@@ -9,7 +9,7 @@ import (
 type updateMethod struct {
 	internal.Method
 	client  lab.MergeRequest
-	opt     *CreateUpdateMergeRequestOption
+	opt     *CreateUpdateOption
 	project string
 	id      int
 }
@@ -48,7 +48,7 @@ func (m *updateMethod) Process() (string, error) {
 type updateOnEditorMethod struct {
 	internal.Method
 	client   lab.MergeRequest
-	opt      *CreateUpdateMergeRequestOption
+	opt      *CreateUpdateOption
 	project  string
 	id       int
 	editFunc func(program, file string) error
@@ -82,7 +82,7 @@ func (m *updateOnEditorMethod) Process() (string, error) {
 	return "", nil
 }
 
-func makeUpdateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, description string) *gitlab.UpdateMergeRequestOptions {
+func makeUpdateMergeRequestOption(opt *CreateUpdateOption, title, description string) *gitlab.UpdateMergeRequestOptions {
 	updateMergeRequestOptions := &gitlab.UpdateMergeRequestOptions{
 		Title:        gitlab.String(title),
 		Description:  gitlab.String(description),

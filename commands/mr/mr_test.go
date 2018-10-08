@@ -60,7 +60,14 @@ var mockGitlabMergeRequestClient = &lab.MockLabMergeRequestClient{
 	},
 	MockUpdateMergeRequest: func(opt *gitlab.UpdateMergeRequestOptions, pid int, repositoryName string) (*gitlab.MergeRequest, error) {
 		return mergeRequest, nil
-	}}
+	},
+}
+
+var mockRepositoryClient = &lab.MockRepositoryClient{
+	MockGetFile: func(repositoryName string, filename string, opt *gitlab.GetRawFileOptions) (string, error) {
+		return "hogehoge", nil
+	},
+}
 
 var mockMergeRequestProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
@@ -73,6 +80,9 @@ var mockMergeRequestProvider = &lab.MockProvider{
 	},
 	MockGetMergeRequestClient: func(remote *git.RemoteInfo) (lab.MergeRequest, error) {
 		return mockGitlabMergeRequestClient, nil
+	},
+	MockGetRepositoryClient: func(remote *git.RemoteInfo) (lab.Repository, error) {
+		return mockRepositoryClient, nil
 	},
 }
 
@@ -168,7 +178,7 @@ func TestMergeRequestCommandRun_Update(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "12\n"
+	want := ""
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}
@@ -190,7 +200,7 @@ func TestMergeRequestCommandRun_UpdateOnEditor(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "12\n"
+	want := ""
 	if want != got {
 		t.Fatalf("bad output value \nwant %#v \ngot  %#v", want, got)
 	}

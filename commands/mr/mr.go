@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
-	"strings"
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	"github.com/ryanuber/columnize"
-	gitlab "github.com/xanzy/go-gitlab"
 )
 
 const (
@@ -173,185 +170,111 @@ func (c *MergeRequestCommand) Run(args []string) int {
 
 	switch mergeRequestOperation(mergeRequestCommandOption, parseArgs) {
 	case UpdateMergeRequest:
-		// Getting exist merge request
-		mergeRequest, err := client.GetMergeRequest(iid, gitlabRemote.RepositoryFullName())
+		method := &updateMethod{
+			client:  client,
+			opt:     mergeRequestCommandOption.CreateUpdateOption,
+			project: gitlabRemote.RepositoryFullName(),
+			id:      iid,
+		}
+		res, err := method.Process()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
 
-		// Create new title or description
-		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
-		updatedTitle := mergeRequest.Title
-		updatedMessage := mergeRequest.Description
-		if createUpdateOption.Title != "" {
-			updatedTitle = createUpdateOption.Title
+		if res != "" {
+			c.Ui.Message(res)
 		}
-		if createUpdateOption.Message != "" {
-			updatedMessage = createUpdateOption.Message
-		}
-
-		// Do update merge request
-		updatedMergeRequest, err := client.UpdateMergeRequest(
-			makeUpdateMergeRequestOption(createUpdateOption, updatedTitle, updatedMessage),
-			iid,
-			gitlabRemote.RepositoryFullName(),
-		)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		// Print update Issue IID
-		c.Ui.Message(fmt.Sprintf("%d", updatedMergeRequest.IID))
 
 	case UpdateMergeRequestOnEditor:
-		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
-
-		// Getting exist merge request
-		mergeRequest, err := client.GetMergeRequest(iid, gitlabRemote.RepositoryFullName())
+		method := &updateOnEditorMethod{
+			client:   client,
+			opt:      mergeRequestCommandOption.CreateUpdateOption,
+			project:  gitlabRemote.RepositoryFullName(),
+			id:       iid,
+			editFunc: c.EditFunc,
+		}
+		res, err := method.Process()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
 
-		// Starting editor for edit title and description
-		template := editMergeRequestTemplate(mergeRequest.Title, mergeRequest.Description)
-		title, message, err := editIssueTitleAndDesc(template, c.EditFunc)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
+		if res != "" {
+			c.Ui.Message(res)
 		}
-
-		// Do update merge request
-		updatedMergeRequest, err := client.UpdateMergeRequest(
-			makeUpdateMergeRequestOption(createUpdateOption, title, message),
-			iid,
-			gitlabRemote.RepositoryFullName(),
-		)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		// Print update Issue IID
-		c.Ui.Message(fmt.Sprintf("%d", updatedMergeRequest.IID))
 
 	case CreateMergeRequest:
-		// Get source branch. current branch from local repository when non specific flags
-		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
-		currentBranch, err := git.CurrentBranch()
+		method := &createMethod{
+			client:  client,
+			opt:     mergeRequestCommandOption.CreateUpdateOption,
+			project: gitlabRemote.RepositoryFullName(),
+		}
+		res, err := method.Process()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		if createUpdateOption.SourceBranch != "" {
-			// TODO Checking source branch exitst
-			currentBranch = createUpdateOption.SourceBranch
-		}
-
-		// Do create merge request
-		mergeRequest, err := client.CreateMergeRequest(
-			makeCreateMergeRequestOption(createUpdateOption, createUpdateOption.Title, createUpdateOption.Message, currentBranch),
-			gitlabRemote.RepositoryFullName(),
-		)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		// Print created merge request IID
-		c.Ui.Message(fmt.Sprintf("%d", mergeRequest.IID))
+		c.Ui.Message(res)
 
 	case CreateMergeRequestOnEditor:
-		// Starting editor for edit title and description
-		createUpdateOption := mergeRequestCommandOption.CreateUpdateOption
-
-		var title, message string
-		title = createUpdateOption.Title
-		templateFilename := mergeRequestCommandOption.CreateUpdateOption.Template
-		if templateFilename != "" {
-			templateContent, err := c.getMergeRequestTemplateContent(templateFilename, gitlabRemote)
-			if err != nil {
-				c.Ui.Error(err.Error())
-				return ExitCodeError
-			}
-			message = templateContent
-		}
-		if createUpdateOption.Message != "" {
-			message = createUpdateOption.Message
-		}
-
-		template := editMergeRequestTemplate(title, message)
-		title, message, err := editIssueTitleAndDesc(template, c.EditFunc)
+		repositoryClient, err := c.Provider.GetRepositoryClient(gitlabRemote)
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
 
-		// Get source branch. current branch from local repository when non specific flags
-		currentBranch, err := git.CurrentBranch()
+		method := &createOnEditorMethod{
+			client:           client,
+			repositoryClient: repositoryClient,
+			opt:              mergeRequestCommandOption.CreateUpdateOption,
+			project:          gitlabRemote.RepositoryFullName(),
+			editFunc:         c.EditFunc,
+		}
+		res, err := method.Process()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		if createUpdateOption.SourceBranch != "" {
-			// TODO Checking source branch exitst
-			currentBranch = createUpdateOption.SourceBranch
-		}
-
-		// Do create merge request
-		mergeRequest, err := client.CreateMergeRequest(
-			makeCreateMergeRequestOption(createUpdateOption, title, message, currentBranch),
-			gitlabRemote.RepositoryFullName(),
-		)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		// Print created merge request IID
-		c.Ui.Message(fmt.Sprintf("%d", mergeRequest.IID))
+		c.Ui.Message(res)
 
 	case ShowMergeRequest:
-		// Do get merge request
-		mergeRequest, err := client.GetMergeRequest(iid, gitlabRemote.RepositoryFullName())
+		method := &detailMethod{
+			client:  client,
+			project: gitlabRemote.RepositoryFullName(),
+			id:      iid,
+		}
+		res, err := method.Process()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		output := outMergeRequestDetail(mergeRequest)
-		c.Ui.Message(output)
+		c.Ui.Message(res)
 
 	case ListMergeRequest:
-		listOption := mergeRequestCommandOption.ListOption
-		mergeRequests, err := client.GetProjectMargeRequest(
-			makeProjectMergeRequestOption(listOption),
-			gitlabRemote.RepositoryFullName(),
-		)
+		method := &listMethod{
+			client:  client,
+			opt:     mergeRequestCommandOption.ListOption,
+			project: gitlabRemote.RepositoryFullName(),
+		}
+		res, err := method.Process()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-		outputs := outProjectMergeRequest(mergeRequests)
-		result := columnize.SimpleFormat(outputs)
-		c.Ui.Message(result)
+		c.Ui.Message(res)
 
 	case ListMergeRequestAllProject:
-		// Do get merge request list
-		listOption := mergeRequestCommandOption.ListOption
-		mergeRequests, err := client.GetAllProjectMergeRequest(
-			makeMergeRequestOption(listOption),
-		)
+		method := &listAllMethod{
+			client: client,
+			opt:    mergeRequestCommandOption.ListOption,
+		}
+		res, err := method.Process()
 		if err != nil {
 			c.Ui.Error(err.Error())
 			return ExitCodeError
 		}
-
-		// Print merge request list
-		outputs := outMergeRequest(mergeRequests)
-		result := columnize.SimpleFormat(outputs)
-		c.Ui.Message(result)
+		c.Ui.Message(res)
 
 	default:
 		c.Ui.Error("Invalid merge request operation")
@@ -409,112 +332,6 @@ func validMergeRequestIID(args []string) (int, error) {
 	return iid, nil
 }
 
-func makeMergeRequestOption(listMergeRequestsOption *ListMergeRequestOption) *gitlab.ListMergeRequestsOptions {
-	listOption := &gitlab.ListOptions{
-		Page:    1,
-		PerPage: listMergeRequestsOption.Num,
-	}
-	listRequestsOptions := &gitlab.ListMergeRequestsOptions{
-		State:       gitlab.String(listMergeRequestsOption.GetState()),
-		Scope:       gitlab.String(listMergeRequestsOption.GetScope()),
-		OrderBy:     gitlab.String(listMergeRequestsOption.OrderBy),
-		Sort:        gitlab.String(listMergeRequestsOption.Sort),
-		ListOptions: *listOption,
-	}
-	return listRequestsOptions
-}
-
-func makeProjectMergeRequestOption(listMergeRequestsOption *ListMergeRequestOption) *gitlab.ListProjectMergeRequestsOptions {
-	listOption := &gitlab.ListOptions{
-		Page:    1,
-		PerPage: listMergeRequestsOption.Num,
-	}
-	listMergeRequestsOptions := &gitlab.ListProjectMergeRequestsOptions{
-		State:       gitlab.String(listMergeRequestsOption.GetState()),
-		Scope:       gitlab.String(listMergeRequestsOption.GetScope()),
-		OrderBy:     gitlab.String(listMergeRequestsOption.OrderBy),
-		Sort:        gitlab.String(listMergeRequestsOption.Sort),
-		ListOptions: *listOption,
-	}
-	return listMergeRequestsOptions
-}
-
-func makeCreateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, description, branch string) *gitlab.CreateMergeRequestOptions {
-	createMergeRequestOption := &gitlab.CreateMergeRequestOptions{
-		Title:           gitlab.String(title),
-		Description:     gitlab.String(description),
-		SourceBranch:    gitlab.String(branch),
-		TargetBranch:    gitlab.String(opt.TargetBranch),
-		TargetProjectID: nil,
-	}
-	if opt.AssigneeID != 0 {
-		createMergeRequestOption.AssigneeID = gitlab.Int(opt.AssigneeID)
-	}
-	return createMergeRequestOption
-}
-
-func makeUpdateMergeRequestOption(opt *CreateUpdateMergeRequestOption, title, description string) *gitlab.UpdateMergeRequestOptions {
-	updateMergeRequestOptions := &gitlab.UpdateMergeRequestOptions{
-		Title:        gitlab.String(title),
-		Description:  gitlab.String(description),
-		TargetBranch: gitlab.String(opt.TargetBranch),
-	}
-	if opt.StateEvent != "" {
-		updateMergeRequestOptions.StateEvent = gitlab.String(opt.StateEvent)
-	}
-	if opt.AssigneeID != 0 {
-		updateMergeRequestOptions.AssigneeID = gitlab.Int(opt.AssigneeID)
-	}
-	return updateMergeRequestOptions
-}
-
-func outMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
-	outputs := []string{}
-	for _, mergeRequest := range mergeRequsets {
-		output := strings.Join([]string{
-			lab.ParceRepositoryFullName(mergeRequest.WebURL),
-			fmt.Sprintf("%d", mergeRequest.IID),
-			mergeRequest.Title,
-		}, "|")
-		outputs = append(outputs, output)
-	}
-	return outputs
-}
-
-func outMergeRequestDetail(mergeRequest *gitlab.MergeRequest) string {
-	base := `!%d
-Title: %s
-Assignee: %s
-Author: %s
-CreatedAt: %s
-UpdatedAt: %s
-
-%s`
-	detial := fmt.Sprintf(
-		base,
-		mergeRequest.IID,
-		mergeRequest.Title,
-		mergeRequest.Assignee.Name,
-		mergeRequest.Author.Name,
-		mergeRequest.CreatedAt.String(),
-		mergeRequest.UpdatedAt.String(),
-		mergeRequest.Description,
-	)
-	return detial
-}
-
-func outProjectMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
-	outputs := []string{}
-	for _, mergeRequest := range mergeRequsets {
-		output := strings.Join([]string{
-			fmt.Sprintf("%d", mergeRequest.IID),
-			mergeRequest.Title,
-		}, "|")
-		outputs = append(outputs, output)
-	}
-	return outputs
-}
-
 func editMergeRequestTemplate(title, description string) string {
 	message := `%s
 
@@ -522,25 +339,6 @@ func editMergeRequestTemplate(title, description string) string {
 `
 	message = fmt.Sprintf(message, title, description)
 	return message
-}
-
-func (c *MergeRequestCommand) getMergeRequestTemplateContent(templateFilename string, gitlabRemote *git.RemoteInfo) (string, error) {
-	templateClient, err := c.Provider.GetRepositoryClient(gitlabRemote)
-	if err != nil {
-		return "", err
-	}
-
-	filename := MergeRequestTemplateDir + "/" + templateFilename
-	res, err := templateClient.GetFile(
-		gitlabRemote.RepositoryFullName(),
-		filename,
-		makeShowMergeRequestTemplateOption(),
-	)
-	if err != nil {
-		return "", err
-	}
-
-	return res, nil
 }
 
 func editIssueTitleAndDesc(template string, editFunc func(program, file string) error) (string, string, error) {
@@ -559,11 +357,4 @@ func editIssueTitleAndDesc(template string, editFunc func(program, file string) 
 	}
 
 	return title, description, nil
-}
-
-func makeShowMergeRequestTemplateOption() *gitlab.GetRawFileOptions {
-	opt := &gitlab.GetRawFileOptions{
-		Ref: gitlab.String("master"),
-	}
-	return opt
 }

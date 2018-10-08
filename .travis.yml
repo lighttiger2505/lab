@@ -5,12 +5,11 @@ go:
 before_install:
   - go get github.com/axw/gocov/gocov
   - go get github.com/mattn/goveralls
-  - go get github.com/haya14busa/goverage
   - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
 install:
   - make ensure
 script:
-  - $HOME/gopath/bin/goverage -v -coverprofile=coverage.out ./...
+  - go test -v -coverprofile=coverage.out ./...
   - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 before_deploy:

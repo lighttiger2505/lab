@@ -220,7 +220,7 @@ func TestIssueCommandRun_UpdateIssue(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "12\n"
+	want := ""
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
@@ -243,7 +243,7 @@ func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := "12\n"
+	want := ""
 
 	if got != want {
 		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)

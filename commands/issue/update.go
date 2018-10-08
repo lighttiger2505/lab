@@ -1,8 +1,6 @@
 package issue
 
 import (
-	"fmt"
-
 	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -38,17 +36,10 @@ func (m *updateMethod) Process() (string, error) {
 	}
 
 	// Create new title or description
-	updatedTitle := issue.Title
-	updatedMessage := issue.Description
-	if m.opt.Title != "" {
-		updatedTitle = m.opt.Title
-	}
-	if m.opt.Message != "" {
-		updatedMessage = m.opt.Message
-	}
+	updatedTitle, updatedMessage := getUpdatedTitleAndMessage(issue, m.opt.Title, m.opt.Message)
 
 	// Do update issue
-	updatedIssue, err := m.client.UpdateIssue(
+	_, err = m.client.UpdateIssue(
 		makeUpdateIssueOption(m.opt, updatedTitle, updatedMessage),
 		m.id,
 		m.project,
@@ -57,8 +48,8 @@ func (m *updateMethod) Process() (string, error) {
 		return "", err
 	}
 
-	// Print update Issue IID
-	return fmt.Sprintf("%d", updatedIssue.IID), nil
+	// Return empty value
+	return "", nil
 }
 
 type updateOnEditorMethod struct {
@@ -78,14 +69,7 @@ func (m *updateOnEditorMethod) Process() (string, error) {
 	}
 
 	// Create new title or description
-	updatedTitle := issue.Title
-	updatedMessage := issue.Description
-	if m.opt.Title != "" {
-		updatedTitle = m.opt.Title
-	}
-	if m.opt.Message != "" {
-		updatedMessage = m.opt.Message
-	}
+	updatedTitle, updatedMessage := getUpdatedTitleAndMessage(issue, m.opt.Title, m.opt.Message)
 
 	// Starting editor for edit title and description
 	content := editIssueMessage(updatedTitle, updatedMessage)
@@ -95,7 +79,7 @@ func (m *updateOnEditorMethod) Process() (string, error) {
 	}
 
 	// Do update issue
-	updatedIssue, err := m.client.UpdateIssue(
+	_, err = m.client.UpdateIssue(
 		makeUpdateIssueOption(m.opt, title, message),
 		m.id,
 		m.project,
@@ -103,5 +87,19 @@ func (m *updateOnEditorMethod) Process() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%d", updatedIssue.IID), nil
+
+	// Return empty value
+	return "", nil
+}
+
+func getUpdatedTitleAndMessage(issue *gitlab.Issue, title, message string) (string, string) {
+	updatedTitle := issue.Title
+	updatedMessage := issue.Description
+	if title != "" {
+		updatedTitle = title
+	}
+	if message != "" {
+		updatedMessage = message
+	}
+	return updatedTitle, updatedMessage
 }

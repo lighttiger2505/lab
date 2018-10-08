@@ -166,7 +166,10 @@ func (c *IssueCommand) Run(args []string) int {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
-	c.Ui.Message(res)
+
+	if res != "" {
+		c.Ui.Message(res)
+	}
 
 	return ExitCodeOK
 }

@@ -1,9 +1,9 @@
 package mr
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/ryanuber/columnize"
@@ -80,10 +80,11 @@ func makeProjectMergeRequestOption(listMergeRequestsOption *ListOption) *gitlab.
 }
 
 func outProjectMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
+	yellow := color.New(color.FgYellow).SprintFunc()
 	outputs := []string{}
 	for _, mergeRequest := range mergeRequsets {
 		output := strings.Join([]string{
-			fmt.Sprintf("%d", mergeRequest.IID),
+			yellow(mergeRequest.IID),
 			mergeRequest.Title,
 		}, "|")
 		outputs = append(outputs, output)
@@ -92,11 +93,13 @@ func outProjectMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
 }
 
 func outMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
+	cyan := color.New(color.FgCyan).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
 	outputs := []string{}
 	for _, mergeRequest := range mergeRequsets {
 		output := strings.Join([]string{
-			lab.ParceRepositoryFullName(mergeRequest.WebURL),
-			fmt.Sprintf("%d", mergeRequest.IID),
+			cyan(lab.ParceRepositoryFullName(mergeRequest.WebURL)),
+			yellow(mergeRequest.IID),
 			mergeRequest.Title,
 		}, "|")
 		outputs = append(outputs, output)

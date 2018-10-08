@@ -219,12 +219,10 @@ func TestMergeRequestCommandRun_Show(t *testing.T) {
 	}
 
 	got := mockUI.Writer.String()
-	want := `!12
-Title: Title12
+	want := `12 Title12 [] (created by @AuthorName, 2018-02-14 00:00:00 +0000 UTC)
 Assignee: AssigneeName
-Author: AuthorName
-CreatedAt: 2018-02-14 00:00:00 +0000 UTC
-UpdatedAt: 2018-03-14 00:00:00 +0000 UTC
+Milestone: 
+Labels: 
 
 Description
 `

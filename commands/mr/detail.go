@@ -2,7 +2,9 @@ package mr
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/fatih/color"
 	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -25,23 +27,37 @@ func (m *detailMethod) Process() (string, error) {
 }
 
 func outMergeRequestDetail(mergeRequest *gitlab.MergeRequest) string {
-	base := `!%d
-Title: %s
+	base := `%s %s [%s] (created by @%s, %s)
 Assignee: %s
-Author: %s
-CreatedAt: %s
-UpdatedAt: %s
+Milestone: %s
+Labels: %s
 
 %s`
-	detial := fmt.Sprintf(
-		base,
-		mergeRequest.IID,
-		mergeRequest.Title,
-		mergeRequest.Assignee.Name,
+
+	cyan := color.New(color.FgCyan).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
+	var stateColor func(a ...interface{}) string
+	if mergeRequest.State == "opened" {
+		stateColor = color.New(color.FgGreen).SprintFunc()
+	} else {
+		stateColor = color.New(color.FgRed).SprintFunc()
+	}
+
+	milestone := ""
+	if mergeRequest.Milestone != nil {
+		milestone = mergeRequest.Milestone.Title
+	}
+
+	detial := fmt.Sprintf(base,
+		yellow(mergeRequest.IID),
+		cyan(mergeRequest.Title),
+		stateColor(mergeRequest.State),
 		mergeRequest.Author.Name,
 		mergeRequest.CreatedAt.String(),
-		mergeRequest.UpdatedAt.String(),
-		mergeRequest.Description,
+		mergeRequest.Assignee.Name,
+		milestone,
+		strings.Join(mergeRequest.Labels, ", "),
+		internal.SweepMarkdownComment(mergeRequest.Description),
 	)
 	return detial
 }

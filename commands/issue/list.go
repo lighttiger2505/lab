@@ -1,7 +1,6 @@
 package issue
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/fatih/color"
@@ -86,8 +85,8 @@ func listAllOutput(issues []*gitlab.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
-			fmt.Sprintf("%s", cyan(lab.ParceRepositoryFullName(issue.WebURL))),
-			fmt.Sprintf("%s", yellow(issue.IID)),
+			cyan(lab.ParceRepositoryFullName(issue.WebURL)),
+			yellow(issue.IID),
 			issue.Title,
 		}, "|")
 		datas = append(datas, data)
@@ -100,7 +99,7 @@ func listOutput(issues []*gitlab.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
-			fmt.Sprintf("%s", yellow(issue.IID)),
+			yellow(issue.IID),
 			issue.Title,
 		}, "|")
 		datas = append(datas, data)

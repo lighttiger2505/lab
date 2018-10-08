@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -156,161 +157,102 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	client, err := c.Provider.GetMergeRequestClient(gitlabRemote)
+	method, err := c.getMethod(mergeRequestCommandOption, parseArgs, gitlabRemote)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	iid, err := validMergeRequestIID(parseArgs)
+	res, err := method.Process()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	switch mergeRequestOperation(mergeRequestCommandOption, parseArgs) {
-	case UpdateMergeRequest:
-		method := &updateMethod{
-			client:  client,
-			opt:     mergeRequestCommandOption.CreateUpdateOption,
-			project: gitlabRemote.RepositoryFullName(),
-			id:      iid,
-		}
-		res, err := method.Process()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		if res != "" {
-			c.Ui.Message(res)
-		}
-
-	case UpdateMergeRequestOnEditor:
-		method := &updateOnEditorMethod{
-			client:   client,
-			opt:      mergeRequestCommandOption.CreateUpdateOption,
-			project:  gitlabRemote.RepositoryFullName(),
-			id:       iid,
-			editFunc: c.EditFunc,
-		}
-		res, err := method.Process()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		if res != "" {
-			c.Ui.Message(res)
-		}
-
-	case CreateMergeRequest:
-		method := &createMethod{
-			client:  client,
-			opt:     mergeRequestCommandOption.CreateUpdateOption,
-			project: gitlabRemote.RepositoryFullName(),
-		}
-		res, err := method.Process()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
+	if res != "" {
 		c.Ui.Message(res)
-
-	case CreateMergeRequestOnEditor:
-		repositoryClient, err := c.Provider.GetRepositoryClient(gitlabRemote)
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-
-		method := &createOnEditorMethod{
-			client:           client,
-			repositoryClient: repositoryClient,
-			opt:              mergeRequestCommandOption.CreateUpdateOption,
-			project:          gitlabRemote.RepositoryFullName(),
-			editFunc:         c.EditFunc,
-		}
-		res, err := method.Process()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		c.Ui.Message(res)
-
-	case ShowMergeRequest:
-		method := &detailMethod{
-			client:  client,
-			project: gitlabRemote.RepositoryFullName(),
-			id:      iid,
-		}
-		res, err := method.Process()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		c.Ui.Message(res)
-
-	case ListMergeRequest:
-		method := &listMethod{
-			client:  client,
-			opt:     mergeRequestCommandOption.ListOption,
-			project: gitlabRemote.RepositoryFullName(),
-		}
-		res, err := method.Process()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		c.Ui.Message(res)
-
-	case ListMergeRequestAllProject:
-		method := &listAllMethod{
-			client: client,
-			opt:    mergeRequestCommandOption.ListOption,
-		}
-		res, err := method.Process()
-		if err != nil {
-			c.Ui.Error(err.Error())
-			return ExitCodeError
-		}
-		c.Ui.Message(res)
-
-	default:
-		c.Ui.Error("Invalid merge request operation")
-		return ExitCodeError
 	}
 
 	return ExitCodeOK
 }
 
-func mergeRequestOperation(opt MergeRequestCommandOption, args []string) MergeRequestOperation {
+func (c *MergeRequestCommand) getMethod(opt MergeRequestCommandOption, args []string, remote *git.RemoteInfo) (internal.Method, error) {
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
+
+	client, err := c.Provider.GetMergeRequestClient(remote)
+	if err != nil {
+		return nil, err
+	}
+
+	repositoryClient, err := c.Provider.GetRepositoryClient(remote)
+	if err != nil {
+		return nil, err
+	}
+
+	iid, err := validMergeRequestIID(args)
+	if err != nil {
+		return nil, err
+	}
 
 	// Case of getting Merge Request IID
 	if len(args) > 0 {
 		if createUpdateOption.Edit {
-			return UpdateMergeRequestOnEditor
+			return &updateOnEditorMethod{
+				client:   client,
+				opt:      createUpdateOption,
+				project:  remote.RepositoryFullName(),
+				id:       iid,
+				editFunc: c.EditFunc,
+			}, nil
 		}
 		if hasCreateUpdateOption(createUpdateOption) {
-			return UpdateMergeRequest
+			return &updateMethod{
+				client:  client,
+				opt:     createUpdateOption,
+				project: remote.RepositoryFullName(),
+				id:      iid,
+			}, nil
 		}
-		return ShowMergeRequest
+
+		return &detailMethod{
+			client:  client,
+			project: remote.RepositoryFullName(),
+			id:      iid,
+		}, nil
 	}
 
 	// Case of nothing MergeRequest IID
 	if createUpdateOption.Edit {
-		return CreateMergeRequestOnEditor
+		return &createOnEditorMethod{
+			client:           client,
+			repositoryClient: repositoryClient,
+			opt:              createUpdateOption,
+			project:          remote.RepositoryFullName(),
+			editFunc:         c.EditFunc,
+		}, nil
+
 	}
 	if createUpdateOption.Title != "" {
-		return CreateMergeRequest
-	}
-	if listOption.AllProject {
-		return ListMergeRequestAllProject
+		return &createMethod{
+			client:  client,
+			opt:     createUpdateOption,
+			project: remote.RepositoryFullName(),
+		}, nil
 	}
 
-	return ListMergeRequest
+	if listOption.AllProject {
+		return &listAllMethod{
+			client: client,
+			opt:    listOption,
+		}, nil
+
+	}
+	return &listMethod{
+		client:  client,
+		opt:     listOption,
+		project: remote.RepositoryFullName(),
+	}, nil
 }
 
 func hasCreateUpdateOption(opt *CreateUpdateMergeRequestOption) bool {

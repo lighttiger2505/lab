@@ -18,8 +18,6 @@ const (
 	ExitCodeFileError int = iota //2
 )
 
-const MergeRequestTemplateDir = ".gitlab/merge_request_templates"
-
 type CreateUpdateMergeRequestOption struct {
 	Edit         bool   `short:"e" long:"edit" description:"Edit the merge request on editor. Start the editor with the contents in the given title and message options."`
 	Title        string `short:"i" long:"title" value-name:"<title>" description:"The title of an merge request"`
@@ -29,10 +27,6 @@ type CreateUpdateMergeRequestOption struct {
 	TargetBranch string `short:"t" long:"target" default:"master" default-mask:"master" description:"The target branch"`
 	StateEvent   string `long:"state-event" description:"Change the status. \"opened\", \"closed\""`
 	AssigneeID   int    `long:"assignee-id" description:"The ID of assignee."`
-}
-
-func newCreateUpdateMergeRequestOption() *CreateUpdateMergeRequestOption {
-	return &CreateUpdateMergeRequestOption{}
 }
 
 type ListMergeRequestOption struct {
@@ -72,30 +66,14 @@ func (l *ListMergeRequestOption) GetScope() string {
 	return l.Scope
 }
 
-type MergeRequestOperation int
-
-const (
-	CreateMergeRequest MergeRequestOperation = iota
-	CreateMergeRequestOnEditor
-	UpdateMergeRequest
-	UpdateMergeRequestOnEditor
-	ShowMergeRequest
-	ListMergeRequest
-	ListMergeRequestAllProject
-)
-
-func newListMergeRequestOption() *ListMergeRequestOption {
-	return &ListMergeRequestOption{}
-}
-
 type MergeRequestCommandOption struct {
 	CreateUpdateOption *CreateUpdateMergeRequestOption `group:"Create, Update Options"`
 	ListOption         *ListMergeRequestOption         `group:"List Options"`
 }
 
 func newMergeRequestOptionParser(opt *MergeRequestCommandOption) *flags.Parser {
-	opt.CreateUpdateOption = newCreateUpdateMergeRequestOption()
-	opt.ListOption = newListMergeRequestOption()
+	opt.CreateUpdateOption = &CreateUpdateMergeRequestOption{}
+	opt.ListOption = &ListMergeRequestOption{}
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `merge-request - Create and Edit, list a merge request
 

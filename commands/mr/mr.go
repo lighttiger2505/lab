@@ -24,10 +24,10 @@ type CreateUpdateOption struct {
 	Title        string `short:"i" long:"title" value-name:"<title>" description:"The title of an merge request"`
 	Message      string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
 	Template     string `short:"p" long:"template" value-name:"<merge request template>" description:"The template of an merge request"`
-	SourceBranch string `short:"s" long:"source" description:"The source branch"`
-	TargetBranch string `short:"t" long:"target" default:"master" default-mask:"master" description:"The target branch"`
-	StateEvent   string `long:"state-event" description:"Change the status. \"opened\", \"closed\""`
-	AssigneeID   int    `long:"assignee-id" description:"The ID of assignee."`
+	SourceBranch string `short:"s" long:"source" value-name:"<source branch>" description:"The source branch"`
+	TargetBranch string `short:"t" long:"target" value-name:"<target branch>" default:"master" default-mask:"master" description:"The target branch"`
+	StateEvent   string `long:"state-event" value-name:"<state>" description:"Change the status. \"opened\", \"closed\""`
+	AssigneeID   int    `long:"assignee-id" value-name:"<assignee id>" description:"The ID of assignee."`
 }
 
 type ListOption struct {
@@ -94,13 +94,13 @@ Synopsis:
   lab merge-request [-e] [-i <title>] [-d <message>] [--assignee-id=<assignee id>]
 
   # Update merge request
-  lab merge-request <MergeRequest IID> [-t <title>] [-d <description>] [--state-event=<state>] [--assignee-id=<assignee id>]
+  lab merge-request <merge request iid> [-t <title>] [-d <description>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show merge request
-  lab merge-request <MergeRequest IID>
+  lab merge-request <mergerequest iid>
   
   # Browse merge request
-  lab merge-request -b [<MergeRequest IID>]`
+  lab merge-request -b [<mergerequest iid>]`
 
 	return parser
 }

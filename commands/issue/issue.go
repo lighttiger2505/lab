@@ -24,8 +24,8 @@ type CreateUpdateOption struct {
 	Title      string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
 	Message    string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
 	Template   string `short:"p" long:"template" value-name:"<issue template>" description:"The template of an issue"`
-	StateEvent string `long:"state-event" description:"Change the status. \"close\", \"reopen\""`
-	AssigneeID int    `long:"assignee-id" description:"The ID of assignee."`
+	StateEvent string `long:"state-event" value-name:"<state>" description:"Change the status. \"close\", \"reopen\""`
+	AssigneeID int    `long:"assignee-id" value-name:"<assignee id>" description:"The ID of assignee."`
 }
 
 func (o *CreateUpdateOption) hasEdit() bool {
@@ -115,13 +115,13 @@ Synopsis:
   lab issue [-e] [-i <title>] [-m <message>] [--assignee-id=<assignee id>]
 
   # Update issue
-  lab issue <Issue IID> [-e] [-i <title>] [-m <message>] [--state-event=<state>] [--assignee-id=<assignee id>]
+  lab issue <issue iid> [-e] [-i <title>] [-m <message>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show issue
-  lab issue <Issue IID> [--no-comment]
+  lab issue <issue iid> [--no-comment]
   
   # Browse issue
-  lab issue -b [<Issue IID>]`
+  lab issue -b [<issue iid>]`
 
 	return parser
 }

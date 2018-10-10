@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
@@ -66,14 +67,20 @@ func (l *ListOption) getScope() string {
 	return l.Scope
 }
 
+type BrowseOption struct {
+	Browse bool `short:"b" long:"browse" description:"Browse merge request."`
+}
+
 type Option struct {
 	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
 	ListOption         *ListOption         `group:"List Options"`
+	BrowseOption       *BrowseOption       `group:"Browse Options"`
 }
 
 func newOptionParser(opt *Option) *flags.Parser {
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
+	opt.BrowseOption = &BrowseOption{}
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `merge-request - Create and Edit, list a merge request
 
@@ -90,7 +97,11 @@ Synopsis:
   lab merge-request <MergeRequest IID> [-t <title>] [-d <description>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show merge request
-  lab merge-request <MergeRequest IID>`
+  lab merge-request <MergeRequest IID>
+  
+  # Browse merge request
+  lab merge-request -b [<MergeRequest IID>]`
+
 	return parser
 }
 
@@ -157,6 +168,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.RemoteInfo) (internal.Method, error) {
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
+	browseOption := opt.BrowseOption
 
 	client, err := c.Provider.GetMergeRequestClient(remote)
 	if err != nil {
@@ -171,6 +183,14 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 	iid, err := validMergeRequestIID(args)
 	if err != nil {
 		return nil, err
+	}
+
+	if browseOption.Browse {
+		return &browseMethod{
+			opener: &cmd.Browser{},
+			remote: remote,
+			id:     iid,
+		}, nil
 	}
 
 	// Case of getting Merge Request IID

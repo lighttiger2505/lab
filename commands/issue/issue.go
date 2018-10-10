@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
@@ -86,16 +87,22 @@ type ShowOption struct {
 	NoComment bool `long:"no-comment" description:"Not print a list of comments for a spcific issue."`
 }
 
+type BrowseOption struct {
+	Browse bool `short:"b" long:"browse" description:"Browse issue."`
+}
+
 type Option struct {
 	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
 	ListOption         *ListOption         `group:"List Options"`
 	ShowOption         *ShowOption         `group:"Show Options"`
+	BrowseOption       *BrowseOption       `group:"Browse Options"`
 }
 
 func newOptionParser(opt *Option) *flags.Parser {
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
 	opt.ShowOption = &ShowOption{}
+	opt.BrowseOption = &BrowseOption{}
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `issue - Create and Edit, list a issue
 
@@ -111,7 +118,11 @@ Synopsis:
   lab issue <Issue IID> [-e] [-i <title>] [-m <message>] [--state-event=<state>] [--assignee-id=<assignee id>]
 
   # Show issue
-  lab issue <Issue IID> [--no-comment]`
+  lab issue <Issue IID> [--no-comment]
+  
+  # Browse issue
+  lab issue -b [<Issue IID>]`
+
 	return parser
 }
 
@@ -198,7 +209,16 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
 	showOption := opt.ShowOption
+	browseOption := opt.BrowseOption
 	project := remote.RepositoryFullName()
+
+	if browseOption.Browse {
+		return &browseMethod{
+			opener: &cmd.Browser{},
+			remote: remote,
+			id:     iid,
+		}, nil
+	}
 
 	// Case of getting Issue IID
 	if len(args) > 0 {

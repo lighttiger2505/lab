@@ -69,6 +69,12 @@ var mockRepositoryClient = &lab.MockRepositoryClient{
 	},
 }
 
+var mockNoteClient = &lab.MockNoteClient{
+	MockGetMergeRequestNotes: func(repositoryName string, iid int, opt *gitlab.ListMergeRequestNotesOptions) ([]*gitlab.Note, error) {
+		return []*gitlab.Note{}, nil
+	},
+}
+
 var mockMergeRequestProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
@@ -83,6 +89,9 @@ var mockMergeRequestProvider = &lab.MockProvider{
 	},
 	MockGetRepositoryClient: func(remote *git.RemoteInfo) (lab.Repository, error) {
 		return mockRepositoryClient, nil
+	},
+	MockGetNoteClient: func(remote *git.RemoteInfo) (lab.Note, error) {
+		return mockNoteClient, nil
 	},
 }
 

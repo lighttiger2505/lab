@@ -24,21 +24,21 @@ func (m *detailMethod) Process() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	res := issueDetailOutput(issue)
+
+	if m.opt.NoComment {
+		return res, nil
+	}
 
 	notes, err := m.noteClient.GetIssueNotes(m.project, m.id, makeListIssueNotesOptions())
 	if err != nil {
 		return "", err
 	}
-
-	res := issueDetailOutput(issue)
-
-	if !m.opt.NoComment {
-		noteOutputs := make([]string, len(notes))
-		for i, note := range notes {
-			noteOutputs[i] = noteOutput(note)
-		}
-		res = res + strings.Join(noteOutputs, "\n")
+	noteOutputs := make([]string, len(notes))
+	for i, note := range notes {
+		noteOutputs[i] = noteOutput(note)
 	}
+	res = res + strings.Join(noteOutputs, "\n")
 
 	return res, nil
 }

@@ -12,18 +12,43 @@ import (
 
 type detailMethod struct {
 	internal.Method
-	client  lab.MergeRequest
-	project string
-	id      int
+	mrClient   lab.MergeRequest
+	noteClient lab.Note
+	opt        *ShowOption
+	project    string
+	id         int
 }
 
 func (m *detailMethod) Process() (string, error) {
 	// Do get merge request
-	mergeRequest, err := m.client.GetMergeRequest(m.id, m.project)
+	mergeRequest, err := m.mrClient.GetMergeRequest(m.id, m.project)
 	if err != nil {
 		return "", err
 	}
-	return outMergeRequestDetail(mergeRequest), nil
+	res := outMergeRequestDetail(mergeRequest)
+
+	if m.opt.NoComment {
+		return res, nil
+	}
+
+	notes, err := m.noteClient.GetMergeRequestNotes(m.project, m.id, makeListMergeRequestNotesOptions())
+	if err != nil {
+		return "", err
+	}
+	noteOutputs := make([]string, len(notes))
+	for i, note := range notes {
+		noteOutputs[i] = noteOutput(note)
+	}
+	res = res + strings.Join(noteOutputs, "\n")
+
+	return res, nil
+}
+
+func makeListMergeRequestNotesOptions() *gitlab.ListMergeRequestNotesOptions {
+	return &gitlab.ListMergeRequestNotesOptions{
+		Page:    1,
+		PerPage: 20,
+	}
 }
 
 func outMergeRequestDetail(mergeRequest *gitlab.MergeRequest) string {
@@ -60,4 +85,19 @@ Labels: %s
 		internal.SweepMarkdownComment(mergeRequest.Description),
 	)
 	return detial
+}
+
+func noteOutput(note *gitlab.Note) string {
+	base := `
+%s (created by @%s, %s)
+
+%s`
+
+	yellow := color.New(color.FgYellow).SprintFunc()
+	return fmt.Sprintf(base,
+		yellow(fmt.Sprintf("comment %d", note.ID)),
+		note.Author.Name,
+		note.CreatedAt.String(),
+		internal.SweepMarkdownComment(note.Body),
+	)
 }

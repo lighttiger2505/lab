@@ -67,6 +67,10 @@ func (l *ListOption) getScope() string {
 	return l.Scope
 }
 
+type ShowOption struct {
+	NoComment bool `long:"no-comment" description:"Not print a list of comments for a spcific merge request."`
+}
+
 type BrowseOption struct {
 	Browse bool `short:"b" long:"browse" description:"Browse merge request."`
 }
@@ -74,6 +78,7 @@ type BrowseOption struct {
 type Option struct {
 	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
 	ListOption         *ListOption         `group:"List Options"`
+	ShowOption         *ShowOption         `group:"Show Options"`
 	BrowseOption       *BrowseOption       `group:"Browse Options"`
 }
 
@@ -169,6 +174,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
 	browseOption := opt.BrowseOption
+	showOption := opt.ShowOption
 
 	client, err := c.Provider.GetMergeRequestClient(remote)
 	if err != nil {
@@ -176,6 +182,11 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 	}
 
 	repositoryClient, err := c.Provider.GetRepositoryClient(remote)
+	if err != nil {
+		return nil, err
+	}
+
+	noteClient, err := c.Provider.GetNoteClient(remote)
 	if err != nil {
 		return nil, err
 	}
@@ -214,9 +225,11 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 		}
 
 		return &detailMethod{
-			client:  client,
-			project: remote.RepositoryFullName(),
-			id:      iid,
+			mrClient:   client,
+			noteClient: noteClient,
+			opt:        showOption,
+			project:    remote.RepositoryFullName(),
+			id:         iid,
 		}, nil
 	}
 

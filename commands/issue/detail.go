@@ -34,11 +34,16 @@ func (m *detailMethod) Process() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if len(notes) == 0 {
+		return res, nil
+	}
+
 	noteOutputs := make([]string, len(notes))
 	for i, note := range notes {
 		noteOutputs[i] = noteOutput(note)
 	}
-	res = res + strings.Join(noteOutputs, "\n")
+	noteOutput := strings.Join(noteOutputs, "\n")
+	res = strings.Join([]string{res, noteOutput}, "\n")
 
 	return res, nil
 }

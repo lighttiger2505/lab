@@ -3,6 +3,7 @@ package cmd
 import (
 	"os/exec"
 	"runtime"
+	"testing"
 )
 
 type URLOpener interface {
@@ -45,4 +46,13 @@ func searchBrowserLauncher(goos string) (browser string) {
 		}
 	}
 	return browser
+}
+
+type MockOpener struct {
+	t        *testing.T
+	MockOpen func(url string) error
+}
+
+func (m *MockOpener) Open(url string) error {
+	return m.MockOpen(url)
 }

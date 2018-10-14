@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"fmt"
+	"testing"
 
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -68,6 +69,7 @@ func (c *IssueClient) UpdateIssue(opt *gitlab.UpdateIssueOptions, pid int, repos
 
 type MockLabIssueClient struct {
 	Issue
+	t                       *testing.T
 	MockGetIssue            func(pid int, repositoryName string) (*gitlab.Issue, error)
 	MockGetAllProjectIssues func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error)
 	MockGetProjectIssues    func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error)

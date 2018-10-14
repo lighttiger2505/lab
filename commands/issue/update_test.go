@@ -3,6 +3,7 @@ package issue
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -26,15 +27,6 @@ func Test_updateMethod_Process(t *testing.T) {
 		Description: "desc",
 	}
 
-	mockIssueClient := &lab.MockLabIssueClient{
-		MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
-			return issue, nil
-		},
-		MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
-			return issue, nil
-		},
-	}
-
 	tests := []struct {
 		name    string
 		method  internal.Method
@@ -42,9 +34,26 @@ func Test_updateMethod_Process(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nomal",
+			name: "update all",
 			method: &updateMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("newtitle"),
+							Description: gitlab.String("newmessage"),
+							StateEvent:  gitlab.String("newstate"),
+							AssigneeIDs: []int{13},
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "newtitle",
 					Message:    "newmessage",
@@ -58,9 +67,24 @@ func Test_updateMethod_Process(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "change title only",
+			name: "update title only",
 			method: &updateMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("newtitle"),
+							Description: gitlab.String("desc"),
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "newtitle",
 					Message:    "",
@@ -74,9 +98,24 @@ func Test_updateMethod_Process(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "change message only",
+			name: "update message only",
 			method: &updateMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("title"),
+							Description: gitlab.String("newmessage"),
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "",
 					Message:    "newmessage",
@@ -90,9 +129,25 @@ func Test_updateMethod_Process(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "change state only",
+			name: "update state only",
 			method: &updateMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("title"),
+							Description: gitlab.String("desc"),
+							StateEvent:  gitlab.String("newstate"),
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "",
 					Message:    "",
@@ -106,13 +161,29 @@ func Test_updateMethod_Process(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "change assignee only",
+			name: "update assignee only",
 			method: &updateMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("title"),
+							Description: gitlab.String("desc"),
+							AssigneeIDs: []int{13},
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "",
 					Message:    "",
-					StateEvent: "newstate",
+					StateEvent: "",
 					AssigneeID: 13,
 				},
 				project: "group/project",
@@ -155,15 +226,6 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		Description: "desc",
 	}
 
-	mockIssueClient := &lab.MockLabIssueClient{
-		MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
-			return issue, nil
-		},
-		MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
-			return issue, nil
-		},
-	}
-
 	tests := []struct {
 		name    string
 		method  internal.Method
@@ -171,9 +233,26 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nomal",
+			name: "update all",
 			method: &updateOnEditorMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("newtitle"),
+							Description: gitlab.String("newmessage"),
+							StateEvent:  gitlab.String("newstate"),
+							AssigneeIDs: []int{13},
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "newtitle",
 					Message:    "newmessage",
@@ -190,7 +269,22 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "change title only",
 			method: &updateOnEditorMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("newtitle"),
+							Description: gitlab.String("desc"),
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "newtitle",
 					Message:    "",
@@ -207,7 +301,22 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "change message only",
 			method: &updateOnEditorMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("title"),
+							Description: gitlab.String("newmessage"),
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "",
 					Message:    "newmessage",
@@ -224,7 +333,23 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "change state only",
 			method: &updateOnEditorMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("title"),
+							Description: gitlab.String("desc"),
+							StateEvent:  gitlab.String("newstate"),
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "",
 					Message:    "",
@@ -241,7 +366,23 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "change assignee only",
 			method: &updateOnEditorMethod{
-				client: mockIssueClient,
+				client: &lab.MockLabIssueClient{
+					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
+						return issue, nil
+					},
+					MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
+						got := opt
+						want := &gitlab.UpdateIssueOptions{
+							Title:       gitlab.String("title"),
+							Description: gitlab.String("desc"),
+							AssigneeIDs: []int{13},
+						}
+						if diff := cmp.Diff(got, want); diff != "" {
+							t.Errorf("invalide arg (-got +want)\n%s", diff)
+						}
+						return issue, nil
+					},
+				},
 				opt: &CreateUpdateOption{
 					Title:      "",
 					Message:    "",

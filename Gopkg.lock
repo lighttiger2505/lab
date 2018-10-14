@@ -32,6 +32,17 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value"
+  ]
+  revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
+  version = "v0.2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/google/go-querystring"
   packages = ["query"]
@@ -155,6 +166,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "55789fd33c58ce1e24d4f1b7b1c0c896247ca2f92df2b09e419364fa11077d28"
+  inputs-digest = "42f492a89632fba533ee12fda1e6b8a1acca14db9423dded1b34bc5c92fb45f2"
   solver-name = "gps-cdcl"
   solver-version = 1

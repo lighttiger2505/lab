@@ -65,8 +65,9 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"issue": func() (cli.Command, error) {
 			return &issue.IssueCommand{
-				Ui:       ui,
-				Provider: provider,
+				Ui:            ui,
+				Provider:      provider,
+				ClientFacotry: gitlab.NewGitlabClientFactory(),
 			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {

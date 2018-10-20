@@ -14,6 +14,7 @@ import (
 type Provider interface {
 	Init() error
 	GetCurrentRemote() (*git.RemoteInfo, error)
+	GetAPIToken(remote *git.RemoteInfo) (string, error)
 	GetClient(remote *git.RemoteInfo) (Client, error)
 	GetJobClient(remote *git.RemoteInfo) (Job, error)
 	GetIssueClient(remote *git.RemoteInfo) (Issue, error)
@@ -129,6 +130,21 @@ func (p *GitlabProvider) makeGitLabClient(remote *git.RemoteInfo) (*gitlab.Clien
 		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
 	}
 	return client, nil
+}
+
+func (p *GitlabProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
+	token := p.ConfigManager.GetTokenOnly(remote.Domain)
+	if token == "" {
+		token, err := p.UI.Ask("Please input GitLab private token :")
+		if err != nil {
+			return "", fmt.Errorf("Failed input private token. %s", err.Error())
+		}
+
+		if err := p.ConfigManager.SaveToken(remote.Domain, token); err != nil {
+			return "", fmt.Errorf("Failed update config of private token. %s", err.Error())
+		}
+	}
+	return token, nil
 }
 
 func (p *GitlabProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
@@ -271,6 +287,10 @@ func (m *MockProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
 	return m.MockGetCurrentRemote()
 }
 
+func (m *MockProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
+	return "", nil
+}
+
 func (m *MockProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
 	return m.MockGetClient(remote)
 }
@@ -293,4 +313,110 @@ func (m *MockProvider) GetRepositoryClient(remote *git.RemoteInfo) (Repository, 
 
 func (m *MockProvider) GetNoteClient(remote *git.RemoteInfo) (Note, error) {
 	return m.MockGetNoteClient(remote)
+}
+
+func getGitlabClient(url, token string) (*gitlab.Client, error) {
+	client := gitlab.NewClient(nil, token)
+	if err := client.SetBaseURL(url); err != nil {
+		return nil, fmt.Errorf("Invalid base url for call GitLab API. %s", err.Error())
+	}
+	return client, nil
+}
+
+type APIClientFactory interface {
+	Init(url, token string) error
+	GetClient() Client
+	GetJobClient() Job
+	GetIssueClient() Issue
+	GetMergeRequestClient() MergeRequest
+	GetProjectVariableClient() ProjectVariable
+	GetRepositoryClient() Repository
+	GetNoteClient() Note
+}
+
+type GitlabClientFactory struct {
+	gitlabClient *gitlab.Client
+}
+
+func NewGitlabClientFactory() APIClientFactory {
+	return &GitlabClientFactory{}
+}
+
+func (f *GitlabClientFactory) Init(url, token string) error {
+	gitlabClient, err := getGitlabClient(url, token)
+	if err != nil {
+		return err
+	}
+	f.gitlabClient = gitlabClient
+	return nil
+}
+
+func (f *GitlabClientFactory) GetClient() Client {
+	return NewLabClient(f.gitlabClient)
+}
+
+func (f *GitlabClientFactory) GetJobClient() Job {
+	return NewJobClient(f.gitlabClient)
+}
+
+func (f *GitlabClientFactory) GetIssueClient() Issue {
+	return NewIssueClient(f.gitlabClient)
+}
+
+func (f *GitlabClientFactory) GetMergeRequestClient() MergeRequest {
+	return NewMergeRequestClient(f.gitlabClient)
+}
+
+func (f *GitlabClientFactory) GetProjectVariableClient() ProjectVariable {
+	return NewProjectVariableClient(f.gitlabClient)
+}
+
+func (f *GitlabClientFactory) GetRepositoryClient() Repository {
+	return NewRepositoryClient(f.gitlabClient)
+}
+
+func (f *GitlabClientFactory) GetNoteClient() Note {
+	return NewNoteClient(f.gitlabClient)
+}
+
+type MockAPIClientFactory struct {
+	MockGetClient                func() Client
+	MockGetJobClient             func() Job
+	MockGetIssueClient           func() Issue
+	MockGetMergeRequestClient    func() MergeRequest
+	MockGetProjectVariableClient func() ProjectVariable
+	MockGetRepositoryClient      func() Repository
+	MockGetNoteClient            func() Note
+}
+
+func (f *MockAPIClientFactory) Init(url, token string) error {
+	return nil
+}
+
+func (m *MockAPIClientFactory) GetClient() Client {
+	return m.MockGetClient()
+}
+
+func (m *MockAPIClientFactory) GetJobClient() Job {
+	return m.MockGetJobClient()
+}
+
+func (m *MockAPIClientFactory) GetIssueClient() Issue {
+	return m.MockGetIssueClient()
+}
+
+func (m *MockAPIClientFactory) GetMergeRequestClient() MergeRequest {
+	return m.MockGetMergeRequestClient()
+}
+
+func (m *MockAPIClientFactory) GetProjectVariableClient() ProjectVariable {
+	return m.MockGetProjectVariableClient()
+}
+
+func (m *MockAPIClientFactory) GetRepositoryClient() Repository {
+	return m.MockGetRepositoryClient()
+}
+
+func (m *MockAPIClientFactory) GetNoteClient() Note {
+	return m.MockGetNoteClient()
 }

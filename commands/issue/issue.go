@@ -127,9 +127,10 @@ Synopsis:
 }
 
 type IssueCommand struct {
-	Ui       ui.Ui
-	Provider lab.Provider
-	EditFunc func(program, file string) error
+	Ui            ui.Ui
+	Provider      lab.Provider
+	ClientFacotry lab.APIClientFactory
+	EditFunc      func(program, file string) error
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -153,6 +154,12 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
+	iid, err := validIssueIID(parseArgs)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
 	// Initialize provider
 	if err := c.Provider.Init(); err != nil {
 		c.Ui.Error(err.Error())
@@ -166,7 +173,18 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	method, err := c.getMethod(opt, parseArgs, gitlabRemote)
+	token, err := c.Provider.GetAPIToken(gitlabRemote)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	if err := c.ClientFacotry.Init(gitlabRemote.ApiUrl(), token); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	method, err := c.getMethod(opt, gitlabRemote, iid, c.ClientFacotry, c.EditFunc)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -185,34 +203,8 @@ func (c *IssueCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteInfo) (internal.Method, error) {
-	issueClient, err := c.Provider.GetIssueClient(remote)
-	if err != nil {
-		return nil, err
-	}
-
-	noteClient, err := c.Provider.GetNoteClient(remote)
-	if err != nil {
-		return nil, err
-	}
-
-	repositoryClient, err := c.Provider.GetRepositoryClient(remote)
-	if err != nil {
-		return nil, err
-	}
-
-	iid, err := validIssueIID(args)
-	if err != nil {
-		return nil, err
-	}
-
-	createUpdateOption := opt.CreateUpdateOption
-	listOption := opt.ListOption
-	showOption := opt.ShowOption
-	browseOption := opt.BrowseOption
-	project := remote.RepositoryFullName()
-
-	if browseOption.Browse {
+func (c *IssueCommand) getMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory, editFunc func(program, file string) error) (internal.Method, error) {
+	if opt.BrowseOption.Browse {
 		return &browseMethod{
 			opener: &cmd.Browser{},
 			remote: remote,
@@ -220,62 +212,61 @@ func (c *IssueCommand) getMethod(opt Option, args []string, remote *git.RemoteIn
 		}, nil
 	}
 
-	// Case of getting Issue IID
-	if len(args) > 0 {
-		if createUpdateOption.hasEdit() {
+	if iid > 0 {
+		if opt.CreateUpdateOption.hasEdit() {
 			return &updateOnEditorMethod{
-				client:   issueClient,
-				opt:      createUpdateOption,
-				project:  project,
+				client:   factory.GetIssueClient(),
+				opt:      opt.CreateUpdateOption,
+				project:  remote.RepositoryFullName(),
 				id:       iid,
-				editFunc: c.EditFunc,
+				editFunc: editFunc,
 			}, nil
 		}
-		if createUpdateOption.hasUpdate() {
+		if opt.CreateUpdateOption.hasUpdate() {
 			return &updateMethod{
-				client:  issueClient,
-				opt:     createUpdateOption,
-				project: project,
+				client:  factory.GetIssueClient(),
+				opt:     opt.CreateUpdateOption,
+				project: remote.RepositoryFullName(),
 				id:      iid,
 			}, nil
 		}
 		return &detailMethod{
-			issueClient: issueClient,
-			noteClient:  noteClient,
-			opt:         showOption,
+			issueClient: factory.GetIssueClient(),
+			noteClient:  factory.GetNoteClient(),
+			opt:         opt.ShowOption,
 			project:     remote.RepositoryFullName(),
 			id:          iid,
 		}, nil
 	}
 
 	// Case of nothing Issue IID
-	if createUpdateOption.hasEdit() {
+	if opt.CreateUpdateOption.hasEdit() {
 		return &createOnEditorMethod{
-			issueClient:      issueClient,
-			repositoryClient: repositoryClient,
-			opt:              createUpdateOption,
-			project:          project,
-			editFunc:         c.EditFunc,
+			issueClient:      factory.GetIssueClient(),
+			repositoryClient: factory.GetRepositoryClient(),
+			opt:              opt.CreateUpdateOption,
+			project:          remote.RepositoryFullName(),
+			editFunc:         editFunc,
 		}, nil
 	}
-	if createUpdateOption.hasCreate() {
+	if opt.CreateUpdateOption.hasCreate() {
 		return &createMethod{
-			client:  issueClient,
-			opt:     createUpdateOption,
-			project: project,
+			client:  factory.GetIssueClient(),
+			opt:     opt.CreateUpdateOption,
+			project: remote.RepositoryFullName(),
 		}, nil
 	}
-	if listOption.AllProject {
+	if opt.ListOption.AllProject {
 		return &listAllMethod{
-			client: issueClient,
-			opt:    listOption,
+			client: factory.GetIssueClient(),
+			opt:    opt.ListOption,
 		}, nil
 	}
 
 	return &listMethod{
-		client:  issueClient,
-		opt:     listOption,
-		project: project,
+		client:  factory.GetIssueClient(),
+		opt:     opt.ListOption,
+		project: remote.RepositoryFullName(),
 	}, nil
 }
 

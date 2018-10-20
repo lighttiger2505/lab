@@ -87,22 +87,26 @@ var mockIssueProvider = &lab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetIssueClient: func(remote *git.RemoteInfo) (lab.Issue, error) {
-		return mockGitlabIssueClient, nil
+}
+
+var mockAPIClientFactory = &lab.MockAPIClientFactory{
+	MockGetIssueClient: func() lab.Issue {
+		return mockGitlabIssueClient
 	},
-	MockGetRepositoryClient: func(remote *git.RemoteInfo) (lab.Repository, error) {
-		return mockRepositoryClient, nil
+	MockGetRepositoryClient: func() lab.Repository {
+		return mockRepositoryClient
 	},
-	MockGetNoteClient: func(remote *git.RemoteInfo) (lab.Note, error) {
-		return mockNoteClient, nil
+	MockGetNoteClient: func() lab.Note {
+		return mockNoteClient
 	},
 }
 
 func TestIssueCommandRun_ShowIssue(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := IssueCommand{
-		Ui:       mockUI,
-		Provider: mockIssueProvider,
+		Ui:            mockUI,
+		Provider:      mockIssueProvider,
+		ClientFacotry: mockAPIClientFactory,
 	}
 
 	args := []string{"12"}
@@ -127,8 +131,9 @@ Description
 func TestIssueCommandRun_ListIssue(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := IssueCommand{
-		Ui:       mockUI,
-		Provider: mockIssueProvider,
+		Ui:            mockUI,
+		Provider:      mockIssueProvider,
+		ClientFacotry: mockAPIClientFactory,
 	}
 
 	args := []string{}
@@ -147,8 +152,9 @@ func TestIssueCommandRun_ListIssue(t *testing.T) {
 func TestIssueCommandRun_ListProjectIssue(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := IssueCommand{
-		Ui:       mockUI,
-		Provider: mockIssueProvider,
+		Ui:            mockUI,
+		Provider:      mockIssueProvider,
+		ClientFacotry: mockAPIClientFactory,
 	}
 
 	args := []string{"--all-project"}
@@ -167,8 +173,9 @@ func TestIssueCommandRun_ListProjectIssue(t *testing.T) {
 func TestIssueCommandRun_CreateIssue(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := IssueCommand{
-		Ui:       mockUI,
-		Provider: mockIssueProvider,
+		Ui:            mockUI,
+		Provider:      mockIssueProvider,
+		ClientFacotry: mockAPIClientFactory,
 	}
 
 	args := []string{"-i", "title", "-m", "message"}
@@ -187,8 +194,9 @@ func TestIssueCommandRun_CreateIssue(t *testing.T) {
 func TestIssueCommandRun_CreateIssueOnEditor(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := IssueCommand{
-		Ui:       mockUI,
-		Provider: mockIssueProvider,
+		Ui:            mockUI,
+		Provider:      mockIssueProvider,
+		ClientFacotry: mockAPIClientFactory,
 		EditFunc: func(program, file string) error {
 			return nil
 		},
@@ -210,8 +218,9 @@ func TestIssueCommandRun_CreateIssueOnEditor(t *testing.T) {
 func TestIssueCommandRun_UpdateIssue(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := IssueCommand{
-		Ui:       mockUI,
-		Provider: mockIssueProvider,
+		Ui:            mockUI,
+		Provider:      mockIssueProvider,
+		ClientFacotry: mockAPIClientFactory,
 	}
 
 	args := []string{"-i", "title", "-m", "message", "12"}
@@ -230,8 +239,9 @@ func TestIssueCommandRun_UpdateIssue(t *testing.T) {
 func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := IssueCommand{
-		Ui:       mockUI,
-		Provider: mockIssueProvider,
+		Ui:            mockUI,
+		Provider:      mockIssueProvider,
+		ClientFacotry: mockAPIClientFactory,
 		EditFunc: func(program, file string) error {
 			return nil
 		},

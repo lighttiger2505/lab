@@ -6,8 +6,6 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/cmd"
-	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -130,6 +128,7 @@ type IssueCommand struct {
 	Ui            ui.Ui
 	Provider      lab.Provider
 	ClientFacotry lab.APIClientFactory
+	MethodFactory MethodFactory
 	EditFunc      func(program, file string) error
 }
 
@@ -184,7 +183,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	method, err := c.getMethod(opt, gitlabRemote, iid, c.ClientFacotry, c.EditFunc)
+	method, err := c.MethodFactory.CreateMethod(opt, gitlabRemote, iid, c.ClientFacotry, c.EditFunc)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -201,73 +200,6 @@ func (c *IssueCommand) Run(args []string) int {
 	}
 
 	return ExitCodeOK
-}
-
-func (c *IssueCommand) getMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory, editFunc func(program, file string) error) (internal.Method, error) {
-	if opt.BrowseOption.Browse {
-		return &browseMethod{
-			opener: &cmd.Browser{},
-			remote: remote,
-			id:     iid,
-		}, nil
-	}
-
-	if iid > 0 {
-		if opt.CreateUpdateOption.hasEdit() {
-			return &updateOnEditorMethod{
-				client:   factory.GetIssueClient(),
-				opt:      opt.CreateUpdateOption,
-				project:  remote.RepositoryFullName(),
-				id:       iid,
-				editFunc: editFunc,
-			}, nil
-		}
-		if opt.CreateUpdateOption.hasUpdate() {
-			return &updateMethod{
-				client:  factory.GetIssueClient(),
-				opt:     opt.CreateUpdateOption,
-				project: remote.RepositoryFullName(),
-				id:      iid,
-			}, nil
-		}
-		return &detailMethod{
-			issueClient: factory.GetIssueClient(),
-			noteClient:  factory.GetNoteClient(),
-			opt:         opt.ShowOption,
-			project:     remote.RepositoryFullName(),
-			id:          iid,
-		}, nil
-	}
-
-	// Case of nothing Issue IID
-	if opt.CreateUpdateOption.hasEdit() {
-		return &createOnEditorMethod{
-			issueClient:      factory.GetIssueClient(),
-			repositoryClient: factory.GetRepositoryClient(),
-			opt:              opt.CreateUpdateOption,
-			project:          remote.RepositoryFullName(),
-			editFunc:         editFunc,
-		}, nil
-	}
-	if opt.CreateUpdateOption.hasCreate() {
-		return &createMethod{
-			client:  factory.GetIssueClient(),
-			opt:     opt.CreateUpdateOption,
-			project: remote.RepositoryFullName(),
-		}, nil
-	}
-	if opt.ListOption.AllProject {
-		return &listAllMethod{
-			client: factory.GetIssueClient(),
-			opt:    opt.ListOption,
-		}, nil
-	}
-
-	return &listMethod{
-		client:  factory.GetIssueClient(),
-		opt:     opt.ListOption,
-		project: remote.RepositoryFullName(),
-	}, nil
 }
 
 func validIssueIID(args []string) (int, error) {

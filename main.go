@@ -13,7 +13,7 @@ import (
 	"github.com/lighttiger2505/lab/commands/mr"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
-	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/mitchellh/cli"
 )
@@ -52,7 +52,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 
 	ui := ui.NewBasicUi()
 	configManager := config.NewConfigManager()
-	provider := gitlab.NewProvider(ui, git.NewGitClient(), configManager)
+	provider := lab.NewProvider(ui, git.NewGitClient(), configManager)
 
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {
@@ -67,7 +67,8 @@ func realMain(writer io.Writer, ver, rev string) int {
 			return &issue.IssueCommand{
 				Ui:            ui,
 				Provider:      provider,
-				ClientFacotry: gitlab.NewGitlabClientFactory(),
+				ClientFacotry: &lab.GitlabClientFactory{},
+				MethodFactory: &issue.IssueMethodFactory{},
 			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {

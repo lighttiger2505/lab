@@ -107,6 +107,7 @@ func TestIssueCommandRun_ShowIssue(t *testing.T) {
 		Ui:            mockUI,
 		Provider:      mockIssueProvider,
 		ClientFacotry: mockAPIClientFactory,
+		MethodFactory: &IssueMethodFactory{},
 	}
 
 	args := []string{"12"}
@@ -134,6 +135,7 @@ func TestIssueCommandRun_ListIssue(t *testing.T) {
 		Ui:            mockUI,
 		Provider:      mockIssueProvider,
 		ClientFacotry: mockAPIClientFactory,
+		MethodFactory: &IssueMethodFactory{},
 	}
 
 	args := []string{}
@@ -155,6 +157,7 @@ func TestIssueCommandRun_ListProjectIssue(t *testing.T) {
 		Ui:            mockUI,
 		Provider:      mockIssueProvider,
 		ClientFacotry: mockAPIClientFactory,
+		MethodFactory: &IssueMethodFactory{},
 	}
 
 	args := []string{"--all-project"}
@@ -176,6 +179,7 @@ func TestIssueCommandRun_CreateIssue(t *testing.T) {
 		Ui:            mockUI,
 		Provider:      mockIssueProvider,
 		ClientFacotry: mockAPIClientFactory,
+		MethodFactory: &IssueMethodFactory{},
 	}
 
 	args := []string{"-i", "title", "-m", "message"}
@@ -197,6 +201,7 @@ func TestIssueCommandRun_CreateIssueOnEditor(t *testing.T) {
 		Ui:            mockUI,
 		Provider:      mockIssueProvider,
 		ClientFacotry: mockAPIClientFactory,
+		MethodFactory: &IssueMethodFactory{},
 		EditFunc: func(program, file string) error {
 			return nil
 		},
@@ -221,6 +226,7 @@ func TestIssueCommandRun_UpdateIssue(t *testing.T) {
 		Ui:            mockUI,
 		Provider:      mockIssueProvider,
 		ClientFacotry: mockAPIClientFactory,
+		MethodFactory: &IssueMethodFactory{},
 	}
 
 	args := []string{"-i", "title", "-m", "message", "12"}
@@ -242,6 +248,7 @@ func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
 		Ui:            mockUI,
 		Provider:      mockIssueProvider,
 		ClientFacotry: mockAPIClientFactory,
+		MethodFactory: &IssueMethodFactory{},
 		EditFunc: func(program, file string) error {
 			return nil
 		},

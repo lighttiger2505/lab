@@ -19,12 +19,12 @@ const (
 	ExitCodeFileError int = iota //2
 )
 
-type PipelineCommandOption struct {
-	ListOption *ListPipelineOption `group:"List Options"`
+type Option struct {
+	ListOption *ListOption `group:"List Options"`
 }
 
-func newPipelineCommandParser(opt *PipelineCommandOption) *flags.Parser {
-	opt.ListOption = newListPipelineOption()
+func newOptionParser(opt *Option) *flags.Parser {
+	opt.ListOption = &ListOption{}
 	parser := flags.NewParser(opt, flags.Default)
 	parser.Usage = `pipeline [options]
 
@@ -38,16 +38,12 @@ Synopsis:
 	return parser
 }
 
-type ListPipelineOption struct {
+type ListOption struct {
 	Num     int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of pipeline to output."`
 	Sort    string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print pipeline ordered in \"asc\" or \"desc\" order."`
 	Scope   string `short:"c" long:"scope" description:"The scope of pipelines, one of: running, pending, finished, branches, tags"`
 	States  string `short:"t" long:"states" description:" The status of pipelines, one of: running, pending, success, failed, canceled, skipped"`
 	OrderBy string `short:"o" long:"orderby" default:"id" default-mask:"id" description:"Order pipelines by id, status, ref, or user_id"`
-}
-
-func newListPipelineOption() *ListPipelineOption {
-	return &ListPipelineOption{}
 }
 
 type PipelineOperation int
@@ -67,8 +63,8 @@ func (c *PipelineCommand) Synopsis() string {
 }
 
 func (c *PipelineCommand) Help() string {
-	var pipelineCommandOption PipelineCommandOption
-	pipelineCommandParser := newPipelineCommandParser(&pipelineCommandOption)
+	var pipelineCommandOption Option
+	pipelineCommandParser := newOptionParser(&pipelineCommandOption)
 	buf := &bytes.Buffer{}
 	pipelineCommandParser.WriteHelp(buf)
 	return buf.String()
@@ -76,8 +72,8 @@ func (c *PipelineCommand) Help() string {
 
 func (c *PipelineCommand) Run(args []string) int {
 	// Parse flags
-	var pipelineCommandOption PipelineCommandOption
-	pipelineCommandParser := newPipelineCommandParser(&pipelineCommandOption)
+	var pipelineCommandOption Option
+	pipelineCommandParser := newOptionParser(&pipelineCommandOption)
 	parseArgs, err := pipelineCommandParser.ParseArgs(args)
 	if err != nil {
 		c.UI.Error(err.Error())
@@ -138,14 +134,14 @@ func (c *PipelineCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func pipelineOperation(opt PipelineCommandOption, args []string) PipelineOperation {
+func pipelineOperation(opt Option, args []string) PipelineOperation {
 	if len(args) > 0 {
 		return ShowPipeline
 	}
 	return ListPipeline
 }
 
-func makePipelineOptions(listPipelineOption *ListPipelineOption) *gitlab.ListProjectPipelinesOptions {
+func makePipelineOptions(listPipelineOption *ListOption) *gitlab.ListProjectPipelinesOptions {
 	var scope *string
 	if listPipelineOption.Scope != "" {
 		scope = gitlab.String(listPipelineOption.Scope)

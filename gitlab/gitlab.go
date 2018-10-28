@@ -17,7 +17,6 @@ type Provider interface {
 	GetAPIToken(remote *git.RemoteInfo) (string, error)
 	GetClient(remote *git.RemoteInfo) (Client, error)
 	GetJobClient(remote *git.RemoteInfo) (Job, error)
-	GetIssueClient(remote *git.RemoteInfo) (Issue, error)
 	GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error)
 	GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error)
 	GetRepositoryClient(remote *git.RemoteInfo) (Repository, error)
@@ -155,14 +154,6 @@ func (p *GitlabProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
 	return NewLabClient(gitlabClient), nil
 }
 
-func (p *GitlabProvider) GetIssueClient(remote *git.RemoteInfo) (Issue, error) {
-	gitlabClient, err := p.makeGitLabClient(remote)
-	if err != nil {
-		return nil, err
-	}
-	return NewIssueClient(gitlabClient), nil
-}
-
 func (p *GitlabProvider) GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error) {
 	gitlabClient, err := p.makeGitLabClient(remote)
 	if err != nil {
@@ -272,7 +263,6 @@ type MockProvider struct {
 	MockGetSpecificRemote        func(namespace, project string) *git.RemoteInfo
 	MockGetCurrentRemote         func() (*git.RemoteInfo, error)
 	MockGetClient                func(remote *git.RemoteInfo) (Client, error)
-	MockGetIssueClient           func(remote *git.RemoteInfo) (Issue, error)
 	MockGetMergeRequestClient    func(remote *git.RemoteInfo) (MergeRequest, error)
 	MockGetProjectVariableClient func(remote *git.RemoteInfo) (ProjectVariable, error)
 	MockGetRepositoryClient      func(remote *git.RemoteInfo) (Repository, error)
@@ -293,10 +283,6 @@ func (m *MockProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
 
 func (m *MockProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
 	return m.MockGetClient(remote)
-}
-
-func (m *MockProvider) GetIssueClient(remote *git.RemoteInfo) (Issue, error) {
-	return m.MockGetIssueClient(remote)
 }
 
 func (m *MockProvider) GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error) {

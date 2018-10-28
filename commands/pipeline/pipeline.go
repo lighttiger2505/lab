@@ -38,15 +38,6 @@ Synopsis:
 	return parser
 }
 
-type PipelineOption struct {
-}
-
-func newPipelineOption() *PipelineOption {
-	pipeline := flags.NewNamedParser("lab", flags.Default)
-	pipeline.AddGroup("Pipeline Options", "", &PipelineOption{})
-	return &PipelineOption{}
-}
-
 type ListPipelineOption struct {
 	Num     int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of pipeline to output."`
 	Sort    string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print pipeline ordered in \"asc\" or \"desc\" order."`

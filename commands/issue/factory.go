@@ -8,12 +8,12 @@ import (
 )
 
 type MethodFactory interface {
-	CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory, editFunc func(program, file string) error) (internal.Method, error)
+	CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) (internal.Method, error)
 }
 
 type IssueMethodFactory struct{}
 
-func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory, editFunc func(program, file string) error) (internal.Method, error) {
+func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) (internal.Method, error) {
 	if opt.BrowseOption.Browse {
 		return &browseMethod{
 			opener: &cmd.Browser{},
@@ -29,7 +29,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 				opt:      opt.CreateUpdateOption,
 				project:  remote.RepositoryFullName(),
 				id:       iid,
-				editFunc: editFunc,
+				editFunc: nil,
 			}, nil
 		}
 		if opt.CreateUpdateOption.hasUpdate() {
@@ -56,7 +56,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 			repositoryClient: factory.GetRepositoryClient(),
 			opt:              opt.CreateUpdateOption,
 			project:          remote.RepositoryFullName(),
-			editFunc:         editFunc,
+			editFunc:         nil,
 		}, nil
 	}
 	if opt.CreateUpdateOption.hasCreate() {
@@ -78,4 +78,10 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 		opt:     opt.ListOption,
 		project: remote.RepositoryFullName(),
 	}, nil
+}
+
+type MockMethodFactory struct{}
+
+func (c *MockMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) (internal.Method, error) {
+	return &internal.MockMethod{}, nil
 }

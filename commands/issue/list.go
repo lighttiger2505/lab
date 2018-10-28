@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -27,7 +26,6 @@ func makeIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOptions {
 }
 
 type listMethod struct {
-	internal.Method
 	client  lab.Issue
 	opt     *ListOption
 	project string
@@ -48,7 +46,6 @@ func (m *listMethod) Process() (string, error) {
 }
 
 type listAllMethod struct {
-	internal.Method
 	client lab.Issue
 	opt    *ListOption
 }

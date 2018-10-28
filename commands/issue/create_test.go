@@ -2,11 +2,43 @@ package issue
 
 import (
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	gitlab "github.com/xanzy/go-gitlab"
 )
+
+var createdAt, _ = time.Parse("2006-01-02", "2018-02-14")
+var updatedAt, _ = time.Parse("2006-01-02", "2018-03-14")
+var issue = &gitlab.Issue{
+	IID:   12,
+	Title: "Title12",
+	State: "State12",
+	Assignee: struct {
+		ID        int    `json:"id"`
+		Name      string `json:"name"`
+		Username  string `json:"username"`
+		State     string `json:"state"`
+		AvatarURL string `json:"avatar_url"`
+		WebURL    string `json:"web_url"`
+	}{
+		Name: "AssigneeName",
+	},
+	Author: struct {
+		ID        int        `json:"id"`
+		Username  string     `json:"username"`
+		Email     string     `json:"email"`
+		Name      string     `json:"name"`
+		State     string     `json:"state"`
+		CreatedAt *time.Time `json:"created_at"`
+	}{
+		Name: "AuthorName",
+	},
+	CreatedAt:   &createdAt,
+	UpdatedAt:   &updatedAt,
+	Description: "Description",
+}
 
 func Test_createMethod_Process(t *testing.T) {
 	type fields struct {

@@ -11,7 +11,6 @@ import (
 )
 
 type detailMethod struct {
-	internal.Method
 	issueClient lab.Issue
 	noteClient  lab.Note
 	id          int

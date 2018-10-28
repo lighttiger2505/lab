@@ -67,7 +67,6 @@ func realMain(writer io.Writer, ver, rev string) int {
 			return &issue.IssueCommand{
 				Ui:            ui,
 				Provider:      provider,
-				ClientFacotry: &lab.GitlabClientFactory{},
 				MethodFactory: &issue.IssueMethodFactory{},
 			}, nil
 		},

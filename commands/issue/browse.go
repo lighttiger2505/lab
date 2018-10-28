@@ -4,12 +4,10 @@ import (
 	"fmt"
 
 	"github.com/lighttiger2505/lab/cmd"
-	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 )
 
 type browseMethod struct {
-	internal.Method
 	opener cmd.URLOpener
 	remote *git.RemoteInfo
 	id     int

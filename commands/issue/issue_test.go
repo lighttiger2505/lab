@@ -1,82 +1,12 @@
 package issue
 
 import (
-	"reflect"
 	"testing"
-	"time"
 
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	gitlab "github.com/xanzy/go-gitlab"
 )
-
-var createdAt, _ = time.Parse("2006-01-02", "2018-02-14")
-var updatedAt, _ = time.Parse("2006-01-02", "2018-03-14")
-
-var issue = &gitlab.Issue{
-	IID:   12,
-	Title: "Title12",
-	State: "State12",
-	Assignee: struct {
-		ID        int    `json:"id"`
-		Name      string `json:"name"`
-		Username  string `json:"username"`
-		State     string `json:"state"`
-		AvatarURL string `json:"avatar_url"`
-		WebURL    string `json:"web_url"`
-	}{
-		Name: "AssigneeName",
-	},
-	Author: struct {
-		ID        int        `json:"id"`
-		Username  string     `json:"username"`
-		Email     string     `json:"email"`
-		Name      string     `json:"name"`
-		State     string     `json:"state"`
-		CreatedAt *time.Time `json:"created_at"`
-	}{
-		Name: "AuthorName",
-	},
-	CreatedAt:   &createdAt,
-	UpdatedAt:   &updatedAt,
-	Description: "Description",
-}
-
-var issues = []*gitlab.Issue{
-	&gitlab.Issue{IID: 12, Title: "Title12", WebURL: "http://gitlab.jp/namespace/repo/issues/12"},
-	&gitlab.Issue{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo/issues/13"},
-}
-
-var mockGitlabIssueClient = &lab.MockLabIssueClient{
-	MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
-		return issue, nil
-	},
-	MockGetAllProjectIssues: func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
-		return issues, nil
-	},
-	MockGetProjectIssues: func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
-		return issues, nil
-	},
-	MockCreateIssue: func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
-		return issue, nil
-	},
-	MockUpdateIssue: func(opt *gitlab.UpdateIssueOptions, pid int, repositoryName string) (*gitlab.Issue, error) {
-		return issue, nil
-	},
-}
-
-var mockRepositoryClient = &lab.MockRepositoryClient{
-	MockGetFile: func(repositoryName string, filename string, opt *gitlab.GetRawFileOptions) (string, error) {
-		return "hogehoge", nil
-	},
-}
-
-var mockNoteClient = &lab.MockNoteClient{
-	MockGetIssueNotes: func(repositoryName string, iid int, opt *gitlab.ListIssueNotesOptions) ([]*gitlab.Note, error) {
-		return []*gitlab.Note{}, nil
-	},
-}
 
 var mockIssueProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
@@ -88,214 +18,95 @@ var mockIssueProvider = &lab.MockProvider{
 		}, nil
 	},
 }
+var mockAPIClientFactory = &lab.MockAPIClientFactory{}
+var mockMethodFactory = &MockMethodFactory{}
 
-var mockAPIClientFactory = &lab.MockAPIClientFactory{
-	MockGetIssueClient: func() lab.Issue {
-		return mockGitlabIssueClient
-	},
-	MockGetRepositoryClient: func() lab.Repository {
-		return mockRepositoryClient
-	},
-	MockGetNoteClient: func() lab.Note {
-		return mockNoteClient
-	},
-}
-
-func TestIssueCommandRun_ShowIssue(t *testing.T) {
-	mockUI := ui.NewMockUi()
-	c := IssueCommand{
-		Ui:            mockUI,
-		Provider:      mockIssueProvider,
-		ClientFacotry: mockAPIClientFactory,
-		MethodFactory: &IssueMethodFactory{},
+func TestIssueCommand_Run(t *testing.T) {
+	type fields struct {
+		Provider      lab.Provider
+		MethodFactory MethodFactory
 	}
-
-	args := []string{"12"}
-	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
-	}
-
-	got := mockUI.Writer.String()
-	want := `12 Title12 [State12] (created by @AuthorName, 2018-02-14 00:00:00 +0000 UTC)
-Assignee: AssigneeName
-Milestone: 
-Labels: 
-
-Description
-`
-
-	if got != want {
-		t.Fatalf("bad output value \nwant %#v\ngot  %#v", got, want)
-	}
-}
-
-func TestIssueCommandRun_ListIssue(t *testing.T) {
-	mockUI := ui.NewMockUi()
-	c := IssueCommand{
-		Ui:            mockUI,
-		Provider:      mockIssueProvider,
-		ClientFacotry: mockAPIClientFactory,
-		MethodFactory: &IssueMethodFactory{},
-	}
-
-	args := []string{}
-	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
-	}
-
-	got := mockUI.Writer.String()
-	want := "12  Title12\n13  Title13\n"
-
-	if got != want {
-		t.Fatalf("bad output value \nwant %#v \ngot  %#v", got, want)
-	}
-}
-
-func TestIssueCommandRun_ListProjectIssue(t *testing.T) {
-	mockUI := ui.NewMockUi()
-	c := IssueCommand{
-		Ui:            mockUI,
-		Provider:      mockIssueProvider,
-		ClientFacotry: mockAPIClientFactory,
-		MethodFactory: &IssueMethodFactory{},
-	}
-
-	args := []string{"--all-project"}
-	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
-	}
-
-	got := mockUI.Writer.String()
-	want := "namespace/repo  12  Title12\nnamespace/repo  13  Title13\n"
-
-	if got != want {
-		t.Fatalf("bad output value \nwant %#v \ngot  %#v", got, want)
-	}
-}
-
-func TestIssueCommandRun_CreateIssue(t *testing.T) {
-	mockUI := ui.NewMockUi()
-	c := IssueCommand{
-		Ui:            mockUI,
-		Provider:      mockIssueProvider,
-		ClientFacotry: mockAPIClientFactory,
-		MethodFactory: &IssueMethodFactory{},
-	}
-
-	args := []string{"-i", "title", "-m", "message"}
-	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
-	}
-
-	got := mockUI.Writer.String()
-	want := "12\n"
-
-	if got != want {
-		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
-	}
-}
-
-func TestIssueCommandRun_CreateIssueOnEditor(t *testing.T) {
-	mockUI := ui.NewMockUi()
-	c := IssueCommand{
-		Ui:            mockUI,
-		Provider:      mockIssueProvider,
-		ClientFacotry: mockAPIClientFactory,
-		MethodFactory: &IssueMethodFactory{},
-		EditFunc: func(program, file string) error {
-			return nil
+	tests := []struct {
+		name     string
+		fields   fields
+		args     []string
+		wantCode int
+		wantOut  string
+		wantErr  string
+	}{
+		{
+			name: "normal",
+			fields: fields{
+				Provider:      mockIssueProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{},
+			wantCode: 0,
+			wantOut:  "result\n",
+			wantErr:  "",
+		},
+		{
+			name: "unknown flag",
+			fields: fields{
+				Provider:      mockIssueProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{"--hogehoge"},
+			wantCode: 1,
+			wantOut:  "",
+			wantErr:  "unknown flag `hogehoge'\n",
+		},
+		{
+			name: "nomal args",
+			fields: fields{
+				Provider:      mockIssueProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{"12"},
+			wantCode: 0,
+			wantOut:  "result\n",
+			wantErr:  "",
+		},
+		{
+			name: "multipul args",
+			fields: fields{
+				Provider:      mockIssueProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{"12", "13"},
+			wantCode: 0,
+			wantOut:  "result\n",
+			wantErr:  "",
+		},
+		{
+			name: "invalid args",
+			fields: fields{
+				Provider:      mockIssueProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{"aa"},
+			wantCode: 1,
+			wantOut:  "",
+			wantErr:  "Invalid args, please intput issue IID.\n",
 		},
 	}
-
-	args := []string{"-e", "-i", "title", "-m", "message"}
-	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
-	}
-
-	got := mockUI.Writer.String()
-	want := "12\n"
-
-	if got != want {
-		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
-	}
-}
-
-func TestIssueCommandRun_UpdateIssue(t *testing.T) {
-	mockUI := ui.NewMockUi()
-	c := IssueCommand{
-		Ui:            mockUI,
-		Provider:      mockIssueProvider,
-		ClientFacotry: mockAPIClientFactory,
-		MethodFactory: &IssueMethodFactory{},
-	}
-
-	args := []string{"-i", "title", "-m", "message", "12"}
-	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
-	}
-
-	got := mockUI.Writer.String()
-	want := ""
-
-	if got != want {
-		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
-	}
-}
-
-func TestIssueCommandRun_UpdateIssueOnEditor(t *testing.T) {
-	mockUI := ui.NewMockUi()
-	c := IssueCommand{
-		Ui:            mockUI,
-		Provider:      mockIssueProvider,
-		ClientFacotry: mockAPIClientFactory,
-		MethodFactory: &IssueMethodFactory{},
-		EditFunc: func(program, file string) error {
-			return nil
-		},
-	}
-
-	args := []string{"-e", "-i", "title", "-m", "message", "12"}
-	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
-	}
-
-	got := mockUI.Writer.String()
-	want := ""
-
-	if got != want {
-		t.Fatalf("bad output value \nwant %q \ngot  %q", got, want)
-	}
-}
-
-func TestIssueOutput(t *testing.T) {
-	got := listOutput(issues)
-	want := []string{
-		"12|Title12",
-		"13|Title13",
-	}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("bad return value \nwant %#v \ngot  %#v", got, want)
-	}
-}
-
-func TestProjectIssueOutput(t *testing.T) {
-	got := listAllOutput(issues)
-	want := []string{
-		"namespace/repo|12|Title12",
-		"namespace/repo|13|Title13",
-	}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("bad return value \nwant %#v \ngot  %#v", got, want)
-	}
-}
-
-func TestEditIssueMessage(t *testing.T) {
-	got := editIssueMessage("title", "description")
-	want := `title
-
-description
-`
-	if got != want {
-		t.Fatalf("want %v, but %v:", want, got)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUI := ui.NewMockUi()
+			c := &IssueCommand{
+				Ui:            mockUI,
+				Provider:      tt.fields.Provider,
+				MethodFactory: tt.fields.MethodFactory,
+			}
+			if got := c.Run(tt.args); got != tt.wantCode {
+				t.Errorf("failed issue command run.\ngot: %v\nwant:%v", got, tt.wantCode)
+			}
+			if got := mockUI.Writer.String(); got != tt.wantOut {
+				t.Errorf("unmatch want stdout.\ngot: %#v\nwant:%#v", got, tt.wantOut)
+			}
+			if got := mockUI.ErrorWriter.String(); got != tt.wantErr {
+				t.Errorf("unmatch want stderr.\ngot: %#v\nwant:%#v", got, tt.wantErr)
+			}
+		})
 	}
 }

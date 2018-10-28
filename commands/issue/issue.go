@@ -125,11 +125,11 @@ Synopsis:
 }
 
 type IssueCommand struct {
-	Ui            ui.Ui
-	Provider      lab.Provider
-	ClientFacotry lab.APIClientFactory
+	Ui       ui.Ui
+	Provider lab.Provider
+	// 	ClientFacotry lab.APIClientFactory
 	MethodFactory MethodFactory
-	EditFunc      func(program, file string) error
+	// 	EditFunc      func(program, file string) error
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -178,12 +178,13 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	if err := c.ClientFacotry.Init(gitlabRemote.ApiUrl(), token); err != nil {
+	clientFacotry, err := lab.NewGitlabClientFactory(gitlabRemote.ApiUrl(), token)
+	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	method, err := c.MethodFactory.CreateMethod(opt, gitlabRemote, iid, c.ClientFacotry, c.EditFunc)
+	method, err := c.MethodFactory.CreateMethod(opt, gitlabRemote, iid, clientFacotry)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -209,7 +210,7 @@ func validIssueIID(args []string) (int, error) {
 
 	iid, err := strconv.Atoi(args[0])
 	if err != nil {
-		return 0, fmt.Errorf("Invalid Issue IID. IID: %s", args[0])
+		return 0, fmt.Errorf("Invalid args, please intput issue IID.")
 	}
 	return iid, nil
 }

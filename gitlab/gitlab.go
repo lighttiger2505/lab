@@ -324,7 +324,7 @@ func getGitlabClient(url, token string) (*gitlab.Client, error) {
 }
 
 type APIClientFactory interface {
-	Init(url, token string) error
+	// 	Init(url, token string) error
 	GetClient() Client
 	GetJobClient() Job
 	GetIssueClient() Issue
@@ -338,17 +338,13 @@ type GitlabClientFactory struct {
 	gitlabClient *gitlab.Client
 }
 
-func NewGitlabClientFactory() APIClientFactory {
-	return &GitlabClientFactory{}
-}
-
-func (f *GitlabClientFactory) Init(url, token string) error {
+func NewGitlabClientFactory(url, token string) (APIClientFactory, error) {
 	gitlabClient, err := getGitlabClient(url, token)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	f.gitlabClient = gitlabClient
-	return nil
+	factory := &GitlabClientFactory{gitlabClient: gitlabClient}
+	return factory, nil
 }
 
 func (f *GitlabClientFactory) GetClient() Client {

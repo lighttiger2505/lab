@@ -21,7 +21,6 @@ func makeUpdateIssueOption(opt *CreateUpdateOption, title, description string) *
 }
 
 type updateMethod struct {
-	internal.Method
 	client  lab.Issue
 	opt     *CreateUpdateOption
 	project string

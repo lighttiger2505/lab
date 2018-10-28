@@ -11,6 +11,7 @@ import (
 	"github.com/lighttiger2505/lab/commands"
 	"github.com/lighttiger2505/lab/commands/issue"
 	"github.com/lighttiger2505/lab/commands/mr"
+	"github.com/lighttiger2505/lab/commands/pipeline"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
@@ -89,7 +90,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 			}, nil
 		},
 		"pipeline": func() (cli.Command, error) {
-			return &commands.PipelineCommand{
+			return &pipeline.PipelineCommand{
 				UI:       ui,
 				Provider: provider,
 			}, nil

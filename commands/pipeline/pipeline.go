@@ -1,4 +1,4 @@
-package commands
+package pipeline
 
 import (
 	"bytes"
@@ -11,6 +11,12 @@ import (
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
 	"github.com/xanzy/go-gitlab"
+)
+
+const (
+	ExitCodeOK        int = iota //0
+	ExitCodeError     int = iota //1
+	ExitCodeFileError int = iota //2
 )
 
 type PipelineCommandOption struct {

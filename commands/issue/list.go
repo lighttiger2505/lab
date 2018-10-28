@@ -9,22 +9,6 @@ import (
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-func makeIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOptions {
-	listOption := &gitlab.ListOptions{
-		Page:    1,
-		PerPage: issueListOption.Num,
-	}
-	listIssuesOptions := &gitlab.ListIssuesOptions{
-		State:       gitlab.String(issueListOption.getState()),
-		Scope:       gitlab.String(issueListOption.getScope()),
-		OrderBy:     gitlab.String(issueListOption.OrderBy),
-		Sort:        gitlab.String(issueListOption.Sort),
-		Search:      gitlab.String(issueListOption.Search),
-		ListOptions: *listOption,
-	}
-	return listIssuesOptions
-}
-
 type listMethod struct {
 	client  lab.Issue
 	opt     *ListOption
@@ -51,7 +35,7 @@ type listAllMethod struct {
 }
 
 func (m *listAllMethod) Process() (string, error) {
-	issues, err := m.client.GetAllProjectIssues(makeIssueOption(m.opt))
+	issues, err := m.client.GetAllProjectIssues(makeAllProjectIssueOption(m.opt))
 	if err != nil {
 		return "", err
 	}
@@ -77,13 +61,27 @@ func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssu
 	return listProjectIssuesOptions
 }
 
-func listAllOutput(issues []*gitlab.Issue) []string {
-	cyan := color.New(color.FgCyan).SprintFunc()
+func makeAllProjectIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOptions {
+	listOption := &gitlab.ListOptions{
+		Page:    1,
+		PerPage: issueListOption.Num,
+	}
+	listIssuesOptions := &gitlab.ListIssuesOptions{
+		State:       gitlab.String(issueListOption.getState()),
+		Scope:       gitlab.String(issueListOption.getScope()),
+		OrderBy:     gitlab.String(issueListOption.OrderBy),
+		Sort:        gitlab.String(issueListOption.Sort),
+		Search:      gitlab.String(issueListOption.Search),
+		ListOptions: *listOption,
+	}
+	return listIssuesOptions
+}
+
+func listOutput(issues []*gitlab.Issue) []string {
 	yellow := color.New(color.FgYellow).SprintFunc()
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
-			cyan(lab.ParceRepositoryFullName(issue.WebURL)),
 			yellow(issue.IID),
 			issue.Title,
 		}, "|")
@@ -92,11 +90,13 @@ func listAllOutput(issues []*gitlab.Issue) []string {
 	return datas
 }
 
-func listOutput(issues []*gitlab.Issue) []string {
+func listAllOutput(issues []*gitlab.Issue) []string {
+	cyan := color.New(color.FgCyan).SprintFunc()
 	yellow := color.New(color.FgYellow).SprintFunc()
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
+			cyan(lab.ParceRepositoryFullName(issue.WebURL)),
 			yellow(issue.IID),
 			issue.Title,
 		}, "|")

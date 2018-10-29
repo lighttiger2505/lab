@@ -125,11 +125,9 @@ Synopsis:
 }
 
 type IssueCommand struct {
-	Ui       ui.Ui
-	Provider lab.Provider
-	// 	ClientFacotry lab.APIClientFactory
+	Ui            ui.Ui
+	Provider      lab.Provider
 	MethodFactory MethodFactory
-	// 	EditFunc      func(program, file string) error
 }
 
 func (c *IssueCommand) Synopsis() string {

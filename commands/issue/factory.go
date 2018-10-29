@@ -8,18 +8,18 @@ import (
 )
 
 type MethodFactory interface {
-	CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) (internal.Method, error)
+	CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) internal.Method
 }
 
 type IssueMethodFactory struct{}
 
-func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) (internal.Method, error) {
+func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) internal.Method {
 	if opt.BrowseOption.Browse {
 		return &browseMethod{
 			opener: &cmd.Browser{},
 			remote: remote,
 			id:     iid,
-		}, nil
+		}
 	}
 
 	if iid > 0 {
@@ -30,7 +30,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 				project:  remote.RepositoryFullName(),
 				id:       iid,
 				editFunc: nil,
-			}, nil
+			}
 		}
 		if opt.CreateUpdateOption.hasUpdate() {
 			return &updateMethod{
@@ -38,7 +38,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 				opt:     opt.CreateUpdateOption,
 				project: remote.RepositoryFullName(),
 				id:      iid,
-			}, nil
+			}
 		}
 		return &detailMethod{
 			issueClient: factory.GetIssueClient(),
@@ -46,7 +46,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 			opt:         opt.ShowOption,
 			project:     remote.RepositoryFullName(),
 			id:          iid,
-		}, nil
+		}
 	}
 
 	// Case of nothing Issue IID
@@ -57,31 +57,31 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 			opt:              opt.CreateUpdateOption,
 			project:          remote.RepositoryFullName(),
 			editFunc:         nil,
-		}, nil
+		}
 	}
 	if opt.CreateUpdateOption.hasCreate() {
 		return &createMethod{
 			client:  factory.GetIssueClient(),
 			opt:     opt.CreateUpdateOption,
 			project: remote.RepositoryFullName(),
-		}, nil
+		}
 	}
 	if opt.ListOption.AllProject {
 		return &listAllMethod{
 			client: factory.GetIssueClient(),
 			opt:    opt.ListOption,
-		}, nil
+		}
 	}
 
 	return &listMethod{
 		client:  factory.GetIssueClient(),
 		opt:     opt.ListOption,
 		project: remote.RepositoryFullName(),
-	}, nil
+	}
 }
 
 type MockMethodFactory struct{}
 
-func (c *MockMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) (internal.Method, error) {
-	return &internal.MockMethod{}, nil
+func (c *MockMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) internal.Method {
+	return &internal.MockMethod{}
 }

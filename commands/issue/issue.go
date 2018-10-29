@@ -184,12 +184,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	method, err := c.MethodFactory.CreateMethod(opt, gitlabRemote, iid, clientFacotry)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
+	method := c.MethodFactory.CreateMethod(opt, gitlabRemote, iid, clientFacotry)
 	res, err := method.Process()
 	if err != nil {
 		c.Ui.Error(err.Error())

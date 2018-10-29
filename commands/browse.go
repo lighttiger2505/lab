@@ -48,7 +48,7 @@ type BrowseCommandOption struct {
 
 func newBrowseOptionParser(opt *BrowseCommandOption) *flags.Parser {
 	opt.BrowseOption = newBrowseOption()
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `browse - Browse project page
 
 Synopsis:

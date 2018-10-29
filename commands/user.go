@@ -18,7 +18,7 @@ type UserCommandOption struct {
 
 func newUserOptionParser(opt *UserCommandOption) *flags.Parser {
 	opt.ListOption = newListUserOption()
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `user - list a user
 
 Synopsis:

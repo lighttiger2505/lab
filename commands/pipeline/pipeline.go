@@ -23,7 +23,7 @@ type Option struct {
 
 func newOptionParser(opt *Option) *flags.Parser {
 	opt.ListOption = &ListOption{}
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `pipeline [options]
 
 Synopsis:

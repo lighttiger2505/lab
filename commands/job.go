@@ -20,7 +20,7 @@ type JobCommandOption struct {
 
 func newJobOptionParser(opt *JobCommandOption) *flags.Parser {
 	opt.ListOption = newListJobOption()
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "job [options]"
 	parser.Usage = `issue - list a job
 

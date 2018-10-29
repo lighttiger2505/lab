@@ -18,7 +18,7 @@ type ProjectVaribleCommandOption struct {
 
 func newProjectVaribleOptionParser(opt *ProjectVaribleCommandOption) *flags.Parser {
 	opt.CreateUpdateOption = newAddProjectVaribleOption()
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `project-variable - Create and Edit, list a project variable
 
 Synopsis:

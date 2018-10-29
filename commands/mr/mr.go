@@ -86,7 +86,7 @@ func newOptionParser(opt *Option) *flags.Parser {
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
 	opt.BrowseOption = &BrowseOption{}
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `merge-request - Create and Edit, list a merge request
 
 Synopsis:

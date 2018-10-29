@@ -101,7 +101,7 @@ func newOptionParser(opt *Option) *flags.Parser {
 	opt.ListOption = &ListOption{}
 	opt.ShowOption = &ShowOption{}
 	opt.BrowseOption = &BrowseOption{}
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `issue - Create and Edit, list a issue
 
 Synopsis:

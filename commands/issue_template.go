@@ -15,7 +15,7 @@ type IssueTemplateCommnadOption struct {
 }
 
 func newIssueTemplateCommandParser(opt *IssueTemplateCommnadOption) *flags.Parser {
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "issue-template [options]"
 	return parser
 }

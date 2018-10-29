@@ -18,7 +18,7 @@ type ProjectCommnadOption struct {
 
 func newProjectCommandParser(opt *ProjectCommnadOption) *flags.Parser {
 	opt.OutputOption = newListProjectOption()
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "project [options]"
 	return parser
 }

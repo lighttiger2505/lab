@@ -15,7 +15,7 @@ type MergeRequestTemplateCommnadOption struct {
 }
 
 func newMergeRequestTemplateCommandParser(opt *MergeRequestTemplateCommnadOption) *flags.Parser {
-	parser := flags.NewParser(opt, flags.Default)
+	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "merge-request-template [options]"
 	return parser
 }

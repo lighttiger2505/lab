@@ -91,8 +91,9 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"pipeline": func() (cli.Command, error) {
 			return &pipeline.PipelineCommand{
-				UI:       ui,
-				Provider: provider,
+				UI:            ui,
+				Provider:      provider,
+				MethodFactory: &pipeline.PipelineMethodFacotry{},
 			}, nil
 		},
 		"job": func() (cli.Command, error) {

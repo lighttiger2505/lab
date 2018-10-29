@@ -266,7 +266,6 @@ type MockProvider struct {
 	MockGetMergeRequestClient    func(remote *git.RemoteInfo) (MergeRequest, error)
 	MockGetProjectVariableClient func(remote *git.RemoteInfo) (ProjectVariable, error)
 	MockGetRepositoryClient      func(remote *git.RemoteInfo) (Repository, error)
-	MockGetNoteClient            func(remote *git.RemoteInfo) (Note, error)
 }
 
 func (m *MockProvider) Init() error {
@@ -297,10 +296,6 @@ func (m *MockProvider) GetRepositoryClient(remote *git.RemoteInfo) (Repository, 
 	return m.MockGetRepositoryClient(remote)
 }
 
-func (m *MockProvider) GetNoteClient(remote *git.RemoteInfo) (Note, error) {
-	return m.MockGetNoteClient(remote)
-}
-
 func getGitlabClient(url, token string) (*gitlab.Client, error) {
 	client := gitlab.NewClient(nil, token)
 	if err := client.SetBaseURL(url); err != nil {
@@ -317,6 +312,7 @@ type APIClientFactory interface {
 	GetMergeRequestClient() MergeRequest
 	GetProjectVariableClient() ProjectVariable
 	GetRepositoryClient() Repository
+	GetPipelineClient() Pipeline
 	GetNoteClient() Note
 }
 
@@ -361,6 +357,10 @@ func (f *GitlabClientFactory) GetNoteClient() Note {
 	return NewNoteClient(f.gitlabClient)
 }
 
+func (f *GitlabClientFactory) GetPipelineClient() Pipeline {
+	return NewPipelineClient(f.gitlabClient)
+}
+
 type MockAPIClientFactory struct {
 	MockGetClient                func() Client
 	MockGetJobClient             func() Job
@@ -369,6 +369,7 @@ type MockAPIClientFactory struct {
 	MockGetProjectVariableClient func() ProjectVariable
 	MockGetRepositoryClient      func() Repository
 	MockGetNoteClient            func() Note
+	MockGetPipelineClient        func() Pipeline
 }
 
 func (f *MockAPIClientFactory) Init(url, token string) error {
@@ -399,6 +400,6 @@ func (m *MockAPIClientFactory) GetRepositoryClient() Repository {
 	return m.MockGetRepositoryClient()
 }
 
-func (m *MockAPIClientFactory) GetNoteClient() Note {
-	return m.MockGetNoteClient()
+func (m *MockAPIClientFactory) GetPipelineClient() Pipeline {
+	return m.MockGetPipelineClient()
 }

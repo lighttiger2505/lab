@@ -6,41 +6,9 @@ import (
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
-	gitlab "github.com/xanzy/go-gitlab"
 )
 
-var testPipelines = gitlab.PipelineList{
-	struct {
-		ID     int    `json:"id"`
-		Status string `json:"status"`
-		Ref    string `json:"ref"`
-		Sha    string `json:"sha"`
-	}{
-		ID:     1,
-		Status: "status1",
-		Ref:    "ref1",
-		Sha:    "sha1",
-	},
-	struct {
-		ID     int    `json:"id"`
-		Status string `json:"status"`
-		Ref    string `json:"ref"`
-		Sha    string `json:"sha"`
-	}{
-		ID:     2,
-		Status: "status2",
-		Ref:    "ref2",
-		Sha:    "sha2",
-	},
-}
-
-var mockGitlabPipelineClient = &lab.MockLabClient{
-	MockProjectPipelines: func(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error) {
-		return testPipelines, nil
-	},
-}
-
-var mockPipelineProvider = &lab.MockProvider{
+var mockProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
 		return &git.RemoteInfo{
@@ -49,27 +17,96 @@ var mockPipelineProvider = &lab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetClient: func(remote *git.RemoteInfo) (lab.Client, error) {
-		return mockGitlabPipelineClient, nil
-	},
 }
+var mockAPIClientFactory = &lab.MockAPIClientFactory{}
+var mockMethodFactory = &MockMethodFactory{}
 
-func TestPipelineCommandRun(t *testing.T) {
-	mockUI := ui.NewMockUi()
-	c := PipelineCommand{
-		UI:       mockUI,
-		Provider: mockPipelineProvider,
+func TestPipelineCommand_Run(t *testing.T) {
+	type fields struct {
+		Provider      lab.Provider
+		MethodFactory MethodFactory
 	}
-
-	args := []string{}
-	if code := c.Run(args); code != 0 {
-		t.Fatalf("wrong exit code. errors: \n%s", mockUI.ErrorWriter.String())
+	tests := []struct {
+		name     string
+		fields   fields
+		args     []string
+		wantCode int
+		wantOut  string
+		wantErr  string
+	}{
+		{
+			name: "normal",
+			fields: fields{
+				Provider:      mockProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{},
+			wantCode: 0,
+			wantOut:  "result\n",
+			wantErr:  "",
+		},
+		{
+			name: "unknown flag",
+			fields: fields{
+				Provider:      mockProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{"--hogehoge"},
+			wantCode: 1,
+			wantOut:  "",
+			wantErr:  "unknown flag `hogehoge'\n",
+		},
+		{
+			name: "nomal args",
+			fields: fields{
+				Provider:      mockProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{"12"},
+			wantCode: 0,
+			wantOut:  "result\n",
+			wantErr:  "",
+		},
+		{
+			name: "multipul args",
+			fields: fields{
+				Provider:      mockProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{"12", "13"},
+			wantCode: 0,
+			wantOut:  "result\n",
+			wantErr:  "",
+		},
+		{
+			name: "invalid args",
+			fields: fields{
+				Provider:      mockProvider,
+				MethodFactory: mockMethodFactory,
+			},
+			args:     []string{"aa"},
+			wantCode: 1,
+			wantOut:  "",
+			wantErr:  "Invalid args, please intput pipeline IID.\n",
+		},
 	}
-
-	got := mockUI.Writer.String()
-	want := "1  status1  ref1  sha1\n2  status2  ref2  sha2\n"
-
-	if got != want {
-		t.Fatalf("bad output value \nwant %q \ngot  %q", want, got)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUI := ui.NewMockUi()
+			c := &PipelineCommand{
+				UI:            mockUI,
+				Provider:      tt.fields.Provider,
+				MethodFactory: tt.fields.MethodFactory,
+			}
+			if got := c.Run(tt.args); got != tt.wantCode {
+				t.Errorf("failed issue command run.\ngot: %v\nwant:%v", got, tt.wantCode)
+			}
+			if got := mockUI.Writer.String(); got != tt.wantOut {
+				t.Errorf("unmatch want stdout.\ngot: %#v\nwant:%#v", got, tt.wantOut)
+			}
+			if got := mockUI.ErrorWriter.String(); got != tt.wantErr {
+				t.Errorf("unmatch want stderr.\ngot: %#v\nwant:%#v", got, tt.wantErr)
+			}
+		})
 	}
 }

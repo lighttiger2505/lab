@@ -8,7 +8,7 @@ import (
 	"github.com/lighttiger2505/lab/ui"
 )
 
-var mockIssueProvider = &lab.MockProvider{
+var mockProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
 		return &git.RemoteInfo{
@@ -37,7 +37,7 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "normal",
 			fields: fields{
-				Provider:      mockIssueProvider,
+				Provider:      mockProvider,
 				MethodFactory: mockMethodFactory,
 			},
 			args:     []string{},
@@ -48,7 +48,7 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "unknown flag",
 			fields: fields{
-				Provider:      mockIssueProvider,
+				Provider:      mockProvider,
 				MethodFactory: mockMethodFactory,
 			},
 			args:     []string{"--hogehoge"},
@@ -59,7 +59,7 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "nomal args",
 			fields: fields{
-				Provider:      mockIssueProvider,
+				Provider:      mockProvider,
 				MethodFactory: mockMethodFactory,
 			},
 			args:     []string{"12"},
@@ -70,7 +70,7 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "multipul args",
 			fields: fields{
-				Provider:      mockIssueProvider,
+				Provider:      mockProvider,
 				MethodFactory: mockMethodFactory,
 			},
 			args:     []string{"12", "13"},
@@ -81,7 +81,7 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "invalid args",
 			fields: fields{
-				Provider:      mockIssueProvider,
+				Provider:      mockProvider,
 				MethodFactory: mockMethodFactory,
 			},
 			args:     []string{"aa"},

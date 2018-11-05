@@ -34,14 +34,17 @@ func TestProjectVariableCommand_Run_List(t *testing.T) {
 	}
 	mockProvider := &lab.MockProvider{
 		MockGetCurrentRemote: mockCurrentRemote,
-		MockGetProjectVariableClient: func(remote *git.RemoteInfo) (lab.ProjectVariable, error) {
-			return mockClient, nil
+	}
+	mockClientFactory := &lab.MockAPIClientFactory{
+		MockGetProjectVariableClient: func() lab.ProjectVariable {
+			return mockClient
 		},
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectVariableCommand{
-		UI:       mockUI,
-		Provider: mockProvider,
+		UI:            mockUI,
+		Provider:      mockProvider,
+		ClientFactory: mockClientFactory,
 	}
 
 	// Do command
@@ -69,14 +72,17 @@ func TestProjectVariableCommand_Run_Create(t *testing.T) {
 	}
 	mockProvider := &lab.MockProvider{
 		MockGetCurrentRemote: mockCurrentRemote,
-		MockGetProjectVariableClient: func(remote *git.RemoteInfo) (lab.ProjectVariable, error) {
-			return mockClient, nil
+	}
+	mockClientFactory := &lab.MockAPIClientFactory{
+		MockGetProjectVariableClient: func() lab.ProjectVariable {
+			return mockClient
 		},
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectVariableCommand{
-		UI:       mockUI,
-		Provider: mockProvider,
+		UI:            mockUI,
+		Provider:      mockProvider,
+		ClientFactory: mockClientFactory,
 	}
 
 	// Do command
@@ -104,14 +110,17 @@ func TestProjectVariableCommand_Run_Update(t *testing.T) {
 	}
 	mockProvider := &lab.MockProvider{
 		MockGetCurrentRemote: mockCurrentRemote,
-		MockGetProjectVariableClient: func(remote *git.RemoteInfo) (lab.ProjectVariable, error) {
-			return mockClient, nil
+	}
+	mockClientFactory := &lab.MockAPIClientFactory{
+		MockGetProjectVariableClient: func() lab.ProjectVariable {
+			return mockClient
 		},
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectVariableCommand{
-		UI:       mockUI,
-		Provider: mockProvider,
+		UI:            mockUI,
+		Provider:      mockProvider,
+		ClientFactory: mockClientFactory,
 	}
 
 	// Do command
@@ -138,14 +147,17 @@ func TestProjectVariableCommand_Run_Remove(t *testing.T) {
 	}
 	mockProvider := &lab.MockProvider{
 		MockGetCurrentRemote: mockCurrentRemote,
-		MockGetProjectVariableClient: func(remote *git.RemoteInfo) (lab.ProjectVariable, error) {
-			return mockClient, nil
+	}
+	mockClientFactory := &lab.MockAPIClientFactory{
+		MockGetProjectVariableClient: func() lab.ProjectVariable {
+			return mockClient
 		},
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectVariableCommand{
-		UI:       mockUI,
-		Provider: mockProvider,
+		UI:            mockUI,
+		Provider:      mockProvider,
+		ClientFactory: mockClientFactory,
 	}
 
 	// Do command

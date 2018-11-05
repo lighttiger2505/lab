@@ -15,7 +15,6 @@ type Provider interface {
 	Init() error
 	GetCurrentRemote() (*git.RemoteInfo, error)
 	GetAPIToken(remote *git.RemoteInfo) (string, error)
-	GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error)
 }
 
 type GitlabProvider struct {
@@ -141,14 +140,6 @@ func (p *GitlabProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
 	return token, nil
 }
 
-func (p *GitlabProvider) GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error) {
-	gitlabClient, err := p.makeGitLabClient(remote)
-	if err != nil {
-		return nil, err
-	}
-	return NewProjectVariableClient(gitlabClient), nil
-}
-
 func (p *GitlabProvider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	p.UI.Message("That repository existing multi gitlab remote repository.")
@@ -228,10 +219,6 @@ func (m *MockProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
 
 func (m *MockProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
 	return "", nil
-}
-
-func (m *MockProvider) GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error) {
-	return m.MockGetProjectVariableClient(remote)
 }
 
 func getGitlabClient(url, token string) (*gitlab.Client, error) {

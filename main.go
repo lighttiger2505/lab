@@ -101,8 +101,9 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"job": func() (cli.Command, error) {
 			return &commands.JobCommand{
-				UI:       ui,
-				Provider: provider,
+				UI:            ui,
+				Provider:      provider,
+				ClientFactory: &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"lint": func() (cli.Command, error) {

@@ -78,6 +78,7 @@ func (c *LintCommand) Run(args []string) int {
 	if result.Status == "invalid" {
 		for _, msg := range result.Errors {
 			c.UI.Message(msg)
+			return ExitCodeError
 		}
 	}
 

@@ -26,7 +26,7 @@ var testProjects = []*gitlab.Project{
 	},
 }
 
-var mockGitlabProjectClient = &lab.MockLabClient{
+var mockProjectClient = &lab.MockProjectClient{
 	MockProjects: func(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {
 		return testProjects, nil
 	},
@@ -41,16 +41,19 @@ var mockProjectProvider = &lab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetClient: func(remote *git.RemoteInfo) (lab.Client, error) {
-		return mockGitlabProjectClient, nil
-	},
 }
 
 func TestProjectCommandRun(t *testing.T) {
+	mockClientFactory := &lab.MockAPIClientFactory{
+		MockGetProjectClient: func() lab.Project {
+			return mockProjectClient
+		},
+	}
 	mockUI := ui.NewMockUi()
 	c := ProjectCommand{
-		UI:       mockUI,
-		Provider: mockProjectProvider,
+		UI:            mockUI,
+		Provider:      mockProjectProvider,
+		ClientFactory: mockClientFactory,
 	}
 
 	args := []string{}

@@ -85,8 +85,9 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"project": func() (cli.Command, error) {
 			return &commands.ProjectCommand{
-				UI:       ui,
-				Provider: provider,
+				UI:            ui,
+				Provider:      provider,
+				ClientFactory: &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"pipeline": func() (cli.Command, error) {

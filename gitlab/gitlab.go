@@ -311,8 +311,7 @@ func getGitlabClient(url, token string) (*gitlab.Client, error) {
 }
 
 type APIClientFactory interface {
-	// 	Init(url, token string) error
-	GetClient() Client
+	Init(url, token string) error
 	GetJobClient() Job
 	GetIssueClient() Issue
 	GetMergeRequestClient() MergeRequest
@@ -320,6 +319,7 @@ type APIClientFactory interface {
 	GetRepositoryClient() Repository
 	GetPipelineClient() Pipeline
 	GetNoteClient() Note
+	GetProjectClient() Project
 }
 
 type GitlabClientFactory struct {
@@ -335,8 +335,13 @@ func NewGitlabClientFactory(url, token string) (APIClientFactory, error) {
 	return factory, nil
 }
 
-func (f *GitlabClientFactory) GetClient() Client {
-	return NewLabClient(f.gitlabClient)
+func (f *GitlabClientFactory) Init(url, token string) error {
+	gitlabClient, err := getGitlabClient(url, token)
+	if err != nil {
+		return err
+	}
+	f.gitlabClient = gitlabClient
+	return nil
 }
 
 func (f *GitlabClientFactory) GetJobClient() Job {
@@ -367,6 +372,10 @@ func (f *GitlabClientFactory) GetPipelineClient() Pipeline {
 	return NewPipelineClient(f.gitlabClient)
 }
 
+func (f *GitlabClientFactory) GetProjectClient() Project {
+	return NewProjectClient(f.gitlabClient)
+}
+
 type MockAPIClientFactory struct {
 	MockGetClient                func() Client
 	MockGetJobClient             func() Job
@@ -376,14 +385,11 @@ type MockAPIClientFactory struct {
 	MockGetRepositoryClient      func() Repository
 	MockGetNoteClient            func() Note
 	MockGetPipelineClient        func() Pipeline
+	MockGetProjectClient         func() Project
 }
 
-func (f *MockAPIClientFactory) Init(url, token string) error {
+func (m *MockAPIClientFactory) Init(url, token string) error {
 	return nil
-}
-
-func (m *MockAPIClientFactory) GetClient() Client {
-	return m.MockGetClient()
 }
 
 func (m *MockAPIClientFactory) GetJobClient() Job {
@@ -408,4 +414,12 @@ func (m *MockAPIClientFactory) GetRepositoryClient() Repository {
 
 func (m *MockAPIClientFactory) GetPipelineClient() Pipeline {
 	return m.MockGetPipelineClient()
+}
+
+func (m *MockAPIClientFactory) GetNoteClient() Note {
+	return m.MockGetNoteClient()
+}
+
+func (m *MockAPIClientFactory) GetProjectClient() Project {
+	return m.MockGetProjectClient()
 }

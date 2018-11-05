@@ -320,6 +320,7 @@ type APIClientFactory interface {
 	GetPipelineClient() Pipeline
 	GetNoteClient() Note
 	GetProjectClient() Project
+	GetUserClient() User
 }
 
 type GitlabClientFactory struct {
@@ -376,6 +377,10 @@ func (f *GitlabClientFactory) GetProjectClient() Project {
 	return NewProjectClient(f.gitlabClient)
 }
 
+func (f *GitlabClientFactory) GetUserClient() User {
+	return NewUserClient(f.gitlabClient)
+}
+
 type MockAPIClientFactory struct {
 	MockGetClient                func() Client
 	MockGetJobClient             func() Job
@@ -386,6 +391,7 @@ type MockAPIClientFactory struct {
 	MockGetNoteClient            func() Note
 	MockGetPipelineClient        func() Pipeline
 	MockGetProjectClient         func() Project
+	MockGetUserClient            func() User
 }
 
 func (m *MockAPIClientFactory) Init(url, token string) error {
@@ -422,4 +428,8 @@ func (m *MockAPIClientFactory) GetNoteClient() Note {
 
 func (m *MockAPIClientFactory) GetProjectClient() Project {
 	return m.MockGetProjectClient()
+}
+
+func (m *MockAPIClientFactory) GetUserClient() User {
+	return m.MockGetUserClient()
 }

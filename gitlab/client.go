@@ -12,9 +12,6 @@ type Client interface {
 	ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]*gitlab.Job, error)
 	// Lint
 	Lint(content string) (*gitlab.LintResult, error)
-	// User
-	ProjectUsers(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error)
-	Users(opt *gitlab.ListUsersOptions) ([]*gitlab.User, error)
 }
 
 type LabClient struct {
@@ -49,22 +46,6 @@ func (l *LabClient) Lint(content string) (*gitlab.LintResult, error) {
 	return lintResult, nil
 }
 
-func (l *LabClient) Users(opt *gitlab.ListUsersOptions) ([]*gitlab.User, error) {
-	results, _, err := l.Client.Users.ListUsers(opt)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list users. Error: %s", err.Error())
-	}
-	return results, nil
-}
-
-func (l *LabClient) ProjectUsers(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error) {
-	results, _, err := l.Client.Projects.ListProjectsUsers(repositoryName, opt)
-	if err != nil {
-		return nil, fmt.Errorf("Failed list project users. Error: %s", err.Error())
-	}
-	return results, nil
-}
-
 type MockLabClient struct {
 	Client
 	// Pipeline
@@ -72,9 +53,6 @@ type MockLabClient struct {
 	MockProjectPipelineJobs func(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]*gitlab.Job, error)
 	// Lint
 	MockLint func(content string) (*gitlab.LintResult, error)
-	// User
-	MockProjectUsers func(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error)
-	MockUsers        func(opt *gitlab.ListUsersOptions) ([]*gitlab.User, error)
 }
 
 func (m *MockLabClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error) {
@@ -87,12 +65,4 @@ func (m *MockLabClient) ProjectPipelineJobs(repositoryName string, opt *gitlab.L
 
 func (m *MockLabClient) Lint(content string) (*gitlab.LintResult, error) {
 	return m.MockLint(content)
-}
-
-func (m *MockLabClient) Users(opt *gitlab.ListUsersOptions) ([]*gitlab.User, error) {
-	return m.MockUsers(opt)
-}
-
-func (m *MockLabClient) ProjectUsers(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error) {
-	return m.MockProjectUsers(repositoryName, opt)
 }

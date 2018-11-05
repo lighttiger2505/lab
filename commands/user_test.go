@@ -35,7 +35,7 @@ var testProjectUsers = []*gitlab.ProjectUser{
 	},
 }
 
-var mockGitlabUserClinet = &lab.MockLabClient{
+var mockGitlabUserClinet = &lab.MockUserClient{
 	MockProjectUsers: func(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error) {
 		return testProjectUsers, nil
 	},
@@ -53,16 +53,19 @@ var mockUserProvider = &lab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetClient: func(remote *git.RemoteInfo) (lab.Client, error) {
-		return mockGitlabUserClinet, nil
-	},
 }
 
 func TestUserCommandRun(t *testing.T) {
+	mockClientFactory := &lab.MockAPIClientFactory{
+		MockGetUserClient: func() lab.User {
+			return mockGitlabUserClinet
+		},
+	}
 	mockUI := ui.NewMockUi()
 	c := UserCommand{
-		UI:       mockUI,
-		Provider: mockUserProvider,
+		UI:            mockUI,
+		Provider:      mockUserProvider,
+		ClientFactory: mockClientFactory,
 	}
 
 	args := []string{}
@@ -79,10 +82,16 @@ func TestUserCommandRun(t *testing.T) {
 }
 
 func TestUserCommandRun_AllProject(t *testing.T) {
+	mockClientFactory := &lab.MockAPIClientFactory{
+		MockGetUserClient: func() lab.User {
+			return mockGitlabUserClinet
+		},
+	}
 	mockUI := ui.NewMockUi()
 	c := UserCommand{
-		UI:       mockUI,
-		Provider: mockUserProvider,
+		UI:            mockUI,
+		Provider:      mockUserProvider,
+		ClientFactory: mockClientFactory,
 	}
 
 	args := []string{"--all-project"}

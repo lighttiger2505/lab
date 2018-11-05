@@ -111,8 +111,9 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"user": func() (cli.Command, error) {
 			return &commands.UserCommand{
-				UI:       ui,
-				Provider: provider,
+				UI:            ui,
+				Provider:      provider,
+				ClientFactory: &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"project-variable": func() (cli.Command, error) {

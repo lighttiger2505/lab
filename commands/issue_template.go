@@ -21,8 +21,9 @@ func newIssueTemplateCommandParser(opt *IssueTemplateCommnadOption) *flags.Parse
 }
 
 type IssueTemplateCommand struct {
-	UI       ui.Ui
-	Provider lab.Provider
+	UI            ui.Ui
+	Provider      lab.Provider
+	ClientFactory lab.APIClientFactory
 }
 
 func (c *IssueTemplateCommand) Synopsis() string {
@@ -38,7 +39,6 @@ func (c *IssueTemplateCommand) Help() string {
 }
 
 func (c *IssueTemplateCommand) Run(args []string) int {
-	// Parse flags
 	var projectCommandOption IssueTemplateCommnadOption
 	projectCommandParser := newIssueTemplateCommandParser(&projectCommandOption)
 	parceArgs, err := projectCommandParser.ParseArgs(args)
@@ -47,24 +47,28 @@ func (c *IssueTemplateCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Initialize provider
 	if err := c.Provider.Init(); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	// Getting git remote info
 	gitlabRemote, err := c.Provider.GetCurrentRemote()
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	client, err := c.Provider.GetRepositoryClient(gitlabRemote)
+	token, err := c.Provider.GetAPIToken(gitlabRemote)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
+
+	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+		c.UI.Error(err.Error())
+		return ExitCodeError
+	}
+	client := c.ClientFactory.GetRepositoryClient()
 
 	if len(parceArgs) > 0 {
 		filename := IssueTemplateDir + "/" + parceArgs[0]

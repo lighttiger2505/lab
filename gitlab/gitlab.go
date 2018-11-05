@@ -16,8 +16,6 @@ type Provider interface {
 	GetCurrentRemote() (*git.RemoteInfo, error)
 	GetAPIToken(remote *git.RemoteInfo) (string, error)
 	GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error)
-	GetRepositoryClient(remote *git.RemoteInfo) (Repository, error)
-	GetNoteClient(remote *git.RemoteInfo) (Note, error)
 }
 
 type GitlabProvider struct {
@@ -151,22 +149,6 @@ func (p *GitlabProvider) GetProjectVariableClient(remote *git.RemoteInfo) (Proje
 	return NewProjectVariableClient(gitlabClient), nil
 }
 
-func (p *GitlabProvider) GetRepositoryClient(remote *git.RemoteInfo) (Repository, error) {
-	gitlabClient, err := p.makeGitLabClient(remote)
-	if err != nil {
-		return nil, err
-	}
-	return NewRepositoryClient(gitlabClient), nil
-}
-
-func (p *GitlabProvider) GetNoteClient(remote *git.RemoteInfo) (Note, error) {
-	gitlabClient, err := p.makeGitLabClient(remote)
-	if err != nil {
-		return nil, err
-	}
-	return NewNoteClient(gitlabClient), nil
-}
-
 func (p *GitlabProvider) selectTargetRemote(remoteInfos []*git.RemoteInfo) (*git.RemoteInfo, error) {
 	// Receive number of the domain of the remote repository to be searched from stdin
 	p.UI.Message("That repository existing multi gitlab remote repository.")
@@ -234,8 +216,6 @@ type MockProvider struct {
 	MockGetSpecificRemote        func(namespace, project string) *git.RemoteInfo
 	MockGetCurrentRemote         func() (*git.RemoteInfo, error)
 	MockGetProjectVariableClient func(remote *git.RemoteInfo) (ProjectVariable, error)
-	MockGetRepositoryClient      func(remote *git.RemoteInfo) (Repository, error)
-	MockGetNoteClient            func(remote *git.RemoteInfo) (Note, error)
 }
 
 func (m *MockProvider) Init() error {
@@ -252,14 +232,6 @@ func (m *MockProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
 
 func (m *MockProvider) GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error) {
 	return m.MockGetProjectVariableClient(remote)
-}
-
-func (m *MockProvider) GetRepositoryClient(remote *git.RemoteInfo) (Repository, error) {
-	return m.MockGetRepositoryClient(remote)
-}
-
-func (m *MockProvider) GetNoteClient(remote *git.RemoteInfo) (Note, error) {
-	return m.MockGetNoteClient(remote)
 }
 
 func getGitlabClient(url, token string) (*gitlab.Client, error) {

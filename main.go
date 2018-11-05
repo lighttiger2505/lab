@@ -128,14 +128,16 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"issue-template": func() (cli.Command, error) {
 			return &commands.IssueTemplateCommand{
-				UI:       ui,
-				Provider: provider,
+				UI:            ui,
+				Provider:      provider,
+				ClientFactory: &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"merge-request-template": func() (cli.Command, error) {
 			return &commands.MergeRequestTemplateCommand{
-				UI:       ui,
-				Provider: provider,
+				UI:            ui,
+				Provider:      provider,
+				ClientFactory: &lab.GitlabClientFactory{},
 			}, nil
 		},
 	}

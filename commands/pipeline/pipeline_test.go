@@ -9,7 +9,6 @@ import (
 )
 
 var mockProvider = &lab.MockProvider{
-	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
 		return &git.RemoteInfo{
 			Domain:     "domain",

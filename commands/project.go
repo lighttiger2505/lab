@@ -66,7 +66,6 @@ func (c *ProjectCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Getting git remote info
 	gitlabRemote, err := c.Provider.GetCurrentRemote()
 	if err != nil {
 		c.UI.Error(err.Error())

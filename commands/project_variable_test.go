@@ -33,7 +33,6 @@ func TestProjectVariableCommand_Run_List(t *testing.T) {
 		},
 	}
 	mockProvider := &lab.MockProvider{
-		MockInit:             mockInit,
 		MockGetCurrentRemote: mockCurrentRemote,
 		MockGetProjectVariableClient: func(remote *git.RemoteInfo) (lab.ProjectVariable, error) {
 			return mockClient, nil
@@ -69,7 +68,6 @@ func TestProjectVariableCommand_Run_Create(t *testing.T) {
 		},
 	}
 	mockProvider := &lab.MockProvider{
-		MockInit:             mockInit,
 		MockGetCurrentRemote: mockCurrentRemote,
 		MockGetProjectVariableClient: func(remote *git.RemoteInfo) (lab.ProjectVariable, error) {
 			return mockClient, nil
@@ -105,7 +103,6 @@ func TestProjectVariableCommand_Run_Update(t *testing.T) {
 		},
 	}
 	mockProvider := &lab.MockProvider{
-		MockInit:             mockInit,
 		MockGetCurrentRemote: mockCurrentRemote,
 		MockGetProjectVariableClient: func(remote *git.RemoteInfo) (lab.ProjectVariable, error) {
 			return mockClient, nil
@@ -140,7 +137,6 @@ func TestProjectVariableCommand_Run_Remove(t *testing.T) {
 		},
 	}
 	mockProvider := &lab.MockProvider{
-		MockInit:             mockInit,
 		MockGetCurrentRemote: mockCurrentRemote,
 		MockGetProjectVariableClient: func(remote *git.RemoteInfo) (lab.ProjectVariable, error) {
 			return mockClient, nil

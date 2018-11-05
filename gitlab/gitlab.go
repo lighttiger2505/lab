@@ -240,18 +240,16 @@ func ParceRepositoryFullName(webURL string) string {
 }
 
 type MockProvider struct {
-	Provider
-	MockInit                     func() error
 	MockGetSpecificRemote        func(namespace, project string) *git.RemoteInfo
 	MockGetCurrentRemote         func() (*git.RemoteInfo, error)
+	MockGetJobClient             func(remote *git.RemoteInfo) (Job, error)
 	MockGetProjectVariableClient func(remote *git.RemoteInfo) (ProjectVariable, error)
 	MockGetRepositoryClient      func(remote *git.RemoteInfo) (Repository, error)
-
-	MockGetNoteClient func(remote *git.RemoteInfo) (Note, error)
+	MockGetNoteClient            func(remote *git.RemoteInfo) (Note, error)
 }
 
 func (m *MockProvider) Init() error {
-	return m.MockInit()
+	return nil
 }
 
 func (m *MockProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
@@ -260,6 +258,10 @@ func (m *MockProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
 
 func (m *MockProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
 	return "", nil
+}
+
+func (m *MockProvider) GetJobClient(remote *git.RemoteInfo) (Job, error) {
+	return m.MockGetJobClient(remote)
 }
 
 func (m *MockProvider) GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error) {

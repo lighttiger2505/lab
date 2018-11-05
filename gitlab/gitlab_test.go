@@ -73,44 +73,6 @@ func TestGetClient(t *testing.T) {
 	}
 }
 
-func TestGetClient_TokenNotFound(t *testing.T) {
-	mockUI := ui.NewMockUi()
-	mockUI.Reader = bytes.NewBufferString("token\n")
-
-	// Dummy config file
-	f, _ := ioutil.TempFile("", "test")
-	tmppath := f.Name()
-	f.Write([]byte(config.ConfigDataTest))
-	f.Close()
-	defer os.Remove(tmppath)
-	configManager := config.NewConfigManagerPath(tmppath)
-
-	// Initialize provider
-	provider := NewProvider(mockUI, git.NewGitClient(), configManager)
-	provider.Init()
-
-	remoteInfo := &git.RemoteInfo{
-		Domain:     "gitlab.ssl.unknown.jp",
-		Group:      "group",
-		Repository: "repository",
-	}
-
-	got, err := provider.GetClient(remoteInfo)
-	if err != nil {
-		t.Fail()
-	}
-	if got == nil {
-		t.Fail()
-	}
-
-	// Assert stdout
-	outGot := mockUI.Writer.String()
-	outWant := `Please input GitLab private token :`
-	if outWant != outGot {
-		t.Errorf("bad output \nwant %#v \ngot  %#v", outWant, outGot)
-	}
-}
-
 func TestSelectTargetRemote(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	mockUI.Reader = bytes.NewBufferString("2\n")

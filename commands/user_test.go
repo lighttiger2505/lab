@@ -45,7 +45,6 @@ var mockGitlabUserClinet = &lab.MockUserClient{
 }
 
 var mockUserProvider = &lab.MockProvider{
-	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
 		return &git.RemoteInfo{
 			Domain:     "domain",

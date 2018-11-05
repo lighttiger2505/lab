@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	"github.com/lighttiger2505/lab/gitlab"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
 )
 
 type LintCommand struct {
-	UI       ui.Ui
-	Provider gitlab.Provider
+	UI            ui.Ui
+	Provider      gitlab.Provider
+	ClientFactory lab.APIClientFactory
 }
 
 func (c *LintCommand) Synopsis() string {
@@ -26,24 +28,33 @@ func (c *LintCommand) Help() string {
 }
 
 func (c *LintCommand) Run(args []string) int {
-	// Initialize provider
 	if err := c.Provider.Init(); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	// Getting git remote info
+	if err := c.Provider.Init(); err != nil {
+		c.UI.Error(err.Error())
+		return ExitCodeError
+	}
+
 	gitlabRemote, err := c.Provider.GetCurrentRemote()
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	client, err := c.Provider.GetClient(gitlabRemote)
+	token, err := c.Provider.GetAPIToken(gitlabRemote)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
+
+	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+		c.UI.Error(err.Error())
+		return ExitCodeError
+	}
+	client := c.ClientFactory.GetLintClient()
 
 	var content string = ""
 	if len(args) > 0 {

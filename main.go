@@ -73,14 +73,16 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
-				Ui:       ui,
-				Provider: provider,
+				Ui:            ui,
+				Provider:      provider,
+				ClientFactory: &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"mr": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
-				Ui:       ui,
-				Provider: provider,
+				Ui:            ui,
+				Provider:      provider,
+				ClientFactory: &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"project": func() (cli.Command, error) {

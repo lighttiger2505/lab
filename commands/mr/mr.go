@@ -111,10 +111,11 @@ Synopsis:
 }
 
 type MergeRequestCommand struct {
-	Ui        ui.Ui
-	Provider  lab.Provider
-	GitClient git.Client
-	EditFunc  func(program, file string) error
+	Ui            ui.Ui
+	Provider      lab.Provider
+	GitClient     git.Client
+	ClientFactory lab.APIClientFactory
+	EditFunc      func(program, file string) error
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
@@ -138,20 +139,29 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Initialize provider
 	if err := c.Provider.Init(); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	// Getting git remote info
 	gitlabRemote, err := c.Provider.GetCurrentRemote()
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	method, err := c.getMethod(mergeRequestCommandOption, parseArgs, gitlabRemote)
+	token, err := c.Provider.GetAPIToken(gitlabRemote)
+	if err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+		c.Ui.Error(err.Error())
+		return ExitCodeError
+	}
+
+	method, err := c.getMethod(mergeRequestCommandOption, parseArgs, gitlabRemote, c.ClientFactory)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -170,26 +180,15 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.RemoteInfo) (internal.Method, error) {
+func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.RemoteInfo, clientFactory lab.APIClientFactory) (internal.Method, error) {
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
 	browseOption := opt.BrowseOption
 	showOption := opt.ShowOption
 
-	client, err := c.Provider.GetMergeRequestClient(remote)
-	if err != nil {
-		return nil, err
-	}
-
-	repositoryClient, err := c.Provider.GetRepositoryClient(remote)
-	if err != nil {
-		return nil, err
-	}
-
-	noteClient, err := c.Provider.GetNoteClient(remote)
-	if err != nil {
-		return nil, err
-	}
+	mrClient := clientFactory.GetMergeRequestClient()
+	repositoryClient := clientFactory.GetRepositoryClient()
+	noteClient := clientFactory.GetNoteClient()
 
 	iid, err := validMergeRequestIID(args)
 	if err != nil {
@@ -208,7 +207,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 	if len(args) > 0 {
 		if createUpdateOption.Edit {
 			return &updateOnEditorMethod{
-				client:   client,
+				client:   mrClient,
 				opt:      createUpdateOption,
 				project:  remote.RepositoryFullName(),
 				id:       iid,
@@ -217,7 +216,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 		}
 		if hasCreateUpdateOption(createUpdateOption) {
 			return &updateMethod{
-				client:  client,
+				client:  mrClient,
 				opt:     createUpdateOption,
 				project: remote.RepositoryFullName(),
 				id:      iid,
@@ -225,7 +224,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 		}
 
 		return &detailMethod{
-			mrClient:   client,
+			mrClient:   mrClient,
 			noteClient: noteClient,
 			opt:        showOption,
 			project:    remote.RepositoryFullName(),
@@ -236,7 +235,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 	// Case of nothing MergeRequest IID
 	if createUpdateOption.Edit {
 		return &createOnEditorMethod{
-			client:           client,
+			client:           mrClient,
 			repositoryClient: repositoryClient,
 			opt:              createUpdateOption,
 			project:          remote.RepositoryFullName(),
@@ -246,7 +245,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 	}
 	if createUpdateOption.Title != "" {
 		return &createMethod{
-			client:  client,
+			client:  mrClient,
 			opt:     createUpdateOption,
 			project: remote.RepositoryFullName(),
 		}, nil
@@ -254,13 +253,13 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 
 	if listOption.AllProject {
 		return &listAllMethod{
-			client: client,
+			client: mrClient,
 			opt:    listOption,
 		}, nil
 
 	}
 	return &listMethod{
-		client:  client,
+		client:  mrClient,
 		opt:     listOption,
 		project: remote.RepositoryFullName(),
 	}, nil

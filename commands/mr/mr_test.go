@@ -75,6 +75,18 @@ var mockNoteClient = &lab.MockNoteClient{
 	},
 }
 
+var mockAPIClientFactory = &lab.MockAPIClientFactory{
+	MockGetMergeRequestClient: func() lab.MergeRequest {
+		return mockGitlabMergeRequestClient
+	},
+	MockGetRepositoryClient: func() lab.Repository {
+		return mockRepositoryClient
+	},
+	MockGetNoteClient: func() lab.Note {
+		return mockNoteClient
+	},
+}
+
 var mockMergeRequestProvider = &lab.MockProvider{
 	MockInit: func() error { return nil },
 	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
@@ -84,22 +96,14 @@ var mockMergeRequestProvider = &lab.MockProvider{
 			Repository: "repository",
 		}, nil
 	},
-	MockGetMergeRequestClient: func(remote *git.RemoteInfo) (lab.MergeRequest, error) {
-		return mockGitlabMergeRequestClient, nil
-	},
-	MockGetRepositoryClient: func(remote *git.RemoteInfo) (lab.Repository, error) {
-		return mockRepositoryClient, nil
-	},
-	MockGetNoteClient: func(remote *git.RemoteInfo) (lab.Note, error) {
-		return mockNoteClient, nil
-	},
 }
 
 func TestMergeRequestCommandRun_List(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:       mockUI,
-		Provider: mockMergeRequestProvider,
+		Ui:            mockUI,
+		Provider:      mockMergeRequestProvider,
+		ClientFactory: mockAPIClientFactory,
 	}
 
 	args := []string{}
@@ -117,8 +121,9 @@ func TestMergeRequestCommandRun_List(t *testing.T) {
 func TestMergeRequestCommandRun_ListAll(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:       mockUI,
-		Provider: mockMergeRequestProvider,
+		Ui:            mockUI,
+		Provider:      mockMergeRequestProvider,
+		ClientFactory: mockAPIClientFactory,
 	}
 
 	args := []string{"--all-project"}
@@ -136,8 +141,9 @@ func TestMergeRequestCommandRun_ListAll(t *testing.T) {
 func TestMergeRequestCommandRun_Create(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:       mockUI,
-		Provider: mockMergeRequestProvider,
+		Ui:            mockUI,
+		Provider:      mockMergeRequestProvider,
+		ClientFactory: mockAPIClientFactory,
 	}
 
 	args := []string{"-i", "title", "-m", "message"}
@@ -155,8 +161,9 @@ func TestMergeRequestCommandRun_Create(t *testing.T) {
 func TestMergeRequestCommandRun_CreateOnEditor(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:       mockUI,
-		Provider: mockMergeRequestProvider,
+		Ui:            mockUI,
+		Provider:      mockMergeRequestProvider,
+		ClientFactory: mockAPIClientFactory,
 		EditFunc: func(program, file string) error {
 			return nil
 		},
@@ -177,8 +184,9 @@ func TestMergeRequestCommandRun_CreateOnEditor(t *testing.T) {
 func TestMergeRequestCommandRun_Update(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:       mockUI,
-		Provider: mockMergeRequestProvider,
+		Ui:            mockUI,
+		Provider:      mockMergeRequestProvider,
+		ClientFactory: mockAPIClientFactory,
 	}
 
 	args := []string{"-i", "title", "-m", "message", "12"}
@@ -196,8 +204,9 @@ func TestMergeRequestCommandRun_Update(t *testing.T) {
 func TestMergeRequestCommandRun_UpdateOnEditor(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:       mockUI,
-		Provider: mockMergeRequestProvider,
+		Ui:            mockUI,
+		Provider:      mockMergeRequestProvider,
+		ClientFactory: mockAPIClientFactory,
 		EditFunc: func(program, file string) error {
 			return nil
 		},
@@ -218,8 +227,9 @@ func TestMergeRequestCommandRun_UpdateOnEditor(t *testing.T) {
 func TestMergeRequestCommandRun_Show(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:       mockUI,
-		Provider: mockMergeRequestProvider,
+		Ui:            mockUI,
+		Provider:      mockMergeRequestProvider,
+		ClientFactory: mockAPIClientFactory,
 	}
 
 	args := []string{"12"}

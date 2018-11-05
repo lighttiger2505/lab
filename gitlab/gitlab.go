@@ -15,7 +15,6 @@ type Provider interface {
 	Init() error
 	GetCurrentRemote() (*git.RemoteInfo, error)
 	GetAPIToken(remote *git.RemoteInfo) (string, error)
-	GetClient(remote *git.RemoteInfo) (Client, error)
 	GetJobClient(remote *git.RemoteInfo) (Job, error)
 	GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error)
 	GetProjectVariableClient(remote *git.RemoteInfo) (ProjectVariable, error)
@@ -146,14 +145,6 @@ func (p *GitlabProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
 	return token, nil
 }
 
-func (p *GitlabProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
-	gitlabClient, err := p.makeGitLabClient(remote)
-	if err != nil {
-		return nil, err
-	}
-	return NewLabClient(gitlabClient), nil
-}
-
 func (p *GitlabProvider) GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error) {
 	gitlabClient, err := p.makeGitLabClient(remote)
 	if err != nil {
@@ -262,7 +253,6 @@ type MockProvider struct {
 	MockInit                     func() error
 	MockGetSpecificRemote        func(namespace, project string) *git.RemoteInfo
 	MockGetCurrentRemote         func() (*git.RemoteInfo, error)
-	MockGetClient                func(remote *git.RemoteInfo) (Client, error)
 	MockGetMergeRequestClient    func(remote *git.RemoteInfo) (MergeRequest, error)
 	MockGetProjectVariableClient func(remote *git.RemoteInfo) (ProjectVariable, error)
 	MockGetRepositoryClient      func(remote *git.RemoteInfo) (Repository, error)
@@ -280,10 +270,6 @@ func (m *MockProvider) GetCurrentRemote() (*git.RemoteInfo, error) {
 
 func (m *MockProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
 	return "", nil
-}
-
-func (m *MockProvider) GetClient(remote *git.RemoteInfo) (Client, error) {
-	return m.MockGetClient(remote)
 }
 
 func (m *MockProvider) GetMergeRequestClient(remote *git.RemoteInfo) (MergeRequest, error) {
@@ -387,7 +373,6 @@ func (f *GitlabClientFactory) GetLintClient() Lint {
 }
 
 type MockAPIClientFactory struct {
-	MockGetClient                func() Client
 	MockGetJobClient             func() Job
 	MockGetIssueClient           func() Issue
 	MockGetMergeRequestClient    func() MergeRequest

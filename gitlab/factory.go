@@ -14,6 +14,7 @@ type APIClientFactory interface {
 	GetProjectClient() Project
 	GetUserClient() User
 	GetLintClient() Lint
+	GetRunnerClient() Runner
 }
 
 type GitlabClientFactory struct {
@@ -78,6 +79,10 @@ func (f *GitlabClientFactory) GetLintClient() Lint {
 	return NewLintClient(f.gitlabClient)
 }
 
+func (f *GitlabClientFactory) GetRunnerClient() Runner {
+	return NewRunnerClient(f.gitlabClient)
+}
+
 type MockAPIClientFactory struct {
 	MockGetJobClient             func() Job
 	MockGetIssueClient           func() Issue
@@ -89,6 +94,7 @@ type MockAPIClientFactory struct {
 	MockGetProjectClient         func() Project
 	MockGetUserClient            func() User
 	MockGetLintClient            func() Lint
+	MockGetRunnerClient          func() Runner
 }
 
 func (m *MockAPIClientFactory) Init(url, token string) error {
@@ -133,4 +139,8 @@ func (m *MockAPIClientFactory) GetUserClient() User {
 
 func (m *MockAPIClientFactory) GetLintClient() Lint {
 	return m.MockGetLintClient()
+}
+
+func (m *MockAPIClientFactory) GetRunnerClient() Runner {
+	return m.MockGetRunnerClient()
 }

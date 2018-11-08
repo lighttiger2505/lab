@@ -7,7 +7,10 @@ import (
 )
 
 type Runner interface {
-	ListRunners(opt *gitlab.ListRunnersOptions) ([]*gitlab.Runner, error)
+	ListAllRunners(opt *gitlab.ListRunnersOptions) ([]*gitlab.Runner, error)
+	ListProjectRunners(pid string, opt *gitlab.ListProjectRunnersOptions) ([]*gitlab.Runner, error)
+	GetRunnerDetails(id int) (*gitlab.RunnerDetails, error)
+	RemoveRunner(iid int) error
 }
 
 type RunnerClient struct {
@@ -18,18 +21,34 @@ func NewRunnerClient(client *gitlab.Client) Runner {
 	return &RunnerClient{Client: client}
 }
 
-func (c *RunnerClient) ListRunners(opt *gitlab.ListRunnersOptions) ([]*gitlab.Runner, error) {
-	res, _, err := c.Client.Runners.ListRunners(opt)
+func (c *RunnerClient) ListAllRunners(opt *gitlab.ListRunnersOptions) ([]*gitlab.Runner, error) {
+	res, _, err := c.Client.Runners.ListAllRunners(opt)
 	if err != nil {
-		return nil, fmt.Errorf("failed list tree. %s", err.Error())
+		return nil, fmt.Errorf("failed list runners. %s", err.Error())
 	}
 	return res, nil
 }
 
-type MockRunnerClient struct {
-	MockListRunners func(opt *gitlab.ListRunnersOptions) ([]*gitlab.Runner, error)
+func (c *RunnerClient) ListProjectRunners(pid string, opt *gitlab.ListProjectRunnersOptions) ([]*gitlab.Runner, error) {
+	res, _, err := c.Client.Runners.ListProjectRunners(pid, opt)
+	if err != nil {
+		return nil, fmt.Errorf("failed list project runners. %s", err.Error())
+	}
+	return res, nil
 }
 
-func (m *MockRunnerClient) ListRunners(opt *gitlab.ListRunnersOptions) ([]*gitlab.Runner, error) {
-	return m.MockListRunners(opt)
+func (c *RunnerClient) RemoveRunner(iid int) error {
+	_, err := c.Client.Runners.RemoveRunner(iid)
+	if err != nil {
+		return fmt.Errorf("failed delete runner. %s", err.Error())
+	}
+	return nil
+}
+
+func (c *RunnerClient) GetRunnerDetails(id int) (*gitlab.RunnerDetails, error) {
+	res, _, err := c.Client.Runners.GetRunnerDetails(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed delete runner. %s", err.Error())
+	}
+	return res, nil
 }

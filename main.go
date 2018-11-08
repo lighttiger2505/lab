@@ -12,6 +12,7 @@ import (
 	"github.com/lighttiger2505/lab/commands/issue"
 	"github.com/lighttiger2505/lab/commands/mr"
 	"github.com/lighttiger2505/lab/commands/pipeline"
+	"github.com/lighttiger2505/lab/commands/runner"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
@@ -135,6 +136,13 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"merge-request-template": func() (cli.Command, error) {
 			return &commands.MergeRequestTemplateCommand{
+				UI:            ui,
+				Provider:      provider,
+				ClientFactory: &lab.GitlabClientFactory{},
+			}, nil
+		},
+		"runner": func() (cli.Command, error) {
+			return &runner.RunnerCommand{
 				UI:            ui,
 				Provider:      provider,
 				ClientFactory: &lab.GitlabClientFactory{},

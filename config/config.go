@@ -206,23 +206,6 @@ type Config struct {
 	PreferredDomains []string
 }
 
-func NewConfigWithFile(filepath string) (*Config, error) {
-	if !fileExists(filepath) {
-		return nil, fmt.Errorf("Not exist config: %s", filepath)
-	}
-
-	configData, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return nil, fmt.Errorf("Failed read config file: %s", err.Error())
-	}
-
-	c := Config{}
-	if err := yaml.Unmarshal(configData, &c); err != nil {
-		return nil, fmt.Errorf("Failed unmarshal yaml: %s", err.Error())
-	}
-	return &c, nil
-}
-
 func getConfigPath() string {
 	dir, _ := homedir.Dir()
 	filePath := fmt.Sprintf("%s/.labconfig.yml", dir)

@@ -105,26 +105,6 @@ func excludeDuplicateDomain(remotes []*git.RemoteInfo) []*git.RemoteInfo {
 	return processedRemotes
 }
 
-func (p *GitlabProvider) makeGitLabClient(remote *git.RemoteInfo) (*gitlab.Client, error) {
-	token := p.ConfigManager.GetTokenOnly(remote.Domain)
-	if token == "" {
-		token, err := p.UI.Ask("Please input GitLab private token :")
-		if err != nil {
-			return nil, fmt.Errorf("Failed input private token. %s", err.Error())
-		}
-
-		if err := p.ConfigManager.SaveToken(remote.Domain, token); err != nil {
-			return nil, fmt.Errorf("Failed update config of private token. %s", err.Error())
-		}
-	}
-
-	client := gitlab.NewClient(nil, token)
-	if err := client.SetBaseURL(remote.ApiUrl()); err != nil {
-		return nil, fmt.Errorf("Invalid api url. %s", err.Error())
-	}
-	return client, nil
-}
-
 func (p *GitlabProvider) GetAPIToken(remote *git.RemoteInfo) (string, error) {
 	token := p.ConfigManager.GetTokenOnly(remote.Domain)
 	if token == "" {
@@ -204,9 +184,7 @@ func ParceRepositoryFullName(webURL string) string {
 }
 
 type MockProvider struct {
-	MockGetSpecificRemote        func(namespace, project string) *git.RemoteInfo
-	MockGetCurrentRemote         func() (*git.RemoteInfo, error)
-	MockGetProjectVariableClient func(remote *git.RemoteInfo) (ProjectVariable, error)
+	MockGetCurrentRemote func() (*git.RemoteInfo, error)
 }
 
 func (m *MockProvider) Init() error {

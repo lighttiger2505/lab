@@ -116,54 +116,6 @@ func TestBranchUrl(t *testing.T) {
 	}
 }
 
-func TestIssueUrl(t *testing.T) {
-	got := testRemoteInfo.IssueUrl()
-	want := "https://gitlab.ssl.domain.jp/group/Repository/issues"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestIssueDetailUrl(t *testing.T) {
-	got := testRemoteInfo.IssueDetailUrl(12)
-	want := "https://gitlab.ssl.domain.jp/group/Repository/issues/12"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestMergeRequestUrl(t *testing.T) {
-	got := testRemoteInfo.MergeRequestUrl()
-	want := "https://gitlab.ssl.domain.jp/group/Repository/merge_requests"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestMergeRequestDetailUrl(t *testing.T) {
-	got := testRemoteInfo.MergeRequestDetailUrl(12)
-	want := "https://gitlab.ssl.domain.jp/group/Repository/merge_requests/12"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestPipeLineUrl(t *testing.T) {
-	got := testRemoteInfo.PipeLineUrl()
-	want := "https://gitlab.ssl.domain.jp/group/Repository/pipelines"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
-func TestPipeLineDetailUrl(t *testing.T) {
-	got := testRemoteInfo.PipeLineDetailUrl(12)
-	want := "https://gitlab.ssl.domain.jp/group/Repository/pipelines/12"
-	if want != got {
-		t.Errorf("bad return value want %#v got %#v", want, got)
-	}
-}
-
 func TestBaseUrl(t *testing.T) {
 	got := testRemoteInfo.BaseUrl()
 	want := "https://gitlab.ssl.domain.jp"

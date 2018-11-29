@@ -74,9 +74,9 @@ func (c *RemoteCollecter) collectTargetByLocalRepository(pInfo *GitLabProjectInf
 	if len(gitlabRemotes) == 0 {
 		return nil, fmt.Errorf("Not found gitlab remote repository")
 	}
-	processedRemotes := excludeDuplicateDomain(gitlabRemotes)
+	gitlabRemotes = excludeDuplicateDomain(gitlabRemotes)
+	targetRepo := gitlabRemotes[0]
 
-	targetRepo := processedRemotes[0]
 	var domain, token string
 
 	domain = targetRepo.Domain

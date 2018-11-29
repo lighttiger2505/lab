@@ -9,6 +9,10 @@ import (
 	"github.com/lighttiger2505/lab/ui"
 )
 
+type Collecter interface {
+	CollectTarget(project, profile string) (*GitLabProjectInfo, error)
+}
+
 type RemoteCollecter struct {
 	UI        ui.Ui
 	GitClient git.Client
@@ -21,7 +25,7 @@ type GitLabProjectInfo struct {
 	Token   string
 }
 
-func NewRemoteCollecter(ui ui.Ui, cfg *config.ConfigV2, gitClient git.Client) *RemoteCollecter {
+func NewRemoteCollecter(ui ui.Ui, cfg *config.ConfigV2, gitClient git.Client) Collecter {
 	return &RemoteCollecter{
 		UI:        ui,
 		Cfg:       cfg,

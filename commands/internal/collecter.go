@@ -33,14 +33,14 @@ func (c *RemoteCollecter) CollectTarget(project, profile string) (*GitLabProject
 	pInfo := &GitLabProjectInfo{}
 	var err error
 
-	pInfo = c.CollectTargetByDefaultConfig(pInfo)
+	pInfo = c.collectTargetByDefaultConfig(pInfo)
 
-	pInfo, err = c.CollectTargetByLocalRepository(pInfo)
+	pInfo, err = c.collectTargetByLocalRepository(pInfo)
 	if err != nil {
 		return nil, err
 	}
 
-	pInfo, err = c.CollectTargetByArgs(pInfo, project, profile)
+	pInfo, err = c.collectTargetByArgs(pInfo, project, profile)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *RemoteCollecter) CollectTarget(project, profile string) (*GitLabProject
 	return pInfo, nil
 }
 
-func (c *RemoteCollecter) CollectTargetByDefaultConfig(pInfo *GitLabProjectInfo) *GitLabProjectInfo {
+func (c *RemoteCollecter) collectTargetByDefaultConfig(pInfo *GitLabProjectInfo) *GitLabProjectInfo {
 	if c.Cfg.DefalutProfile == "" {
 		return pInfo
 	}
@@ -64,7 +64,7 @@ func (c *RemoteCollecter) CollectTargetByDefaultConfig(pInfo *GitLabProjectInfo)
 	return pInfo
 }
 
-func (c *RemoteCollecter) CollectTargetByLocalRepository(pInfo *GitLabProjectInfo) (*GitLabProjectInfo, error) {
+func (c *RemoteCollecter) collectTargetByLocalRepository(pInfo *GitLabProjectInfo) (*GitLabProjectInfo, error) {
 	gitRemotes, err := c.GitClient.RemoteInfos()
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (c *RemoteCollecter) CollectTargetByLocalRepository(pInfo *GitLabProjectInf
 	return pInfo, nil
 }
 
-func (c *RemoteCollecter) CollectTargetByArgs(pInfo *GitLabProjectInfo, project, profile string) (*GitLabProjectInfo, error) {
+func (c *RemoteCollecter) collectTargetByArgs(pInfo *GitLabProjectInfo, project, profile string) (*GitLabProjectInfo, error) {
 	if profile != "" {
 		p, err := c.Cfg.GetProfile(profile)
 		if err != nil {

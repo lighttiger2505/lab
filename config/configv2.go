@@ -11,6 +11,8 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+var configFilePath = getXDGConfigPath(runtime.GOOS)
+
 type ConfigV2 struct {
 	Profiles       map[string]Profile `yaml:"profiles"`
 	DefalutProfile string             `yaml:"default_profile"`
@@ -38,14 +40,18 @@ func GetConfig() (*ConfigV2, error) {
 }
 
 func (c *ConfigV2) Load() error {
-	fPath := getXDGConfigPath()
-	if !fileExists(fPath) {
-		_, err := os.Create(fPath)
+	if err := os.MkdirAll(filepath.Dir(configFilePath), 0700); err != nil {
+		return fmt.Errorf("cannot create directory, %s", err)
+	}
+
+	if !fileExists(configFilePath) {
+		_, err := os.Create(configFilePath)
 		if err != nil {
 			return fmt.Errorf("cannot create config, %s", err.Error())
 		}
 	}
-	file, err := os.OpenFile(fPath, os.O_RDONLY, 0666)
+
+	file, err := os.OpenFile(configFilePath, os.O_RDONLY, 0666)
 	if err != nil {
 		return fmt.Errorf("cannot open config, %s", err)
 	}
@@ -63,7 +69,7 @@ func (c *ConfigV2) Load() error {
 }
 
 func (c *ConfigV2) Save() error {
-	file, err := os.OpenFile(getXDGConfigPath(), os.O_WRONLY, 0666)
+	file, err := os.OpenFile(configFilePath, os.O_WRONLY, 0666)
 	if err != nil {
 		return fmt.Errorf("cannot open file, %s", err)
 	}
@@ -83,7 +89,7 @@ func (c *ConfigV2) Save() error {
 func (c *ConfigV2) GetProfile(domain string) (*Profile, error) {
 	profile, ok := c.Profiles[domain]
 	if !ok {
-		return nil, fmt.Errorf("Not found profile, %s. Please check config.", domain)
+		return nil, fmt.Errorf("not found profile, [%s]. Please check config", domain)
 	}
 	return &profile, nil
 }
@@ -116,9 +122,9 @@ func (c *ConfigV2) SetToken(domain, token string) {
 	c.SetProfile(domain, *profile)
 }
 
-func getXDGConfigPath() string {
+func getXDGConfigPath(goos string) string {
 	var dir string
-	if runtime.GOOS == "windows" {
+	if goos == "windows" {
 		dir = os.Getenv("APPDATA")
 		if dir == "" {
 			dir = filepath.Join(os.Getenv("USERPROFILE"), "Application Data", "lab")
@@ -126,9 +132,6 @@ func getXDGConfigPath() string {
 		dir = filepath.Join(dir, "lab")
 	} else {
 		dir = filepath.Join(os.Getenv("HOME"), ".config", "lab")
-	}
-	if err := os.MkdirAll(dir, 0700); err != nil {
-		panic(fmt.Sprintf("cannot create directory, %s", err))
 	}
 	return filepath.Join(dir, "config.yml")
 }

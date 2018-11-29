@@ -77,8 +77,9 @@ func (c *RemoteCollecter) CollectTargetByLocalRepository(pInfo *GitLabProjectInf
 	processedRemotes := excludeDuplicateDomain(gitlabRemotes)
 
 	targetRepo := processedRemotes[0]
+	var domain, token string
 
-	domain := targetRepo.Domain
+	domain = targetRepo.Domain
 	if !c.Cfg.HasDomain(domain) {
 		c.UI.Message(fmt.Sprintf("Not found this domain [%s].", domain))
 		c.Cfg.SetProfile(domain, config.Profile{})
@@ -88,16 +89,15 @@ func (c *RemoteCollecter) CollectTargetByLocalRepository(pInfo *GitLabProjectInf
 		c.UI.Message("Saved profile.")
 	}
 
-	profile, _ := c.Cfg.GetProfile(domain)
-	token := profile.Token
+	token = c.Cfg.GetToken(domain)
 	if token == "" {
 		c.UI.Message(fmt.Sprintf("Not found private token in the domain [%s].", domain))
-		token, err := c.UI.Ask("Please enter GitLab private token:")
+		token, err = c.UI.Ask("Please enter GitLab private token:")
 		if err != nil {
 			return nil, fmt.Errorf("cannot read private token, %s", err)
 		}
 
-		profile.Token = token
+		c.Cfg.SetToken(domain, token)
 		if err := c.Cfg.Save(); err != nil {
 			return nil, err
 		}

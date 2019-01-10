@@ -4,13 +4,12 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/cmd"
-	"github.com/lighttiger2505/lab/git"
 )
 
 func Test_browseMethod_Process(t *testing.T) {
 	type fields struct {
 		opener cmd.URLOpener
-		remote *git.RemoteInfo
+		url    string
 		id     int
 	}
 	tests := []struct {
@@ -33,12 +32,8 @@ func Test_browseMethod_Process(t *testing.T) {
 						return nil
 					},
 				},
-				remote: &git.RemoteInfo{
-					Domain:     "domain",
-					Group:      "group",
-					Repository: "repository",
-				},
-				id: 0,
+				url: "https://domain/group/repository/issues",
+				id:  0,
 			},
 			want:    "",
 			wantErr: false,
@@ -57,12 +52,8 @@ func Test_browseMethod_Process(t *testing.T) {
 						return nil
 					},
 				},
-				remote: &git.RemoteInfo{
-					Domain:     "domain",
-					Group:      "group",
-					Repository: "repository",
-				},
-				id: 12,
+				url: "https://domain/group/repository/issues",
+				id:  12,
 			},
 			want:    "",
 			wantErr: false,
@@ -72,7 +63,7 @@ func Test_browseMethod_Process(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &browseMethod{
 				opener: tt.fields.opener,
-				remote: tt.fields.remote,
+				url:    tt.fields.url,
 				id:     tt.fields.id,
 			}
 			got, err := m.Process()

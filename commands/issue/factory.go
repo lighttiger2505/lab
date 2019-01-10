@@ -3,21 +3,20 @@ package issue
 import (
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands/internal"
-	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 )
 
 type MethodFactory interface {
-	CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) internal.Method
+	CreateMethod(opt Option, pInfo *internal.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method
 }
 
 type IssueMethodFactory struct{}
 
-func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) internal.Method {
+func (c *IssueMethodFactory) CreateMethod(opt Option, pInfo *internal.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method {
 	if opt.BrowseOption.Browse {
 		return &browseMethod{
 			opener: &cmd.Browser{},
-			remote: remote,
+			url:    pInfo.SubpageUrl("issues"),
 			id:     iid,
 		}
 	}
@@ -27,7 +26,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 			return &updateOnEditorMethod{
 				client:   factory.GetIssueClient(),
 				opt:      opt.CreateUpdateOption,
-				project:  remote.RepositoryFullName(),
+				project:  pInfo.Project,
 				id:       iid,
 				editFunc: nil,
 			}
@@ -36,7 +35,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 			return &updateMethod{
 				client:  factory.GetIssueClient(),
 				opt:     opt.CreateUpdateOption,
-				project: remote.RepositoryFullName(),
+				project: pInfo.Project,
 				id:      iid,
 			}
 		}
@@ -44,7 +43,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 			issueClient: factory.GetIssueClient(),
 			noteClient:  factory.GetNoteClient(),
 			opt:         opt.ShowOption,
-			project:     remote.RepositoryFullName(),
+			project:     pInfo.Project,
 			id:          iid,
 		}
 	}
@@ -55,7 +54,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 			issueClient:      factory.GetIssueClient(),
 			repositoryClient: factory.GetRepositoryClient(),
 			opt:              opt.CreateUpdateOption,
-			project:          remote.RepositoryFullName(),
+			project:          pInfo.Project,
 			editFunc:         nil,
 		}
 	}
@@ -63,7 +62,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 		return &createMethod{
 			client:  factory.GetIssueClient(),
 			opt:     opt.CreateUpdateOption,
-			project: remote.RepositoryFullName(),
+			project: pInfo.Project,
 		}
 	}
 	if opt.ListOption.AllProject {
@@ -76,12 +75,12 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, ii
 	return &listMethod{
 		client:  factory.GetIssueClient(),
 		opt:     opt.ListOption,
-		project: remote.RepositoryFullName(),
+		project: pInfo.Project,
 	}
 }
 
 type MockMethodFactory struct{}
 
-func (c *MockMethodFactory) CreateMethod(opt Option, remote *git.RemoteInfo, iid int, factory lab.APIClientFactory) internal.Method {
+func (c *MockMethodFactory) CreateMethod(opt Option, pInfo *internal.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method {
 	return &internal.MockMethod{}
 }

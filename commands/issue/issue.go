@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
+	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/ui"
@@ -16,6 +18,11 @@ const (
 	ExitCodeError     int = iota //1
 	ExitCodeFileError int = iota //2
 )
+
+type ProjectProfileOption struct {
+	Project string `long:"project" value-name:"<title>" description:"Project"`
+	Profile string `long:"profile" value-name:"<title>" description:"Profile"`
+}
 
 type CreateUpdateOption struct {
 	Edit       bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
@@ -90,13 +97,15 @@ type BrowseOption struct {
 }
 
 type Option struct {
-	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
-	ListOption         *ListOption         `group:"List Options"`
-	ShowOption         *ShowOption         `group:"Show Options"`
-	BrowseOption       *BrowseOption       `group:"Browse Options"`
+	ProjectProfileOption *ProjectProfileOption `group:"Project, Profile Options"`
+	CreateUpdateOption   *CreateUpdateOption   `group:"Create, Update Options"`
+	ListOption           *ListOption           `group:"List Options"`
+	ShowOption           *ShowOption           `group:"Show Options"`
+	BrowseOption         *BrowseOption         `group:"Browse Options"`
 }
 
 func newOptionParser(opt *Option) *flags.Parser {
+	opt.ProjectProfileOption = &ProjectProfileOption{}
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
 	opt.ShowOption = &ShowOption{}
@@ -157,32 +166,28 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Initialize provider
-	if err := c.Provider.Init(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
+	cfg, err := config.GetConfig()
+	if err != nil {
+		c.Ui.Error(fmt.Sprintf("cannot load config, %s", err))
 	}
+	remoteCollecter := internal.NewRemoteCollecter(c.Ui, cfg, git.NewGitClient())
 
-	// Getting git remote info
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := remoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
+	clientFacotry, err := lab.NewGitlabClientFactory(pInfo.ApiUrl(), pInfo.Token)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	clientFacotry, err := lab.NewGitlabClientFactory(gitlabRemote.ApiUrl(), token)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	method := c.MethodFactory.CreateMethod(opt, gitlabRemote, iid, clientFacotry)
+	method := c.MethodFactory.CreateMethod(opt, pInfo, iid, clientFacotry)
 	res, err := method.Process()
 	if err != nil {
 		c.Ui.Error(err.Error())

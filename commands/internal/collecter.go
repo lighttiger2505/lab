@@ -25,6 +25,22 @@ type GitLabProjectInfo struct {
 	Token   string
 }
 
+func (r *GitLabProjectInfo) BaseUrl() string {
+	return "https://" + r.Domain
+}
+
+func (r *GitLabProjectInfo) ApiUrl() string {
+	return strings.Join([]string{r.BaseUrl(), "api", "v4"}, "/")
+}
+
+func (r *GitLabProjectInfo) SubpageUrl(subpage string) string {
+	return strings.Join([]string{r.RepositoryUrl(), subpage}, "/")
+}
+
+func (r *GitLabProjectInfo) RepositoryUrl() string {
+	return strings.Join([]string{r.BaseUrl(), r.Project}, "/")
+}
+
 func NewRemoteCollecter(ui ui.Ui, cfg *config.ConfigV2, gitClient git.Client) Collecter {
 	return &RemoteCollecter{
 		UI:        ui,

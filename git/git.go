@@ -68,6 +68,32 @@ func (g *GitClient) CurrentRemoteBranch(remote *RemoteInfo) (string, error) {
 
 }
 
+func IsGitDirReverseTop() (bool, error) {
+	pos, err := os.Getwd()
+	if err != nil {
+		return false, fmt.Errorf("cannot get current dir path, %s", err)
+	}
+
+	for {
+		if IsGitDir(pos) {
+			return true, nil
+		}
+		if pos == "/" {
+			return false, nil
+		}
+		pos = filepath.Dir(pos)
+	}
+}
+
+func IsGitDir(dir string) bool {
+	gitdir := filepath.Join(dir, ".git")
+	_, err := execCommand("git", "--git-dir="+gitdir, "rev-parse", "--git-dir").CombinedOutput()
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func CurrentBranch() (string, error) {
 	// Get remote repositorys
 	branches, err := gitOutput("branch")

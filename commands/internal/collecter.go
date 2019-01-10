@@ -37,16 +37,26 @@ func (c *RemoteCollecter) CollectTarget(project, profile string) (*GitLabProject
 	pInfo := &GitLabProjectInfo{}
 	var err error
 
-	pInfo = c.collectTargetByDefaultConfig(pInfo)
-
-	pInfo, err = c.collectTargetByLocalRepository(pInfo)
+	isGitDir, err := git.IsGitDirReverseTop()
 	if err != nil {
 		return nil, err
 	}
-
-	pInfo, err = c.collectTargetByArgs(pInfo, project, profile)
-	if err != nil {
-		return nil, err
+	if isGitDir {
+		pInfo = c.collectTargetByDefaultConfig(pInfo)
+		pInfo, err = c.collectTargetByLocalRepository(pInfo)
+		if err != nil {
+			return nil, err
+		}
+		pInfo, err = c.collectTargetByArgs(pInfo, project, profile)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		pInfo = c.collectTargetByDefaultConfig(pInfo)
+		pInfo, err = c.collectTargetByArgs(pInfo, project, profile)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return pInfo, nil

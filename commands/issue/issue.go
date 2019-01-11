@@ -6,10 +6,9 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/commands/internal"
-	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
@@ -134,9 +133,9 @@ Synopsis:
 }
 
 type IssueCommand struct {
-	Ui            ui.Ui
-	Provider      lab.Provider
-	MethodFactory MethodFactory
+	Ui              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	MethodFactory   MethodFactory
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -166,13 +165,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	cfg, err := config.GetConfig()
-	if err != nil {
-		c.Ui.Error(fmt.Sprintf("cannot load config, %s", err))
-	}
-	remoteCollecter := internal.NewRemoteCollecter(c.Ui, cfg, git.NewGitClient())
-
-	pInfo, err := remoteCollecter.CollectTarget(
+	pInfo, err := c.RemoteCollecter.CollectTarget(
 		opt.ProjectProfileOption.Project,
 		opt.ProjectProfileOption.Profile,
 	)

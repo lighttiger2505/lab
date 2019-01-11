@@ -10,6 +10,7 @@ import (
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
@@ -111,11 +112,11 @@ Synopsis:
 }
 
 type MergeRequestCommand struct {
-	Ui            ui.Ui
-	Provider      lab.Provider
-	GitClient     git.Client
-	ClientFactory lab.APIClientFactory
-	EditFunc      func(program, file string) error
+	Ui              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	GitClient       git.Client
+	ClientFactory   lab.APIClientFactory
+	EditFunc        func(program, file string) error
 }
 
 func (c *MergeRequestCommand) Synopsis() string {
@@ -139,29 +140,18 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	if err := c.Provider.Init(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
-	if err != nil {
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	method, err := c.getMethod(mergeRequestCommandOption, parseArgs, gitlabRemote, c.ClientFactory)
+	method, err := c.getMethod(mergeRequestCommandOption, parseArgs, pInfo, c.ClientFactory)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -180,7 +170,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.RemoteInfo, clientFactory lab.APIClientFactory) (internal.Method, error) {
+func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gitutil.GitLabProjectInfo, clientFactory lab.APIClientFactory) (internal.Method, error) {
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
 	browseOption := opt.BrowseOption
@@ -198,7 +188,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 	if browseOption.Browse {
 		return &browseMethod{
 			opener: &cmd.Browser{},
-			remote: remote,
+			url:    pInfo.SubpageUrl("merge_requests"),
 			id:     iid,
 		}, nil
 	}
@@ -209,7 +199,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 			return &updateOnEditorMethod{
 				client:   mrClient,
 				opt:      createUpdateOption,
-				project:  remote.RepositoryFullName(),
+				project:  pInfo.Project,
 				id:       iid,
 				editFunc: c.EditFunc,
 			}, nil
@@ -218,7 +208,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 			return &updateMethod{
 				client:  mrClient,
 				opt:     createUpdateOption,
-				project: remote.RepositoryFullName(),
+				project: pInfo.Project,
 				id:      iid,
 			}, nil
 		}
@@ -227,7 +217,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 			mrClient:   mrClient,
 			noteClient: noteClient,
 			opt:        showOption,
-			project:    remote.RepositoryFullName(),
+			project:    pInfo.Project,
 			id:         iid,
 		}, nil
 	}
@@ -238,7 +228,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 			client:           mrClient,
 			repositoryClient: repositoryClient,
 			opt:              createUpdateOption,
-			project:          remote.RepositoryFullName(),
+			project:          pInfo.Project,
 			editFunc:         c.EditFunc,
 		}, nil
 
@@ -247,7 +237,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 		return &createMethod{
 			client:  mrClient,
 			opt:     createUpdateOption,
-			project: remote.RepositoryFullName(),
+			project: pInfo.Project,
 		}, nil
 	}
 
@@ -261,7 +251,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, remote *git.R
 	return &listMethod{
 		client:  mrClient,
 		opt:     listOption,
-		project: remote.RepositoryFullName(),
+		project: pInfo.Project,
 	}, nil
 }
 

@@ -3,27 +3,19 @@ package issue
 import (
 	"testing"
 
-	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
-var mockProvider = &lab.MockProvider{
-	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
-		return &git.RemoteInfo{
-			Domain:     "domain",
-			Group:      "group",
-			Repository: "repository",
-		}, nil
-	},
-}
+var mockCollecter = &gitutil.MockCollecter{}
 var mockAPIClientFactory = &lab.MockAPIClientFactory{}
 var mockMethodFactory = &MockMethodFactory{}
 
 func TestIssueCommand_Run(t *testing.T) {
 	type fields struct {
-		Provider      lab.Provider
-		MethodFactory MethodFactory
+		RemoteCollecter gitutil.Collecter
+		MethodFactory   MethodFactory
 	}
 	tests := []struct {
 		name     string
@@ -36,8 +28,8 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "normal",
 			fields: fields{
-				Provider:      mockProvider,
-				MethodFactory: mockMethodFactory,
+				RemoteCollecter: mockCollecter,
+				MethodFactory:   mockMethodFactory,
 			},
 			args:     []string{},
 			wantCode: 0,
@@ -47,8 +39,8 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "unknown flag",
 			fields: fields{
-				Provider:      mockProvider,
-				MethodFactory: mockMethodFactory,
+				RemoteCollecter: mockCollecter,
+				MethodFactory:   mockMethodFactory,
 			},
 			args:     []string{"--hogehoge"},
 			wantCode: 1,
@@ -58,8 +50,8 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "nomal args",
 			fields: fields{
-				Provider:      mockProvider,
-				MethodFactory: mockMethodFactory,
+				RemoteCollecter: mockCollecter,
+				MethodFactory:   mockMethodFactory,
 			},
 			args:     []string{"12"},
 			wantCode: 0,
@@ -69,8 +61,8 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "multipul args",
 			fields: fields{
-				Provider:      mockProvider,
-				MethodFactory: mockMethodFactory,
+				RemoteCollecter: mockCollecter,
+				MethodFactory:   mockMethodFactory,
 			},
 			args:     []string{"12", "13"},
 			wantCode: 0,
@@ -80,8 +72,8 @@ func TestIssueCommand_Run(t *testing.T) {
 		{
 			name: "invalid args",
 			fields: fields{
-				Provider:      mockProvider,
-				MethodFactory: mockMethodFactory,
+				RemoteCollecter: mockCollecter,
+				MethodFactory:   mockMethodFactory,
 			},
 			args:     []string{"aa"},
 			wantCode: 1,
@@ -93,9 +85,9 @@ func TestIssueCommand_Run(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUI := ui.NewMockUi()
 			c := &IssueCommand{
-				Ui:            mockUI,
-				Provider:      tt.fields.Provider,
-				MethodFactory: tt.fields.MethodFactory,
+				Ui:              mockUI,
+				RemoteCollecter: tt.fields.RemoteCollecter,
+				MethodFactory:   tt.fields.MethodFactory,
 			}
 			if got := c.Run(tt.args); got != tt.wantCode {
 				t.Errorf("failed issue command run.\ngot: %v\nwant:%v", got, tt.wantCode)

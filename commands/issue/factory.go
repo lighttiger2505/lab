@@ -4,15 +4,16 @@ import (
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 )
 
 type MethodFactory interface {
-	CreateMethod(opt Option, pInfo *internal.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method
+	CreateMethod(opt Option, pInfo *gitutil.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method
 }
 
 type IssueMethodFactory struct{}
 
-func (c *IssueMethodFactory) CreateMethod(opt Option, pInfo *internal.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method {
+func (c *IssueMethodFactory) CreateMethod(opt Option, pInfo *gitutil.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method {
 	if opt.BrowseOption.Browse {
 		return &browseMethod{
 			opener: &cmd.Browser{},
@@ -81,6 +82,6 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, pInfo *internal.GitLabProj
 
 type MockMethodFactory struct{}
 
-func (c *MockMethodFactory) CreateMethod(opt Option, pInfo *internal.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method {
+func (c *MockMethodFactory) CreateMethod(opt Option, pInfo *gitutil.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method {
 	return &internal.MockMethod{}
 }

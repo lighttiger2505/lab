@@ -1,4 +1,4 @@
-package internal
+package gitutil
 
 import (
 	"fmt"
@@ -187,4 +187,14 @@ func excludeDuplicateDomain(remotes []*git.RemoteInfo) []*git.RemoteInfo {
 		processedRemotes = append(processedRemotes, tmpRemote)
 	}
 	return processedRemotes
+}
+
+type MockCollecter struct{}
+
+func (m *MockCollecter) CollectTarget(project, profile string) (*GitLabProjectInfo, error) {
+	return &GitLabProjectInfo{
+		Domain:  "domain",
+		Project: "project",
+		Token:   "token",
+	}, nil
 }

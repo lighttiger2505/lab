@@ -17,6 +17,7 @@ import (
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/mitchellh/cli"
 )
@@ -57,6 +58,12 @@ func realMain(writer io.Writer, ver, rev string) int {
 	configManager := config.NewConfigManager()
 	provider := lab.NewProvider(ui, git.NewGitClient(), configManager)
 
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot load config, %s", err)
+	}
+	remoteCollecter := gitutil.NewRemoteCollecter(ui, cfg, git.NewGitClient())
+
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {
 			return &commands.BrowseCommand{
@@ -68,23 +75,22 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"issue": func() (cli.Command, error) {
 			return &issue.IssueCommand{
-				Ui:            ui,
-				Provider:      provider,
-				MethodFactory: &issue.IssueMethodFactory{},
+				Ui:              ui,
+				RemoteCollecter: remoteCollecter,
+				MethodFactory:   &issue.IssueMethodFactory{},
 			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
 				Ui:            ui,
-				Provider:      provider,
 				ClientFactory: &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"mr": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
-				Ui:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				Ui:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"project": func() (cli.Command, error) {
@@ -96,9 +102,9 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"pipeline": func() (cli.Command, error) {
 			return &pipeline.PipelineCommand{
-				UI:            ui,
-				Provider:      provider,
-				MethodFactory: &pipeline.PipelineMethodFacotry{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				MethodFactory:   &pipeline.PipelineMethodFacotry{},
 			}, nil
 		},
 		"job": func() (cli.Command, error) {

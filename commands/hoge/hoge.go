@@ -4,31 +4,17 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"strings"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
 type ProjectProfileOption struct {
 	Project string `long:"project" value-name:"<title>" description:"Project"`
 	Profile string `long:"profile" value-name:"<title>" description:"Profile"`
-}
-
-func (o *ProjectProfileOption) NameSpaceAndProject() (group, subgroup, project string) {
-	splited := strings.Split(o.Project, "/")
-	if len(splited) == 3 {
-		group = splited[0]
-		subgroup = splited[1]
-		project = splited[2]
-		return
-	}
-	group = splited[0]
-	project = splited[1]
-	return
 }
 
 type Option struct {
@@ -44,7 +30,7 @@ func newOptionParser(opt *Option) *flags.Parser {
 
 type HogeCommand struct {
 	UI        ui.Ui
-	Collecter *internal.RemoteCollecter
+	Collecter *gitutil.RemoteCollecter
 }
 
 func (c *HogeCommand) Synopsis() string {
@@ -70,7 +56,7 @@ func (c *HogeCommand) Run(args []string) int {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "cannot load config, %s", err)
 	}
-	remoteCollecter := internal.NewRemoteCollecter(c.UI, cfg, git.NewGitClient())
+	remoteCollecter := gitutil.NewRemoteCollecter(c.UI, cfg, git.NewGitClient())
 
 	project := opt.ProjectProfileOption.Project
 	profile := opt.ProjectProfileOption.Profile

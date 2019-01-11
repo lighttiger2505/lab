@@ -1,29 +1,24 @@
 package mr
 
 import (
-	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/lighttiger2505/lab/cmd"
-	"github.com/lighttiger2505/lab/commands/internal"
-	"github.com/lighttiger2505/lab/git"
 )
 
 type browseMethod struct {
-	internal.Method
 	opener cmd.URLOpener
-	remote *git.RemoteInfo
+	url    string
 	id     int
 }
 
 func (m *browseMethod) Process() (string, error) {
-	var subpage string
+	url := m.url
 	if m.id > 0 {
-		subpage = fmt.Sprintf("merge_requests/%d", m.id)
-	} else {
-		subpage = "merge_requests"
+		url = strings.Join([]string{url, strconv.Itoa(m.id)}, "/")
 	}
 
-	url := m.remote.Subpage(subpage)
 	if err := m.opener.Open(url); err != nil {
 		return "", err
 	}

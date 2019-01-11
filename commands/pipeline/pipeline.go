@@ -7,6 +7,7 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
@@ -52,9 +53,9 @@ var opt Option
 var parser = newOptionParser(&opt)
 
 type PipelineCommand struct {
-	UI            ui.Ui
-	Provider      lab.Provider
-	MethodFactory MethodFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	MethodFactory   MethodFactory
 }
 
 func (c *PipelineCommand) Synopsis() string {
@@ -80,30 +81,19 @@ func (c *PipelineCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	if err := c.Provider.Init(); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
+	clientFacotry, err := lab.NewGitlabClientFactory(pInfo.ApiUrl(), pInfo.Token)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	clientFacotry, err := lab.NewGitlabClientFactory(gitlabRemote.ApiUrl(), token)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	method := c.MethodFactory.CreateMethod(opt, gitlabRemote, iid, clientFacotry)
+	method := c.MethodFactory.CreateMethod(opt, pInfo, iid, clientFacotry)
 	res, err := method.Process()
 	if err != nil {
 		c.UI.Error(err.Error())

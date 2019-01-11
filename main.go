@@ -9,7 +9,6 @@ import (
 
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands"
-	"github.com/lighttiger2505/lab/commands/hoge"
 	"github.com/lighttiger2505/lab/commands/issue"
 	"github.com/lighttiger2505/lab/commands/mr"
 	"github.com/lighttiger2505/lab/commands/pipeline"
@@ -153,11 +152,6 @@ func realMain(writer io.Writer, ver, rev string) int {
 				UI:            ui,
 				Provider:      provider,
 				ClientFactory: &lab.GitlabClientFactory{},
-			}, nil
-		},
-		"hoge": func() (cli.Command, error) {
-			return &hoge.HogeCommand{
-				UI: ui,
 			}, nil
 		},
 	}

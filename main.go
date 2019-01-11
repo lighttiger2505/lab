@@ -94,9 +94,9 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"project": func() (cli.Command, error) {
 			return &commands.ProjectCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"pipeline": func() (cli.Command, error) {
@@ -108,50 +108,50 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"job": func() (cli.Command, error) {
 			return &commands.JobCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"lint": func() (cli.Command, error) {
 			return &commands.LintCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"user": func() (cli.Command, error) {
 			return &commands.UserCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"project-variable": func() (cli.Command, error) {
 			return &commands.ProjectVariableCommand{
-				UI:       ui,
-				Provider: provider,
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
 			}, nil
 		},
 		"issue-template": func() (cli.Command, error) {
 			return &commands.IssueTemplateCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"merge-request-template": func() (cli.Command, error) {
 			return &commands.MergeRequestTemplateCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"runner": func() (cli.Command, error) {
 			return &runner.RunnerCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 	}

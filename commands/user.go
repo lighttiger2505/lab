@@ -7,6 +7,7 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
 	"github.com/xanzy/go-gitlab"
@@ -38,9 +39,9 @@ func newListUserOption() *ListUserOption {
 }
 
 type UserCommand struct {
-	UI            ui.Ui
-	Provider      lab.Provider
-	ClientFactory lab.APIClientFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	ClientFactory   lab.APIClientFactory
 }
 
 func (c *UserCommand) Synopsis() string {
@@ -63,19 +64,13 @@ func (c *UserCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
@@ -94,7 +89,7 @@ func (c *UserCommand) Run(args []string) int {
 		result = columnize.SimpleFormat(userOutput(users))
 	} else {
 		users, err := client.ProjectUsers(
-			gitlabRemote.RepositoryFullName(),
+			pInfo.Project,
 			makeProjectUsersOption(listOpt),
 		)
 		if err != nil {

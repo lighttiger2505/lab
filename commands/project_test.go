@@ -5,6 +5,7 @@ import (
 
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -50,9 +51,9 @@ func TestProjectCommandRun(t *testing.T) {
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectCommand{
-		UI:            mockUI,
-		Provider:      mockProjectProvider,
-		ClientFactory: mockClientFactory,
+		UI:              mockUI,
+		RemoteCollecter: &gitutil.MockCollecter{},
+		ClientFactory:   mockClientFactory,
 	}
 
 	args := []string{}

@@ -7,8 +7,8 @@ import (
 
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/commands/internal"
-	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
@@ -44,9 +44,9 @@ func newListRunnerOption() *ListOption {
 }
 
 type RunnerCommand struct {
-	UI            ui.Ui
-	Provider      lab.Provider
-	ClientFactory lab.APIClientFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	ClientFactory   lab.APIClientFactory
 }
 
 func (c *RunnerCommand) Synopsis() string {
@@ -75,29 +75,18 @@ func (c *RunnerCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	if err := c.Provider.Init(); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
-	if err != nil {
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	method := c.createMethod(id, opt, gitlabRemote)
+	method := c.createMethod(id, opt, pInfo)
 	res, err := method.Process()
 	if err != nil {
 		c.UI.Error(err.Error())
@@ -111,12 +100,12 @@ func (c *RunnerCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *RunnerCommand) createMethod(id int, opt Option, remote *git.RemoteInfo) internal.Method {
+func (c *RunnerCommand) createMethod(id int, opt Option, pInfo *gitutil.GitLabProjectInfo) internal.Method {
 	if id > 0 {
 		if opt.DeleteOption.Delete {
 			return &deleteMethod{
 				runnerClient: c.ClientFactory.GetRunnerClient(),
-				project:      remote.RepositoryFullName(),
+				project:      pInfo.Project,
 				id:           id,
 			}
 		}
@@ -129,7 +118,7 @@ func (c *RunnerCommand) createMethod(id int, opt Option, remote *git.RemoteInfo)
 	return &listMethod{
 		runnerClient: c.ClientFactory.GetRunnerClient(),
 		opt:          opt.ListOption,
-		project:      remote.RepositoryFullName(),
+		project:      pInfo.Project,
 	}
 }
 

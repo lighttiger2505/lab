@@ -89,7 +89,7 @@ func (c *PipelineCommand) Run(args []string) int {
 		opt.ProjectProfileOption.Profile,
 	)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 

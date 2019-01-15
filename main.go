@@ -81,8 +81,9 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
-				Ui:            ui,
-				ClientFactory: &lab.GitlabClientFactory{},
+				Ui:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"mr": func() (cli.Command, error) {
@@ -131,6 +132,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 			return &commands.ProjectVariableCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"issue-template": func() (cli.Command, error) {

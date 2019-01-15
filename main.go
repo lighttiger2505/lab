@@ -54,9 +54,6 @@ func realMain(writer io.Writer, ver, rev string) int {
 	log.SetOutput(ioutil.Discard)
 
 	ui := ui.NewBasicUi()
-	configManager := config.NewConfigManager()
-	provider := lab.NewProvider(ui, git.NewGitClient(), configManager)
-
 	cfg, err := config.GetConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "cannot load config, %s", err)
@@ -66,10 +63,10 @@ func realMain(writer io.Writer, ver, rev string) int {
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {
 			return &commands.BrowseCommand{
-				Ui:        ui,
-				Provider:  provider,
-				GitClient: &git.GitClient{},
-				Opener:    &cmd.Browser{},
+				Ui:              ui,
+				RemoteCollecter: remoteCollecter,
+				GitClient:       &git.GitClient{},
+				Opener:          &cmd.Browser{},
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {

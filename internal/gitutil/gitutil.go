@@ -41,6 +41,22 @@ func (r *GitLabProjectInfo) RepositoryUrl() string {
 	return strings.Join([]string{r.BaseUrl(), r.Project}, "/")
 }
 
+func (r *GitLabProjectInfo) BranchUrl(branch string) string {
+	return strings.Join([]string{r.RepositoryUrl(), "tree", branch}, "/")
+}
+
+func (r *GitLabProjectInfo) BranchPath(branch string, path string) string {
+	return strings.Join([]string{r.BranchUrl(branch), path}, "/")
+}
+
+func (r *GitLabProjectInfo) BranchFileWithLine(branch string, path string, line string) string {
+	return strings.Join([]string{r.BranchPath(branch, path), line}, "/")
+}
+
+func (r *GitLabProjectInfo) Subpage(subpage string) string {
+	return strings.Join([]string{r.RepositoryUrl(), subpage}, "/")
+}
+
 func NewRemoteCollecter(ui ui.Ui, cfg *config.ConfigV2, gitClient git.Client) Collecter {
 	return &RemoteCollecter{
 		UI:        ui,

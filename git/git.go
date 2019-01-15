@@ -11,7 +11,7 @@ import (
 
 type Client interface {
 	RemoteInfos() ([]*RemoteInfo, error)
-	CurrentRemoteBranch(remote *RemoteInfo) (string, error)
+	CurrentRemoteBranch() (string, error)
 }
 
 type GitClient struct {
@@ -45,26 +45,26 @@ func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return remoteInfos, nil
 }
 
-func (g *GitClient) CurrentRemoteBranch(remote *RemoteInfo) (string, error) {
-	// Get remote repositorys
-	branches, err := gitOutput("branch", "-a")
-	if err != nil {
-		return "", fmt.Errorf("Failed get git branches. %s", err)
-	}
+func (g *GitClient) CurrentRemoteBranch() (string, error) {
+	// 	branches, err := gitOutput("branch", "-a")
+	// 	if err != nil {
+	// 		return "", fmt.Errorf("Failed get git branches. %s", err)
+	// 	}
 
 	currentBranch, err := CurrentBranch()
 	if err != nil {
 		return "", err
 	}
+	return currentBranch, nil
 
-	remoteBranch := fmt.Sprintf("%s/%s", remote.Remote, currentBranch)
-	for _, branch := range branches {
-		trimBranch := strings.TrimSpace(branch)
-		if strings.HasSuffix(trimBranch, remoteBranch) {
-			return currentBranch, nil
-		}
-	}
-	return "master", nil
+	// 	remoteBranch := fmt.Sprintf("%s/%s", remote.Remote, currentBranch)
+	// 	for _, branch := range branches {
+	// 		trimBranch := strings.TrimSpace(branch)
+	// 		if strings.HasSuffix(trimBranch, remoteBranch) {
+	// 			return currentBranch, nil
+	// 		}
+	// 	}
+	// 	return "master", nil
 
 }
 

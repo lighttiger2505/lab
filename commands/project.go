@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
@@ -14,10 +15,12 @@ import (
 )
 
 type ProjectCommnadOption struct {
-	OutputOption *ListProjectOption `group:"List Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	OutputOption         *ListProjectOption             `group:"List Options"`
 }
 
 func newProjectCommandParser(opt *ProjectCommnadOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.OutputOption = newListProjectOption()
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "project [options]"
@@ -48,21 +51,24 @@ func (c *ProjectCommand) Synopsis() string {
 
 func (c *ProjectCommand) Help() string {
 	buf := &bytes.Buffer{}
-	var projectCommandOption ProjectCommnadOption
-	projectCommandParser := newProjectCommandParser(&projectCommandOption)
+	var opt ProjectCommnadOption
+	projectCommandParser := newProjectCommandParser(&opt)
 	projectCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *ProjectCommand) Run(args []string) int {
-	var projectCommandOption ProjectCommnadOption
-	projectCommandParser := newProjectCommandParser(&projectCommandOption)
+	var opt ProjectCommnadOption
+	projectCommandParser := newProjectCommandParser(&opt)
 	if _, err := projectCommandParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
@@ -75,7 +81,7 @@ func (c *ProjectCommand) Run(args []string) int {
 	client := c.ClientFactory.GetProjectClient()
 
 	projects, err := client.Projects(
-		makeProjectOptions(projectCommandOption.OutputOption),
+		makeProjectOptions(opt.OutputOption),
 	)
 	if err != nil {
 		c.UI.Error(err.Error())

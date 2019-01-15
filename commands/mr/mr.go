@@ -77,13 +77,15 @@ type BrowseOption struct {
 }
 
 type Option struct {
-	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
-	ListOption         *ListOption         `group:"List Options"`
-	ShowOption         *ShowOption         `group:"Show Options"`
-	BrowseOption       *BrowseOption       `group:"Browse Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	CreateUpdateOption   *CreateUpdateOption            `group:"Create, Update Options"`
+	ListOption           *ListOption                    `group:"List Options"`
+	ShowOption           *ShowOption                    `group:"Show Options"`
+	BrowseOption         *BrowseOption                  `group:"Browse Options"`
 }
 
 func newOptionParser(opt *Option) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
 	opt.BrowseOption = &BrowseOption{}
@@ -125,22 +127,25 @@ func (c *MergeRequestCommand) Synopsis() string {
 
 func (c *MergeRequestCommand) Help() string {
 	buf := &bytes.Buffer{}
-	var mergeRequestCommandOption Option
-	mergeRequestCommandParser := newOptionParser(&mergeRequestCommandOption)
+	var opt Option
+	mergeRequestCommandParser := newOptionParser(&opt)
 	mergeRequestCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *MergeRequestCommand) Run(args []string) int {
-	var mergeRequestCommandOption Option
-	mergeRequestCommandParser := newOptionParser(&mergeRequestCommandOption)
+	var opt Option
+	mergeRequestCommandParser := newOptionParser(&opt)
 	parseArgs, err := mergeRequestCommandParser.ParseArgs(args)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
@@ -151,7 +156,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	method, err := c.getMethod(mergeRequestCommandOption, parseArgs, pInfo, c.ClientFactory)
+	method, err := c.getMethod(opt, parseArgs, pInfo, c.ClientFactory)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError

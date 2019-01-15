@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
@@ -17,11 +18,6 @@ const (
 	ExitCodeError     int = iota //1
 	ExitCodeFileError int = iota //2
 )
-
-type ProjectProfileOption struct {
-	Project string `long:"project" value-name:"<title>" description:"Project"`
-	Profile string `long:"profile" value-name:"<title>" description:"Profile"`
-}
 
 type CreateUpdateOption struct {
 	Edit       bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
@@ -96,15 +92,15 @@ type BrowseOption struct {
 }
 
 type Option struct {
-	ProjectProfileOption *ProjectProfileOption `group:"Project, Profile Options"`
-	CreateUpdateOption   *CreateUpdateOption   `group:"Create, Update Options"`
-	ListOption           *ListOption           `group:"List Options"`
-	ShowOption           *ShowOption           `group:"Show Options"`
-	BrowseOption         *BrowseOption         `group:"Browse Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	CreateUpdateOption   *CreateUpdateOption            `group:"Create, Update Options"`
+	ListOption           *ListOption                    `group:"List Options"`
+	ShowOption           *ShowOption                    `group:"Show Options"`
+	BrowseOption         *BrowseOption                  `group:"Browse Options"`
 }
 
 func newOptionParser(opt *Option) *flags.Parser {
-	opt.ProjectProfileOption = &ProjectProfileOption{}
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
 	opt.ShowOption = &ShowOption{}

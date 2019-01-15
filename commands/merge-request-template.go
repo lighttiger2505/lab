@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
@@ -13,9 +14,11 @@ import (
 )
 
 type MergeRequestTemplateCommnadOption struct {
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
 }
 
 func newMergeRequestTemplateCommandParser(opt *MergeRequestTemplateCommnadOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "merge-request-template [options]"
 	return parser
@@ -33,22 +36,25 @@ func (c *MergeRequestTemplateCommand) Synopsis() string {
 
 func (c *MergeRequestTemplateCommand) Help() string {
 	buf := &bytes.Buffer{}
-	var projectCommandOption MergeRequestTemplateCommnadOption
-	projectCommandParser := newMergeRequestTemplateCommandParser(&projectCommandOption)
+	var opt MergeRequestTemplateCommnadOption
+	projectCommandParser := newMergeRequestTemplateCommandParser(&opt)
 	projectCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *MergeRequestTemplateCommand) Run(args []string) int {
-	var projectCommandOption MergeRequestTemplateCommnadOption
-	projectCommandParser := newMergeRequestTemplateCommandParser(&projectCommandOption)
+	var opt MergeRequestTemplateCommnadOption
+	projectCommandParser := newMergeRequestTemplateCommandParser(&opt)
 	parceArgs, err := projectCommandParser.ParseArgs(args)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError

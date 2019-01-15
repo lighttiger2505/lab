@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
@@ -14,10 +15,12 @@ import (
 )
 
 type ProjectVaribleCommandOption struct {
-	CreateUpdateOption *CreateUpdateProjectVaribleOption `group:"List Options"`
+	ProjectProfileOption *internal.ProjectProfileOption    `group:"Project, Profile Options"`
+	CreateUpdateOption   *CreateUpdateProjectVaribleOption `group:"List Options"`
 }
 
 func newProjectVaribleOptionParser(opt *ProjectVaribleCommandOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.CreateUpdateOption = newAddProjectVaribleOption()
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `project-variable - Create and Edit, list a project variable
@@ -99,7 +102,10 @@ func (c *ProjectVariableCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError

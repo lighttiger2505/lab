@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
@@ -13,9 +14,11 @@ import (
 )
 
 type IssueTemplateCommnadOption struct {
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
 }
 
 func newIssueTemplateCommandParser(opt *IssueTemplateCommnadOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "issue-template [options]"
 	return parser
@@ -33,22 +36,25 @@ func (c *IssueTemplateCommand) Synopsis() string {
 
 func (c *IssueTemplateCommand) Help() string {
 	buf := &bytes.Buffer{}
-	var projectCommandOption IssueTemplateCommnadOption
-	projectCommandParser := newIssueTemplateCommandParser(&projectCommandOption)
+	var opt IssueTemplateCommnadOption
+	projectCommandParser := newIssueTemplateCommandParser(&opt)
 	projectCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *IssueTemplateCommand) Run(args []string) int {
-	var projectCommandOption IssueTemplateCommnadOption
-	projectCommandParser := newIssueTemplateCommandParser(&projectCommandOption)
+	var opt IssueTemplateCommnadOption
+	projectCommandParser := newIssueTemplateCommandParser(&opt)
 	parceArgs, err := projectCommandParser.ParseArgs(args)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
@@ -16,10 +17,12 @@ import (
 )
 
 type JobCommandOption struct {
-	ListOption *ListJobOption `group:"List Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	ListOption           *ListJobOption                 `group:"List Options"`
 }
 
 func newJobOptionParser(opt *JobCommandOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.ListOption = newListJobOption()
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "job [options]"
@@ -52,8 +55,8 @@ func (c *JobCommand) Synopsis() string {
 }
 
 func (c *JobCommand) Help() string {
-	var jobCommnadOption JobCommandOption
-	jobCommnadOptionParser := newJobOptionParser(&jobCommnadOption)
+	var opt JobCommandOption
+	jobCommnadOptionParser := newJobOptionParser(&opt)
 	buf := &bytes.Buffer{}
 	jobCommnadOptionParser.WriteHelp(buf)
 	return buf.String()
@@ -61,15 +64,18 @@ func (c *JobCommand) Help() string {
 
 func (c *JobCommand) Run(args []string) int {
 	// Parse flags
-	var jobCommnadOption JobCommandOption
-	jobCommnadOptionParser := newJobOptionParser(&jobCommnadOption)
+	var opt JobCommandOption
+	jobCommnadOptionParser := newJobOptionParser(&opt)
 	parseArgs, err := jobCommnadOptionParser.ParseArgs(args)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
@@ -81,7 +87,7 @@ func (c *JobCommand) Run(args []string) int {
 	}
 	client := c.ClientFactory.GetJobClient()
 
-	listOpt := jobCommnadOption.ListOption
+	listOpt := opt.ListOption
 
 	if len(parseArgs) > 0 {
 		jid, err := strconv.Atoi(parseArgs[0])

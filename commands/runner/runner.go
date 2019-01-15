@@ -19,11 +19,13 @@ const (
 )
 
 type Option struct {
-	ListOption   *ListOption   `group:"List Options"`
-	DeleteOption *DeleteOption `group:"Delete Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	ListOption           *ListOption                    `group:"List Options"`
+	DeleteOption         *DeleteOption                  `group:"Delete Options"`
 }
 
 func newParser(opt *Option) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.ListOption = newListRunnerOption()
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "project [options]"
@@ -75,7 +77,10 @@ func (c *RunnerCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError

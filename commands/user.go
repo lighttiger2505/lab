@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
@@ -14,10 +15,12 @@ import (
 )
 
 type UserCommandOption struct {
-	ListOption *ListUserOption `group:"List Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	ListOption           *ListUserOption                `group:"List Options"`
 }
 
 func newUserOptionParser(opt *UserCommandOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.ListOption = newListUserOption()
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `user - list a user
@@ -49,22 +52,25 @@ func (c *UserCommand) Synopsis() string {
 }
 
 func (c *UserCommand) Help() string {
-	var userCommnadOption UserCommandOption
-	userCommnadOptionParser := newUserOptionParser(&userCommnadOption)
+	var opt UserCommandOption
+	userCommnadOptionParser := newUserOptionParser(&opt)
 	buf := &bytes.Buffer{}
 	userCommnadOptionParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *UserCommand) Run(args []string) int {
-	var userCommnadOption UserCommandOption
-	userCommnadOptionParser := newUserOptionParser(&userCommnadOption)
+	var opt UserCommandOption
+	userCommnadOptionParser := newUserOptionParser(&opt)
 	if _, err := userCommnadOptionParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
@@ -76,9 +82,9 @@ func (c *UserCommand) Run(args []string) int {
 	}
 	client := c.ClientFactory.GetUserClient()
 
-	listOpt := userCommnadOption.ListOption
+	listOpt := opt.ListOption
 	var result string
-	if userCommnadOption.ListOption.AllProject {
+	if opt.ListOption.AllProject {
 		users, err := client.Users(
 			makeUsersOption(listOpt),
 		)

@@ -240,6 +240,6 @@ func (m *MockClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return m.MockRemoteInfos()
 }
 
-func (m *MockClient) CurrentRemoteBranch(remote *RemoteInfo) (string, error) {
+func (m *MockClient) CurrentRemoteBranch() (string, error) {
 	return m.MockCurrentRemoteBranch()
 }

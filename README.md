@@ -14,7 +14,7 @@ Please getting source code and build.
 ```sh
 go get github.com/lighttiger2505/lab
 make ensure
-go install
+make install
 ```
 
 ### Binary download
@@ -33,13 +33,19 @@ The script installs the `lab` command in `/usr/local/bin`. For more details, see
 Usage: lab [--version] [--help] <command> [<args>]
 
 Available commands are:
-    browse           Browse repository page
-    issue            Create and Edit, list a issue
-    lint             validate .gitlab-ci.yml
-    merge-request    Create and Edit, list a merge request
-    pipeline         List pipeline, List pipeline jobs
-    project          Show project
-    user             Show pipeline
+    browse                    Browse project page
+    issue                     Create and Edit, list a issue
+    issue-template            List issue template
+    job                       List job
+    lint                      validate .gitlab-ci.yml
+    merge-request             Create and Edit, list a merge request
+    merge-request-template    List merge request template
+    mr                        Create and Edit, list a merge request
+    pipeline                  List pipeline, List pipeline jobs
+    project                   List project
+    project-variable          List project level variables
+    runner                    List CI/CD Runner
+    user                      List user
 ```
 
 ## Usage
@@ -66,58 +72,54 @@ Available commands are:
 Open gitlab pages on brwoser.
 
 ```sh
-# open project page
+# Browse project page
 $ lab browse
 
-# open issue list page
-$ lab browse #
-$ lab browse i
+# Browse project file
+$ lab browse ./README.md
 
-# open issue detail page
-$ lab browse #10
-$ lab browse i10
+# Browse sub page
+$ lab browse -s issues
 ```
 
-### List Issue and Merge Request
+### Operations to Issue and Merge Request
 
-Show any list.
-
-```sh
-# List Issue
-$ lab issue
-
-# List Merge Request
-$ lab merge-request
-```
-
-### Add Issue and Merge Request
-
-title and description input on editor.
+Many operations can be done with simple input.
 
 ```sh
-# Add Issue
-$ lab add-issue
+# List issue
+lab issue
 
-# Add Merge Request
-$ lab add-merge-request --target={target branch}
+# Browse issue
+lab issue -b {issue ii}
+
+# Show issue
+lab issue {issue id}
+
+# Create issue
+lab issue -e
+
+# Update issue
+lab issue {issue id} -e
 ```
 
 ## Configuration
 
-auto create configuration file `~/.labconfig.yml` when launch lab command
+auto create configuration file `~/.config/lab/config.yml` when launch lab command
 
 ### Sample
 
 ```yml
-# personal access token
-# store key/value style
-tokens:
-  gitlab.ssl.sample.jp: sampletoken
-  gitlab.ssl.lowpriority.jp: lowprioritytoken
-# Determine priority when there are multiple pieces of remote information in the repository
-preferreddomains:
-- gitlab.ssl.sample.jp
-- gitlab.ssl.lowpriority.jp
+default_profile: gitlab.com: 
+profiles:
+  gitlab.com:
+    token: ********************
+    default_group: hoge
+    default_project: hoge/soge
+  gitlab.ssl.foo.jp:
+    token: ******************** 
+    default_group: foo
+    default_project: foo/bar
 ```
 
 ## ToDos

@@ -3,7 +3,6 @@ package commands
 import (
 	"testing"
 
-	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
@@ -42,16 +41,6 @@ var mockGitlabUserClinet = &lab.MockUserClient{
 	},
 	MockUsers: func(opt *gitlab.ListUsersOptions) ([]*gitlab.User, error) {
 		return testUsers, nil
-	},
-}
-
-var mockUserProvider = &lab.MockProvider{
-	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
-		return &git.RemoteInfo{
-			Domain:     "domain",
-			Group:      "group",
-			Repository: "repository",
-		}, nil
 	},
 }
 

@@ -5,25 +5,29 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type IssueTemplateCommnadOption struct {
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
 }
 
 func newIssueTemplateCommandParser(opt *IssueTemplateCommnadOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "issue-template [options]"
 	return parser
 }
 
 type IssueTemplateCommand struct {
-	UI            ui.Ui
-	Provider      lab.Provider
-	ClientFactory lab.APIClientFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	ClientFactory   lab.APIClientFactory
 }
 
 func (c *IssueTemplateCommand) Synopsis() string {
@@ -32,39 +36,31 @@ func (c *IssueTemplateCommand) Synopsis() string {
 
 func (c *IssueTemplateCommand) Help() string {
 	buf := &bytes.Buffer{}
-	var projectCommandOption IssueTemplateCommnadOption
-	projectCommandParser := newIssueTemplateCommandParser(&projectCommandOption)
+	var opt IssueTemplateCommnadOption
+	projectCommandParser := newIssueTemplateCommandParser(&opt)
 	projectCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *IssueTemplateCommand) Run(args []string) int {
-	var projectCommandOption IssueTemplateCommnadOption
-	projectCommandParser := newIssueTemplateCommandParser(&projectCommandOption)
+	var opt IssueTemplateCommnadOption
+	projectCommandParser := newIssueTemplateCommandParser(&opt)
 	parceArgs, err := projectCommandParser.ParseArgs(args)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	if err := c.Provider.Init(); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
@@ -73,7 +69,7 @@ func (c *IssueTemplateCommand) Run(args []string) int {
 	if len(parceArgs) > 0 {
 		filename := IssueTemplateDir + "/" + parceArgs[0]
 		res, err := client.GetFile(
-			gitlabRemote.RepositoryFullName(),
+			pInfo.Project,
 			filename,
 			makeShowIssueTemplateOption(),
 		)
@@ -84,7 +80,7 @@ func (c *IssueTemplateCommand) Run(args []string) int {
 		c.UI.Message(res)
 	} else {
 		treeNode, err := client.GetTree(
-			gitlabRemote.RepositoryFullName(),
+			pInfo.Project,
 			makeIssueTemplateOption(),
 		)
 		if err != nil {

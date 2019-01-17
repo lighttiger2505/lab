@@ -6,8 +6,10 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
@@ -90,13 +92,15 @@ type BrowseOption struct {
 }
 
 type Option struct {
-	CreateUpdateOption *CreateUpdateOption `group:"Create, Update Options"`
-	ListOption         *ListOption         `group:"List Options"`
-	ShowOption         *ShowOption         `group:"Show Options"`
-	BrowseOption       *BrowseOption       `group:"Browse Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	CreateUpdateOption   *CreateUpdateOption            `group:"Create, Update Options"`
+	ListOption           *ListOption                    `group:"List Options"`
+	ShowOption           *ShowOption                    `group:"Show Options"`
+	BrowseOption         *BrowseOption                  `group:"Browse Options"`
 }
 
 func newOptionParser(opt *Option) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
 	opt.ShowOption = &ShowOption{}
@@ -125,9 +129,9 @@ Synopsis:
 }
 
 type IssueCommand struct {
-	Ui            ui.Ui
-	Provider      lab.Provider
-	MethodFactory MethodFactory
+	Ui              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	MethodFactory   MethodFactory
 }
 
 func (c *IssueCommand) Synopsis() string {
@@ -157,32 +161,22 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	// Initialize provider
-	if err := c.Provider.Init(); err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	// Getting git remote info
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
+	clientFacotry, err := lab.NewGitlabClientFactory(pInfo.ApiUrl(), pInfo.Token)
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return ExitCodeError
 	}
 
-	clientFacotry, err := lab.NewGitlabClientFactory(gitlabRemote.ApiUrl(), token)
-	if err != nil {
-		c.Ui.Error(err.Error())
-		return ExitCodeError
-	}
-
-	method := c.MethodFactory.CreateMethod(opt, gitlabRemote, iid, clientFacotry)
+	method := c.MethodFactory.CreateMethod(opt, pInfo, iid, clientFacotry)
 	res, err := method.Process()
 	if err != nil {
 		c.Ui.Error(err.Error())

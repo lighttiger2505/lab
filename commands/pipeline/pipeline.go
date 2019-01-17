@@ -6,7 +6,9 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
@@ -17,11 +19,13 @@ const (
 )
 
 type Option struct {
-	ListOption   *ListOption   `group:"List Options"`
-	BrowseOption *BrowseOption `group:"Brwose Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	ListOption           *ListOption                    `group:"List Options"`
+	BrowseOption         *BrowseOption                  `group:"Brwose Options"`
 }
 
 func newOptionParser(opt *Option) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.ListOption = &ListOption{}
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `pipeline [options]
@@ -52,9 +56,9 @@ var opt Option
 var parser = newOptionParser(&opt)
 
 type PipelineCommand struct {
-	UI            ui.Ui
-	Provider      lab.Provider
-	MethodFactory MethodFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	MethodFactory   MethodFactory
 }
 
 func (c *PipelineCommand) Synopsis() string {
@@ -80,30 +84,22 @@ func (c *PipelineCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	if err := c.Provider.Init(); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
+	clientFacotry, err := lab.NewGitlabClientFactory(pInfo.ApiUrl(), pInfo.Token)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	clientFacotry, err := lab.NewGitlabClientFactory(gitlabRemote.ApiUrl(), token)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	method := c.MethodFactory.CreateMethod(opt, gitlabRemote, iid, clientFacotry)
+	method := c.MethodFactory.CreateMethod(opt, pInfo, iid, clientFacotry)
 	res, err := method.Process()
 	if err != nil {
 		c.UI.Error(err.Error())

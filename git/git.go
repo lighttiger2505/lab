@@ -11,7 +11,7 @@ import (
 
 type Client interface {
 	RemoteInfos() ([]*RemoteInfo, error)
-	CurrentRemoteBranch(remote *RemoteInfo) (string, error)
+	CurrentRemoteBranch() (string, error)
 }
 
 type GitClient struct {
@@ -45,27 +45,53 @@ func (g *GitClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return remoteInfos, nil
 }
 
-func (g *GitClient) CurrentRemoteBranch(remote *RemoteInfo) (string, error) {
-	// Get remote repositorys
-	branches, err := gitOutput("branch", "-a")
-	if err != nil {
-		return "", fmt.Errorf("Failed get git branches. %s", err)
-	}
+func (g *GitClient) CurrentRemoteBranch() (string, error) {
+	// 	branches, err := gitOutput("branch", "-a")
+	// 	if err != nil {
+	// 		return "", fmt.Errorf("Failed get git branches. %s", err)
+	// 	}
 
 	currentBranch, err := CurrentBranch()
 	if err != nil {
 		return "", err
 	}
+	return currentBranch, nil
 
-	remoteBranch := fmt.Sprintf("%s/%s", remote.Remote, currentBranch)
-	for _, branch := range branches {
-		trimBranch := strings.TrimSpace(branch)
-		if strings.HasSuffix(trimBranch, remoteBranch) {
-			return currentBranch, nil
-		}
+	// 	remoteBranch := fmt.Sprintf("%s/%s", remote.Remote, currentBranch)
+	// 	for _, branch := range branches {
+	// 		trimBranch := strings.TrimSpace(branch)
+	// 		if strings.HasSuffix(trimBranch, remoteBranch) {
+	// 			return currentBranch, nil
+	// 		}
+	// 	}
+	// 	return "master", nil
+
+}
+
+func IsGitDirReverseTop() (bool, error) {
+	pos, err := os.Getwd()
+	if err != nil {
+		return false, fmt.Errorf("cannot get current dir path, %s", err)
 	}
-	return "master", nil
 
+	for {
+		if IsGitDir(pos) {
+			return true, nil
+		}
+		if pos == "/" {
+			return false, nil
+		}
+		pos = filepath.Dir(pos)
+	}
+}
+
+func IsGitDir(dir string) bool {
+	gitdir := filepath.Join(dir, ".git")
+	_, err := execCommand("git", "--git-dir="+gitdir, "rev-parse", "--git-dir").CombinedOutput()
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func CurrentBranch() (string, error) {
@@ -214,6 +240,6 @@ func (m *MockClient) RemoteInfos() ([]*RemoteInfo, error) {
 	return m.MockRemoteInfos()
 }
 
-func (m *MockClient) CurrentRemoteBranch(remote *RemoteInfo) (string, error) {
+func (m *MockClient) CurrentRemoteBranch() (string, error) {
 	return m.MockCurrentRemoteBranch()
 }

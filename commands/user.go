@@ -6,17 +6,21 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
 	"github.com/xanzy/go-gitlab"
 )
 
 type UserCommandOption struct {
-	ListOption *ListUserOption `group:"List Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	ListOption           *ListUserOption                `group:"List Options"`
 }
 
 func newUserOptionParser(opt *UserCommandOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.ListOption = newListUserOption()
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `user - list a user
@@ -38,9 +42,9 @@ func newListUserOption() *ListUserOption {
 }
 
 type UserCommand struct {
-	UI            ui.Ui
-	Provider      lab.Provider
-	ClientFactory lab.APIClientFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	ClientFactory   lab.APIClientFactory
 }
 
 func (c *UserCommand) Synopsis() string {
@@ -48,42 +52,39 @@ func (c *UserCommand) Synopsis() string {
 }
 
 func (c *UserCommand) Help() string {
-	var userCommnadOption UserCommandOption
-	userCommnadOptionParser := newUserOptionParser(&userCommnadOption)
+	var opt UserCommandOption
+	userCommnadOptionParser := newUserOptionParser(&opt)
 	buf := &bytes.Buffer{}
 	userCommnadOptionParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *UserCommand) Run(args []string) int {
-	var userCommnadOption UserCommandOption
-	userCommnadOptionParser := newUserOptionParser(&userCommnadOption)
+	var opt UserCommandOption
+	userCommnadOptionParser := newUserOptionParser(&opt)
 	if _, err := userCommnadOptionParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 	client := c.ClientFactory.GetUserClient()
 
-	listOpt := userCommnadOption.ListOption
+	listOpt := opt.ListOption
 	var result string
-	if userCommnadOption.ListOption.AllProject {
+	if opt.ListOption.AllProject {
 		users, err := client.Users(
 			makeUsersOption(listOpt),
 		)
@@ -94,7 +95,7 @@ func (c *UserCommand) Run(args []string) int {
 		result = columnize.SimpleFormat(userOutput(users))
 	} else {
 		users, err := client.ProjectUsers(
-			gitlabRemote.RepositoryFullName(),
+			pInfo.Project,
 			makeProjectUsersOption(listOpt),
 		)
 		if err != nil {

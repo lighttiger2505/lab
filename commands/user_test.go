@@ -3,8 +3,8 @@ package commands
 import (
 	"testing"
 
-	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -44,16 +44,6 @@ var mockGitlabUserClinet = &lab.MockUserClient{
 	},
 }
 
-var mockUserProvider = &lab.MockProvider{
-	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
-		return &git.RemoteInfo{
-			Domain:     "domain",
-			Group:      "group",
-			Repository: "repository",
-		}, nil
-	},
-}
-
 func TestUserCommandRun(t *testing.T) {
 	mockClientFactory := &lab.MockAPIClientFactory{
 		MockGetUserClient: func() lab.User {
@@ -62,9 +52,9 @@ func TestUserCommandRun(t *testing.T) {
 	}
 	mockUI := ui.NewMockUi()
 	c := UserCommand{
-		UI:            mockUI,
-		Provider:      mockUserProvider,
-		ClientFactory: mockClientFactory,
+		UI:              mockUI,
+		RemoteCollecter: &gitutil.MockCollecter{},
+		ClientFactory:   mockClientFactory,
 	}
 
 	args := []string{}
@@ -88,9 +78,9 @@ func TestUserCommandRun_AllProject(t *testing.T) {
 	}
 	mockUI := ui.NewMockUi()
 	c := UserCommand{
-		UI:            mockUI,
-		Provider:      mockUserProvider,
-		ClientFactory: mockClientFactory,
+		UI:              mockUI,
+		RemoteCollecter: &gitutil.MockCollecter{},
+		ClientFactory:   mockClientFactory,
 	}
 
 	args := []string{"--all-project"}

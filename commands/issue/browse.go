@@ -1,27 +1,24 @@
 package issue
 
 import (
-	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/lighttiger2505/lab/cmd"
-	"github.com/lighttiger2505/lab/git"
 )
 
 type browseMethod struct {
 	opener cmd.URLOpener
-	remote *git.RemoteInfo
+	url    string
 	id     int
 }
 
 func (m *browseMethod) Process() (string, error) {
-	var subpage string
+	url := m.url
 	if m.id > 0 {
-		subpage = fmt.Sprintf("issues/%d", m.id)
-	} else {
-		subpage = "issues"
+		url = strings.Join([]string{url, strconv.Itoa(m.id)}, "/")
 	}
 
-	url := m.remote.Subpage(subpage)
 	if err := m.opener.Open(url); err != nil {
 		return "", err
 	}

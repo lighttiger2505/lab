@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -96,7 +97,7 @@ func listAllOutput(issues []*gitlab.Issue) []string {
 	var datas []string
 	for _, issue := range issues {
 		data := strings.Join([]string{
-			cyan(lab.ParceRepositoryFullName(issue.WebURL)),
+			cyan(internal.ParceRepositoryFullName(issue.WebURL)),
 			yellow(issue.IID),
 			issue.Title,
 		}, "|")

@@ -1,5 +1,5 @@
 NAME := lab
-VERSION := v0.5.4
+VERSION := v0.6.0
 REVISION := $(shell git rev-parse --short HEAD)
 GOVERSION := $(go version)
 

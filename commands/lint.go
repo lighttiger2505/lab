@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/lighttiger2505/lab/gitlab"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
 type LintCommand struct {
-	UI            ui.Ui
-	Provider      gitlab.Provider
-	ClientFactory lab.APIClientFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	ClientFactory   lab.APIClientFactory
 }
 
 func (c *LintCommand) Synopsis() string {
@@ -28,29 +28,13 @@ func (c *LintCommand) Help() string {
 }
 
 func (c *LintCommand) Run(args []string) int {
-	if err := c.Provider.Init(); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	if err := c.Provider.Init(); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget("", "")
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}

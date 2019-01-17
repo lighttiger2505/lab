@@ -3,8 +3,8 @@ package commands
 import (
 	"testing"
 
-	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -32,16 +32,6 @@ var mockProjectClient = &lab.MockProjectClient{
 	},
 }
 
-var mockProjectProvider = &lab.MockProvider{
-	MockGetCurrentRemote: func() (*git.RemoteInfo, error) {
-		return &git.RemoteInfo{
-			Domain:     "domain",
-			Group:      "group",
-			Repository: "repository",
-		}, nil
-	},
-}
-
 func TestProjectCommandRun(t *testing.T) {
 	mockClientFactory := &lab.MockAPIClientFactory{
 		MockGetProjectClient: func() lab.Project {
@@ -50,9 +40,9 @@ func TestProjectCommandRun(t *testing.T) {
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectCommand{
-		UI:            mockUI,
-		Provider:      mockProjectProvider,
-		ClientFactory: mockClientFactory,
+		UI:              mockUI,
+		RemoteCollecter: &gitutil.MockCollecter{},
+		ClientFactory:   mockClientFactory,
 	}
 
 	args := []string{}

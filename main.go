@@ -13,9 +13,10 @@ import (
 	"github.com/lighttiger2505/lab/commands/mr"
 	"github.com/lighttiger2505/lab/commands/pipeline"
 	"github.com/lighttiger2505/lab/commands/runner"
-	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/config"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/mitchellh/cli"
 )
@@ -53,99 +54,103 @@ func realMain(writer io.Writer, ver, rev string) int {
 	log.SetOutput(ioutil.Discard)
 
 	ui := ui.NewBasicUi()
-	configManager := config.NewConfigManager()
-	provider := lab.NewProvider(ui, git.NewGitClient(), configManager)
+	cfg, err := config.GetConfig()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot load config, %s", err)
+	}
+	remoteCollecter := gitutil.NewRemoteCollecter(ui, cfg, git.NewGitClient())
 
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {
 			return &commands.BrowseCommand{
-				Ui:        ui,
-				Provider:  provider,
-				GitClient: &git.GitClient{},
-				Opener:    &cmd.Browser{},
+				Ui:              ui,
+				RemoteCollecter: remoteCollecter,
+				GitClient:       &git.GitClient{},
+				Opener:          &cmd.Browser{},
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {
 			return &issue.IssueCommand{
-				Ui:            ui,
-				Provider:      provider,
-				MethodFactory: &issue.IssueMethodFactory{},
+				Ui:              ui,
+				RemoteCollecter: remoteCollecter,
+				MethodFactory:   &issue.IssueMethodFactory{},
 			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
-				Ui:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				Ui:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"mr": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
-				Ui:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				Ui:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"project": func() (cli.Command, error) {
 			return &commands.ProjectCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"pipeline": func() (cli.Command, error) {
 			return &pipeline.PipelineCommand{
-				UI:            ui,
-				Provider:      provider,
-				MethodFactory: &pipeline.PipelineMethodFacotry{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				MethodFactory:   &pipeline.PipelineMethodFacotry{},
 			}, nil
 		},
 		"job": func() (cli.Command, error) {
 			return &commands.JobCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"lint": func() (cli.Command, error) {
 			return &commands.LintCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"user": func() (cli.Command, error) {
 			return &commands.UserCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"project-variable": func() (cli.Command, error) {
 			return &commands.ProjectVariableCommand{
-				UI:       ui,
-				Provider: provider,
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"issue-template": func() (cli.Command, error) {
 			return &commands.IssueTemplateCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"merge-request-template": func() (cli.Command, error) {
 			return &commands.MergeRequestTemplateCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"runner": func() (cli.Command, error) {
 			return &runner.RunnerCommand{
-				UI:            ui,
-				Provider:      provider,
-				ClientFactory: &lab.GitlabClientFactory{},
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 	}

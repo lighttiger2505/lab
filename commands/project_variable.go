@@ -6,17 +6,21 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
 	"github.com/xanzy/go-gitlab"
 )
 
 type ProjectVaribleCommandOption struct {
-	CreateUpdateOption *CreateUpdateProjectVaribleOption `group:"List Options"`
+	ProjectProfileOption *internal.ProjectProfileOption    `group:"Project, Profile Options"`
+	CreateUpdateOption   *CreateUpdateProjectVaribleOption `group:"List Options"`
 }
 
 func newProjectVaribleOptionParser(opt *ProjectVaribleCommandOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.CreateUpdateOption = newAddProjectVaribleOption()
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `project-variable - Create and Edit, list a project variable
@@ -72,9 +76,9 @@ func newAddProjectVaribleOption() *CreateUpdateProjectVaribleOption {
 }
 
 type ProjectVariableCommand struct {
-	UI            ui.Ui
-	Provider      lab.Provider
-	ClientFactory lab.APIClientFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	ClientFactory   lab.APIClientFactory
 }
 
 func (c *ProjectVariableCommand) Synopsis() string {
@@ -98,24 +102,16 @@ func (c *ProjectVariableCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	if err := c.Provider.Init(); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
@@ -126,7 +122,7 @@ func (c *ProjectVariableCommand) Run(args []string) int {
 	switch op {
 	case CreateProjectVariable:
 		_, err := client.CreateVariable(
-			gitlabRemote.RepositoryFullName(),
+			pInfo.Project,
 			makeCreateProjectVariableOption(parseArgs[0], parseArgs[1]),
 		)
 		if err != nil {
@@ -135,7 +131,7 @@ func (c *ProjectVariableCommand) Run(args []string) int {
 		}
 	case UpdateProjectVariable:
 		_, err := client.UpdateVariable(
-			gitlabRemote.RepositoryFullName(),
+			pInfo.Project,
 			parseArgs[0],
 			makeUpdateProjectVariableOption(parseArgs[0], parseArgs[1]),
 		)
@@ -145,7 +141,7 @@ func (c *ProjectVariableCommand) Run(args []string) int {
 		}
 	case RemoveProjectVariable:
 		err := client.RemoveVariable(
-			gitlabRemote.RepositoryFullName(),
+			pInfo.Project,
 			parseArgs[0],
 		)
 		if err != nil {
@@ -154,7 +150,7 @@ func (c *ProjectVariableCommand) Run(args []string) int {
 		}
 	case ListProjectVariable:
 		variables, err := client.GetVariables(
-			gitlabRemote.RepositoryFullName(),
+			pInfo.Project,
 		)
 		if err != nil {
 			c.UI.Error(err.Error())

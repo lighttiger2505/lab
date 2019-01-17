@@ -1,13 +1,10 @@
 package commands
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
-	"github.com/lighttiger2505/lab/config"
 	"github.com/lighttiger2505/lab/git"
-	"github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
 
@@ -34,23 +31,11 @@ func (m *MockURLOpener) Open(url string) error {
 
 func TestBrowseCommandRun(t *testing.T) {
 	mockUI := ui.NewMockUi()
-
-	f, _ := ioutil.TempFile("", "test")
-	tmppath := f.Name()
-	f.Write([]byte(config.ConfigDataTest))
-	f.Close()
-	defer os.Remove(tmppath)
-	configManager := config.NewConfigManagerPath(tmppath)
-
-	// Initialize provider
-	provider := gitlab.NewProvider(mockUI, mockGitClient, configManager)
-	provider.Init()
-
 	c := BrowseCommand{
-		Ui:        mockUI,
-		Provider:  provider,
-		GitClient: mockGitClient,
-		Opener:    &MockURLOpener{},
+		Ui:              mockUI,
+		RemoteCollecter: &gitutil.MockCollecter{},
+		GitClient:       mockGitClient,
+		Opener:          &MockURLOpener{},
 	}
 	args := []string{}
 	if code := c.Run(args); code != 0 {

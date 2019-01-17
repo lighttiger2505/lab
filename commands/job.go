@@ -8,17 +8,21 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
 	"github.com/xanzy/go-gitlab"
 )
 
 type JobCommandOption struct {
-	ListOption *ListJobOption `group:"List Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	ListOption           *ListJobOption                 `group:"List Options"`
 }
 
 func newJobOptionParser(opt *JobCommandOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.ListOption = newListJobOption()
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "job [options]"
@@ -41,9 +45,9 @@ func newListJobOption() *ListJobOption {
 }
 
 type JobCommand struct {
-	UI            ui.Ui
-	Provider      lab.Provider
-	ClientFactory lab.APIClientFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	ClientFactory   lab.APIClientFactory
 }
 
 func (c *JobCommand) Synopsis() string {
@@ -51,8 +55,8 @@ func (c *JobCommand) Synopsis() string {
 }
 
 func (c *JobCommand) Help() string {
-	var jobCommnadOption JobCommandOption
-	jobCommnadOptionParser := newJobOptionParser(&jobCommnadOption)
+	var opt JobCommandOption
+	jobCommnadOptionParser := newJobOptionParser(&opt)
 	buf := &bytes.Buffer{}
 	jobCommnadOptionParser.WriteHelp(buf)
 	return buf.String()
@@ -60,38 +64,30 @@ func (c *JobCommand) Help() string {
 
 func (c *JobCommand) Run(args []string) int {
 	// Parse flags
-	var jobCommnadOption JobCommandOption
-	jobCommnadOptionParser := newJobOptionParser(&jobCommnadOption)
+	var opt JobCommandOption
+	jobCommnadOptionParser := newJobOptionParser(&opt)
 	parseArgs, err := jobCommnadOptionParser.ParseArgs(args)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	if err := c.Provider.Init(); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 	client := c.ClientFactory.GetJobClient()
 
-	listOpt := jobCommnadOption.ListOption
+	listOpt := opt.ListOption
 
 	if len(parseArgs) > 0 {
 		jid, err := strconv.Atoi(parseArgs[0])
@@ -100,7 +96,7 @@ func (c *JobCommand) Run(args []string) int {
 		}
 
 		if listOpt.Log {
-			trace, err := client.GetTraceFile(gitlabRemote.RepositoryFullName(), jid)
+			trace, err := client.GetTraceFile(pInfo.Project, jid)
 			if err != nil {
 				c.UI.Error(err.Error())
 				return ExitCodeError
@@ -116,7 +112,7 @@ func (c *JobCommand) Run(args []string) int {
 			return ExitCodeOK
 		}
 
-		job, err := client.GetJob(gitlabRemote.RepositoryFullName(), jid)
+		job, err := client.GetJob(pInfo.Project, jid)
 		if err != nil {
 			c.UI.Error(err.Error())
 			return ExitCodeError
@@ -126,7 +122,7 @@ func (c *JobCommand) Run(args []string) int {
 		var result string
 		jobs, err := client.GetProjectJobs(
 			makeProjectJobsOption(listOpt),
-			gitlabRemote.RepositoryFullName(),
+			pInfo.Project,
 		)
 		if err != nil {
 			c.UI.Error(err.Error())

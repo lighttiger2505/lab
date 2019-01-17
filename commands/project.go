@@ -6,17 +6,21 @@ import (
 	"strings"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type ProjectCommnadOption struct {
-	OutputOption *ListProjectOption `group:"List Options"`
+	ProjectProfileOption *internal.ProjectProfileOption `group:"Project, Profile Options"`
+	OutputOption         *ListProjectOption             `group:"List Options"`
 }
 
 func newProjectCommandParser(opt *ProjectCommnadOption) *flags.Parser {
+	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.OutputOption = newListProjectOption()
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = "project [options]"
@@ -36,9 +40,9 @@ func newListProjectOption() *ListProjectOption {
 }
 
 type ProjectCommand struct {
-	UI            ui.Ui
-	Provider      lab.Provider
-	ClientFactory lab.APIClientFactory
+	UI              ui.Ui
+	RemoteCollecter gitutil.Collecter
+	ClientFactory   lab.APIClientFactory
 }
 
 func (c *ProjectCommand) Synopsis() string {
@@ -47,45 +51,37 @@ func (c *ProjectCommand) Synopsis() string {
 
 func (c *ProjectCommand) Help() string {
 	buf := &bytes.Buffer{}
-	var projectCommandOption ProjectCommnadOption
-	projectCommandParser := newProjectCommandParser(&projectCommandOption)
+	var opt ProjectCommnadOption
+	projectCommandParser := newProjectCommandParser(&opt)
 	projectCommandParser.WriteHelp(buf)
 	return buf.String()
 }
 
 func (c *ProjectCommand) Run(args []string) int {
-	var projectCommandOption ProjectCommnadOption
-	projectCommandParser := newProjectCommandParser(&projectCommandOption)
+	var opt ProjectCommnadOption
+	projectCommandParser := newProjectCommandParser(&opt)
 	if _, err := projectCommandParser.ParseArgs(args); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	if err := c.Provider.Init(); err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	gitlabRemote, err := c.Provider.GetCurrentRemote()
+	pInfo, err := c.RemoteCollecter.CollectTarget(
+		opt.ProjectProfileOption.Project,
+		opt.ProjectProfileOption.Profile,
+	)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
-	token, err := c.Provider.GetAPIToken(gitlabRemote)
-	if err != nil {
-		c.UI.Error(err.Error())
-		return ExitCodeError
-	}
-
-	if err := c.ClientFactory.Init(gitlabRemote.ApiUrl(), token); err != nil {
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 	client := c.ClientFactory.GetProjectClient()
 
 	projects, err := client.Projects(
-		makeProjectOptions(projectCommandOption.OutputOption),
+		makeProjectOptions(opt.OutputOption),
 	)
 	if err != nil {
 		c.UI.Error(err.Error())

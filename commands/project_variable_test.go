@@ -5,6 +5,7 @@ import (
 
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -32,9 +33,6 @@ func TestProjectVariableCommand_Run_List(t *testing.T) {
 			return sampleProjectVariables, nil
 		},
 	}
-	mockProvider := &lab.MockProvider{
-		MockGetCurrentRemote: mockCurrentRemote,
-	}
 	mockClientFactory := &lab.MockAPIClientFactory{
 		MockGetProjectVariableClient: func() lab.ProjectVariable {
 			return mockClient
@@ -42,9 +40,9 @@ func TestProjectVariableCommand_Run_List(t *testing.T) {
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectVariableCommand{
-		UI:            mockUI,
-		Provider:      mockProvider,
-		ClientFactory: mockClientFactory,
+		UI:              mockUI,
+		RemoteCollecter: &gitutil.MockCollecter{},
+		ClientFactory:   mockClientFactory,
 	}
 
 	// Do command
@@ -70,9 +68,6 @@ func TestProjectVariableCommand_Run_Create(t *testing.T) {
 			return sampleProjectVariable, nil
 		},
 	}
-	mockProvider := &lab.MockProvider{
-		MockGetCurrentRemote: mockCurrentRemote,
-	}
 	mockClientFactory := &lab.MockAPIClientFactory{
 		MockGetProjectVariableClient: func() lab.ProjectVariable {
 			return mockClient
@@ -80,9 +75,9 @@ func TestProjectVariableCommand_Run_Create(t *testing.T) {
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectVariableCommand{
-		UI:            mockUI,
-		Provider:      mockProvider,
-		ClientFactory: mockClientFactory,
+		UI:              mockUI,
+		RemoteCollecter: &gitutil.MockCollecter{},
+		ClientFactory:   mockClientFactory,
 	}
 
 	// Do command
@@ -108,9 +103,6 @@ func TestProjectVariableCommand_Run_Update(t *testing.T) {
 			return sampleProjectVariable, nil
 		},
 	}
-	mockProvider := &lab.MockProvider{
-		MockGetCurrentRemote: mockCurrentRemote,
-	}
 	mockClientFactory := &lab.MockAPIClientFactory{
 		MockGetProjectVariableClient: func() lab.ProjectVariable {
 			return mockClient
@@ -118,9 +110,9 @@ func TestProjectVariableCommand_Run_Update(t *testing.T) {
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectVariableCommand{
-		UI:            mockUI,
-		Provider:      mockProvider,
-		ClientFactory: mockClientFactory,
+		UI:              mockUI,
+		RemoteCollecter: &gitutil.MockCollecter{},
+		ClientFactory:   mockClientFactory,
 	}
 
 	// Do command
@@ -145,9 +137,6 @@ func TestProjectVariableCommand_Run_Remove(t *testing.T) {
 			return nil
 		},
 	}
-	mockProvider := &lab.MockProvider{
-		MockGetCurrentRemote: mockCurrentRemote,
-	}
 	mockClientFactory := &lab.MockAPIClientFactory{
 		MockGetProjectVariableClient: func() lab.ProjectVariable {
 			return mockClient
@@ -155,9 +144,9 @@ func TestProjectVariableCommand_Run_Remove(t *testing.T) {
 	}
 	mockUI := ui.NewMockUi()
 	c := ProjectVariableCommand{
-		UI:            mockUI,
-		Provider:      mockProvider,
-		ClientFactory: mockClientFactory,
+		UI:              mockUI,
+		RemoteCollecter: &gitutil.MockCollecter{},
+		ClientFactory:   mockClientFactory,
 	}
 
 	// Do command

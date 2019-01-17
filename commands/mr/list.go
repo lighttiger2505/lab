@@ -98,7 +98,7 @@ func outMergeRequest(mergeRequsets []*gitlab.MergeRequest) []string {
 	outputs := []string{}
 	for _, mergeRequest := range mergeRequsets {
 		output := strings.Join([]string{
-			cyan(lab.ParceRepositoryFullName(mergeRequest.WebURL)),
+			cyan(internal.ParceRepositoryFullName(mergeRequest.WebURL)),
 			yellow(mergeRequest.IID),
 			mergeRequest.Title,
 		}, "|")

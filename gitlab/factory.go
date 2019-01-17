@@ -1,6 +1,10 @@
 package gitlab
 
-import gitlab "github.com/xanzy/go-gitlab"
+import (
+	"fmt"
+
+	gitlab "github.com/xanzy/go-gitlab"
+)
 
 type APIClientFactory interface {
 	Init(url, token string) error
@@ -81,6 +85,14 @@ func (f *GitlabClientFactory) GetLintClient() Lint {
 
 func (f *GitlabClientFactory) GetRunnerClient() Runner {
 	return NewRunnerClient(f.gitlabClient)
+}
+
+func getGitlabClient(url, token string) (*gitlab.Client, error) {
+	client := gitlab.NewClient(nil, token)
+	if err := client.SetBaseURL(url); err != nil {
+		return nil, fmt.Errorf("Invalid base url for call GitLab API. %s", err.Error())
+	}
+	return client, nil
 }
 
 type MockAPIClientFactory struct {

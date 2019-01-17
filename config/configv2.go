@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"syscall"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -134,4 +135,20 @@ func getXDGConfigPath(goos string) string {
 		dir = filepath.Join(os.Getenv("HOME"), ".config", "lab")
 	}
 	return filepath.Join(dir, "config.yml")
+}
+
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+
+	if pathError, ok := err.(*os.PathError); ok {
+		if pathError.Err == syscall.ENOTDIR {
+			return false
+		}
+	}
+
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	return true
 }

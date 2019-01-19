@@ -25,8 +25,8 @@ type CreateUpdateOption struct {
 	Title        string `short:"i" long:"title" value-name:"<title>" description:"The title of an merge request"`
 	Message      string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
 	Template     string `short:"p" long:"template" value-name:"<merge request template>" description:"The template of an merge request"`
-	SourceBranch string `short:"s" long:"source" value-name:"<source branch>" description:"The source branch"`
-	TargetBranch string `short:"t" long:"target" value-name:"<target branch>" default:"master" default-mask:"master" description:"The target branch"`
+	SourceBranch string `long:"source" value-name:"<source branch>" description:"The source branch"`
+	TargetBranch string `long:"target" value-name:"<target branch>" default:"master" default-mask:"master" description:"The target branch"`
 	StateEvent   string `long:"state-event" value-name:"<state>" description:"Change the status. \"opened\", \"closed\""`
 	AssigneeID   int    `long:"assignee-id" value-name:"<assignee id>" description:"The ID of assignee."`
 }
@@ -37,6 +37,7 @@ type ListOption struct {
 	Scope      string `long:"scope" value-name:"<scope>" default:"all" default-mask:"all" description:"Print only given scope. \"created-by-me\", \"assigned-to-me\" or \"all\"."`
 	OrderBy    string `long:"orderby" value-name:"<orderby>" default:"updated_at" default-mask:"updated_at" description:"Print merge request ordered by \"created_at\" or \"updated_at\" fields."`
 	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print merge request ordered in \"asc\" or \"desc\" order."`
+	Search     string `short:"s" long:"search"  value-name:"<search word>" description:"Search merge request against their title and description."`
 	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
 	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	Merged     bool   `short:"g" long:"merged" description:"Shorthand of the state option for \"--state=merged\"."`

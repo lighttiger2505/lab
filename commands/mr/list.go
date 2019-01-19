@@ -59,6 +59,7 @@ func makeMergeRequestOption(listMergeRequestsOption *ListOption) *gitlab.ListMer
 		Scope:       gitlab.String(listMergeRequestsOption.getScope()),
 		OrderBy:     gitlab.String(listMergeRequestsOption.OrderBy),
 		Sort:        gitlab.String(listMergeRequestsOption.Sort),
+		Search:      gitlab.String(listMergeRequestsOption.Search),
 		ListOptions: *listOption,
 	}
 	return listRequestsOptions
@@ -74,6 +75,7 @@ func makeProjectMergeRequestOption(listMergeRequestsOption *ListOption) *gitlab.
 		Scope:       gitlab.String(listMergeRequestsOption.getScope()),
 		OrderBy:     gitlab.String(listMergeRequestsOption.OrderBy),
 		Sort:        gitlab.String(listMergeRequestsOption.Sort),
+		Search:      gitlab.String(listMergeRequestsOption.Search),
 		ListOptions: *listOption,
 	}
 	return listMergeRequestsOptions

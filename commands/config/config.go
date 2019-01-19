@@ -33,7 +33,7 @@ Synopsis:
 
 type ConfigCommand struct {
 	UI     ui.Ui
-	Config *config.ConfigV2
+	Config *config.Config
 }
 
 func (c *ConfigCommand) Synopsis() string {

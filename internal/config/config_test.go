@@ -39,13 +39,13 @@ func TestConfigV2_Load(t *testing.T) {
 	tests := []struct {
 		name           string
 		configContents string
-		want           *ConfigV2
+		want           *Config
 		wantErr        bool
 	}{
 		{
 			name:           "empty",
 			configContents: "",
-			want: &ConfigV2{
+			want: &Config{
 				Profiles:       map[string]Profile{},
 				DefalutProfile: "",
 			},
@@ -64,7 +64,7 @@ func TestConfigV2_Load(t *testing.T) {
     default_project: default_project2
 default_profile: default_profile
 `,
-			want: &ConfigV2{
+			want: &Config{
 				Profiles: map[string]Profile{
 					"hoge1.com": Profile{
 						Token:          "token1",
@@ -157,7 +157,7 @@ default_profile: default_profile
 			configFilePath = setupTestConfig("")
 			defer os.Remove(configFilePath)
 
-			c := &ConfigV2{
+			c := &Config{
 				Profiles:       tt.fields.Profiles,
 				DefalutProfile: tt.fields.DefalutProfile,
 			}

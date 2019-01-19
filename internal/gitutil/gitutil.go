@@ -16,7 +16,7 @@ type Collecter interface {
 type RemoteCollecter struct {
 	UI        ui.Ui
 	GitClient git.Client
-	Cfg       *config.ConfigV2
+	Cfg       *config.Config
 }
 
 type GitLabProjectInfo struct {
@@ -57,7 +57,7 @@ func (r *GitLabProjectInfo) Subpage(subpage string) string {
 	return strings.Join([]string{r.RepositoryUrl(), subpage}, "/")
 }
 
-func NewRemoteCollecter(ui ui.Ui, cfg *config.ConfigV2, gitClient git.Client) Collecter {
+func NewRemoteCollecter(ui ui.Ui, cfg *config.Config, gitClient git.Client) Collecter {
 	return &RemoteCollecter{
 		UI:        ui,
 		Cfg:       cfg,

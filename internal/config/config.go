@@ -14,7 +14,7 @@ import (
 
 var configFilePath = getXDGConfigPath(runtime.GOOS)
 
-type ConfigV2 struct {
+type Config struct {
 	Profiles       map[string]Profile `yaml:"profiles"`
 	DefalutProfile string             `yaml:"default_profile"`
 }
@@ -25,14 +25,14 @@ type Profile struct {
 	DefaultProject string `yaml:"default_project"`
 }
 
-func NewConfig() *ConfigV2 {
-	cfg := &ConfigV2{
+func NewConfig() *Config {
+	cfg := &Config{
 		Profiles: map[string]Profile{},
 	}
 	return cfg
 }
 
-func GetConfig() (*ConfigV2, error) {
+func GetConfig() (*Config, error) {
 	cfg := NewConfig()
 	if err := cfg.Load(); err != nil {
 		return nil, err
@@ -40,11 +40,11 @@ func GetConfig() (*ConfigV2, error) {
 	return cfg, nil
 }
 
-func (c *ConfigV2) Path() string {
+func (c *Config) Path() string {
 	return configFilePath
 }
 
-func (c *ConfigV2) Read() (string, error) {
+func (c *Config) Read() (string, error) {
 	if err := os.MkdirAll(filepath.Dir(configFilePath), 0700); err != nil {
 		return "", fmt.Errorf("cannot create directory, %s", err)
 	}
@@ -70,7 +70,7 @@ func (c *ConfigV2) Read() (string, error) {
 	return string(b), nil
 }
 
-func (c *ConfigV2) Load() error {
+func (c *Config) Load() error {
 	if err := os.MkdirAll(filepath.Dir(configFilePath), 0700); err != nil {
 		return fmt.Errorf("cannot create directory, %s", err)
 	}
@@ -99,7 +99,7 @@ func (c *ConfigV2) Load() error {
 	return nil
 }
 
-func (c *ConfigV2) Save() error {
+func (c *Config) Save() error {
 	file, err := os.OpenFile(configFilePath, os.O_WRONLY, 0666)
 	if err != nil {
 		return fmt.Errorf("cannot open file, %s", err)
@@ -117,7 +117,7 @@ func (c *ConfigV2) Save() error {
 	return nil
 }
 
-func (c *ConfigV2) GetProfile(domain string) (*Profile, error) {
+func (c *Config) GetProfile(domain string) (*Profile, error) {
 	profile, ok := c.Profiles[domain]
 	if !ok {
 		return nil, fmt.Errorf("not found profile, [%s]. Please check config", domain)
@@ -125,16 +125,16 @@ func (c *ConfigV2) GetProfile(domain string) (*Profile, error) {
 	return &profile, nil
 }
 
-func (c *ConfigV2) GetDefaultProfile() *Profile {
+func (c *Config) GetDefaultProfile() *Profile {
 	profile, _ := c.GetProfile(c.DefalutProfile)
 	return profile
 }
 
-func (c *ConfigV2) SetProfile(domain string, profile Profile) {
+func (c *Config) SetProfile(domain string, profile Profile) {
 	c.Profiles[domain] = profile
 }
 
-func (c *ConfigV2) HasDomain(domain string) bool {
+func (c *Config) HasDomain(domain string) bool {
 	_, ok := c.Profiles[domain]
 	if !ok {
 		return false
@@ -142,12 +142,12 @@ func (c *ConfigV2) HasDomain(domain string) bool {
 	return true
 }
 
-func (c *ConfigV2) GetToken(domain string) string {
+func (c *Config) GetToken(domain string) string {
 	profile, _ := c.GetProfile(domain)
 	return profile.Token
 }
 
-func (c *ConfigV2) SetToken(domain, token string) {
+func (c *Config) SetToken(domain, token string) {
 	profile, _ := c.GetProfile(domain)
 	profile.Token = token
 	c.SetProfile(domain, *profile)

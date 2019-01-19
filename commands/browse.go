@@ -8,10 +8,10 @@ import (
 
 	"github.com/atotto/clipboard"
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	gitpath "github.com/lighttiger2505/lab/git/path"
+	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
@@ -52,7 +52,7 @@ type BrowseCommand struct {
 	Ui              ui.Ui
 	RemoteCollecter gitutil.Collecter
 	GitClient       git.Client
-	Opener          cmd.URLOpener
+	Opener          browse.URLOpener
 }
 
 func (c *BrowseCommand) Synopsis() string {

@@ -6,10 +6,10 @@ import (
 	"strconv"
 
 	flags "github.com/jessevdk/go-flags"
-	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
 )
@@ -192,7 +192,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 
 	if browseOption.Browse {
 		return &browseMethod{
-			opener: &cmd.Browser{},
+			opener: &browse.Browser{},
 			url:    pInfo.SubpageUrl("merge_requests"),
 			id:     iid,
 		}, nil

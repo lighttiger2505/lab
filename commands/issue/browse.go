@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lighttiger2505/lab/cmd"
+	"github.com/lighttiger2505/lab/internal/browse"
 )
 
 type browseMethod struct {
-	opener cmd.URLOpener
+	opener browse.URLOpener
 	url    string
 	id     int
 }

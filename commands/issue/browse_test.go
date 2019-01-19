@@ -3,12 +3,12 @@ package issue
 import (
 	"testing"
 
-	"github.com/lighttiger2505/lab/cmd"
+	"github.com/lighttiger2505/lab/internal/browse"
 )
 
 func Test_browseMethod_Process(t *testing.T) {
 	type fields struct {
-		opener cmd.URLOpener
+		opener browse.URLOpener
 		url    string
 		id     int
 	}
@@ -21,7 +21,7 @@ func Test_browseMethod_Process(t *testing.T) {
 		{
 			name: "browse issue list page",
 			fields: fields{
-				opener: &cmd.MockOpener{
+				opener: &browse.MockOpener{
 					MockOpen: func(url string) error {
 						got := url
 						want := "https://domain/group/repository/issues"
@@ -41,7 +41,7 @@ func Test_browseMethod_Process(t *testing.T) {
 		{
 			name: "browse issue detail page",
 			fields: fields{
-				opener: &cmd.MockOpener{
+				opener: &browse.MockOpener{
 					MockOpen: func(url string) error {
 						got := url
 						want := "https://domain/group/repository/issues/12"

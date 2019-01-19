@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands"
 	configcmd "github.com/lighttiger2505/lab/commands/config"
 	"github.com/lighttiger2505/lab/commands/issue"
@@ -16,6 +15,7 @@ import (
 	"github.com/lighttiger2505/lab/commands/runner"
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/config"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/ui"
@@ -67,7 +67,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 				Ui:              ui,
 				RemoteCollecter: remoteCollecter,
 				GitClient:       &git.GitClient{},
-				Opener:          &cmd.Browser{},
+				Opener:          &browse.Browser{},
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {

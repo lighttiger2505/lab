@@ -1,9 +1,9 @@
 package pipeline
 
 import (
-	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 )
 
@@ -16,7 +16,7 @@ type PipelineMethodFacotry struct{}
 func (c *PipelineMethodFacotry) CreateMethod(opt Option, pInfo *gitutil.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method {
 	if opt.BrowseOption.Browse {
 		return &browseMethod{
-			opener: &cmd.Browser{},
+			opener: &browse.Browser{},
 			url:    pInfo.SubpageUrl("pipelines"),
 			id:     iid,
 		}

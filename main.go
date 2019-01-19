@@ -9,6 +9,7 @@ import (
 
 	"github.com/lighttiger2505/lab/cmd"
 	"github.com/lighttiger2505/lab/commands"
+	configcmd "github.com/lighttiger2505/lab/commands/config"
 	"github.com/lighttiger2505/lab/commands/issue"
 	"github.com/lighttiger2505/lab/commands/mr"
 	"github.com/lighttiger2505/lab/commands/pipeline"
@@ -151,6 +152,12 @@ func realMain(writer io.Writer, ver, rev string) int {
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
 				ClientFactory:   &lab.GitlabClientFactory{},
+			}, nil
+		},
+		"config": func() (cli.Command, error) {
+			return &configcmd.ConfigCommand{
+				UI:     ui,
+				Config: cfg,
 			}, nil
 		},
 	}

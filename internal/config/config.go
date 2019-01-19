@@ -40,6 +40,36 @@ func GetConfig() (*ConfigV2, error) {
 	return cfg, nil
 }
 
+func (c *ConfigV2) Path() string {
+	return configFilePath
+}
+
+func (c *ConfigV2) Read() (string, error) {
+	if err := os.MkdirAll(filepath.Dir(configFilePath), 0700); err != nil {
+		return "", fmt.Errorf("cannot create directory, %s", err)
+	}
+
+	if !fileExists(configFilePath) {
+		_, err := os.Create(configFilePath)
+		if err != nil {
+			return "", fmt.Errorf("cannot create config, %s", err.Error())
+		}
+	}
+
+	file, err := os.OpenFile(configFilePath, os.O_RDONLY, 0666)
+	if err != nil {
+		return "", fmt.Errorf("cannot open config, %s", err)
+	}
+	defer file.Close()
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return "", fmt.Errorf("cannot read config, %s", err)
+	}
+
+	return string(b), nil
+}
+
 func (c *ConfigV2) Load() error {
 	if err := os.MkdirAll(filepath.Dir(configFilePath), 0700); err != nil {
 		return fmt.Errorf("cannot create directory, %s", err)

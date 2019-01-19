@@ -19,6 +19,7 @@ type APIClientFactory interface {
 	GetUserClient() User
 	GetLintClient() Lint
 	GetRunnerClient() Runner
+	GetMilestoneClient() Milestone
 }
 
 type GitlabClientFactory struct {
@@ -87,6 +88,10 @@ func (f *GitlabClientFactory) GetRunnerClient() Runner {
 	return NewRunnerClient(f.gitlabClient)
 }
 
+func (f *GitlabClientFactory) GetMilestoneClient() Milestone {
+	return NewMilestoneClient(f.gitlabClient)
+}
+
 func getGitlabClient(url, token string) (*gitlab.Client, error) {
 	client := gitlab.NewClient(nil, token)
 	if err := client.SetBaseURL(url); err != nil {
@@ -107,6 +112,7 @@ type MockAPIClientFactory struct {
 	MockGetUserClient            func() User
 	MockGetLintClient            func() Lint
 	MockGetRunnerClient          func() Runner
+	MockGetMilestoneClient       func() Milestone
 }
 
 func (m *MockAPIClientFactory) Init(url, token string) error {
@@ -155,4 +161,8 @@ func (m *MockAPIClientFactory) GetLintClient() Lint {
 
 func (m *MockAPIClientFactory) GetRunnerClient() Runner {
 	return m.MockGetRunnerClient()
+}
+
+func (m *MockAPIClientFactory) GetMilestoneClient() Milestone {
+	return m.MockGetMilestoneClient()
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/lighttiger2505/lab/commands"
 	configcmd "github.com/lighttiger2505/lab/commands/config"
 	"github.com/lighttiger2505/lab/commands/issue"
+	"github.com/lighttiger2505/lab/commands/milestone"
 	"github.com/lighttiger2505/lab/commands/mr"
 	"github.com/lighttiger2505/lab/commands/pipeline"
 	"github.com/lighttiger2505/lab/commands/runner"
@@ -158,6 +159,13 @@ func realMain(writer io.Writer, ver, rev string) int {
 			return &configcmd.ConfigCommand{
 				UI:     ui,
 				Config: cfg,
+			}, nil
+		},
+		"milestone": func() (cli.Command, error) {
+			return &milestone.MilestoneCommand{
+				UI:              ui,
+				RemoteCollecter: remoteCollecter,
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 	}

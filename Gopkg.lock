@@ -91,12 +91,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/mitchellh/go-homedir"
-  packages = ["."]
-  revision = "ae18d6b8b3205b561c79e8e5f69bff09736185f4"
-  version = "v1.0.0"
-
-[[projects]]
   name = "github.com/posener/complete"
   packages = [
     ".",
@@ -116,8 +110,8 @@
 [[projects]]
   name = "github.com/xanzy/go-gitlab"
   packages = ["."]
-  revision = "b8189bef4d4ee2b365a2c03a8bc99e4f3600743e"
-  version = "v0.11.0"
+  revision = "954568c5d9242be1fb907039d769952fa4f6bc70"
+  version = "v0.11.7"
 
 [[projects]]
   branch = "master"
@@ -166,6 +160,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "42f492a89632fba533ee12fda1e6b8a1acca14db9423dded1b34bc5c92fb45f2"
+  inputs-digest = "86af1d4bbebaadef23ef90e9ae4b42447cf0b1ae674caa82f5c145392113001b"
   solver-name = "gps-cdcl"
   solver-version = 1

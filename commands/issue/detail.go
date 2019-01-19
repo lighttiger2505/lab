@@ -48,10 +48,14 @@ func (m *detailMethod) Process() (string, error) {
 }
 
 func makeListIssueNotesOptions() *gitlab.ListIssueNotesOptions {
-	return &gitlab.ListIssueNotesOptions{
+	lopt := gitlab.ListOptions{
 		Page:    1,
 		PerPage: 20,
 	}
+	return &gitlab.ListIssueNotesOptions{
+		ListOptions: lopt,
+	}
+
 }
 
 func issueDetailOutput(issue *gitlab.Issue) string {

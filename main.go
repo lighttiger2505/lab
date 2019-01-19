@@ -64,7 +64,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 	c.Commands = map[string]cli.CommandFactory{
 		"browse": func() (cli.Command, error) {
 			return &commands.BrowseCommand{
-				Ui:              ui,
+				UI:              ui,
 				RemoteCollecter: remoteCollecter,
 				GitClient:       &git.GitClient{},
 				Opener:          &browse.Browser{},
@@ -72,21 +72,21 @@ func realMain(writer io.Writer, ver, rev string) int {
 		},
 		"issue": func() (cli.Command, error) {
 			return &issue.IssueCommand{
-				Ui:              ui,
+				UI:              ui,
 				RemoteCollecter: remoteCollecter,
 				MethodFactory:   &issue.IssueMethodFactory{},
 			}, nil
 		},
 		"merge-request": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
-				Ui:              ui,
+				UI:              ui,
 				RemoteCollecter: remoteCollecter,
 				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"mr": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
-				Ui:              ui,
+				UI:              ui,
 				RemoteCollecter: remoteCollecter,
 				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil

@@ -25,7 +25,7 @@ func newMergeRequestTemplateCommandParser(opt *MergeRequestTemplateCommnadOption
 }
 
 type MergeRequestTemplateCommand struct {
-	UI              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	ClientFactory   lab.APIClientFactory
 }

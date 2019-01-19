@@ -32,7 +32,7 @@ func (m *MockURLOpener) Open(url string) error {
 func TestBrowseCommandRun(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := BrowseCommand{
-		Ui:              mockUI,
+		UI:              mockUI,
 		RemoteCollecter: &gitutil.MockCollecter{},
 		GitClient:       mockGitClient,
 		Opener:          &MockURLOpener{},

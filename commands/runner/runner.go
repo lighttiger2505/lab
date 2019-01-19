@@ -46,7 +46,7 @@ func newListRunnerOption() *ListOption {
 }
 
 type RunnerCommand struct {
-	UI              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	ClientFactory   lab.APIClientFactory
 }

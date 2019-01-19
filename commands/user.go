@@ -42,7 +42,7 @@ func newListUserOption() *ListUserOption {
 }
 
 type UserCommand struct {
-	UI              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	ClientFactory   lab.APIClientFactory
 }

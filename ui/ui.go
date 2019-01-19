@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-type Ui interface {
+type UI interface {
 	Ask(string) (string, error)
 	Say(string)
 	Message(string)

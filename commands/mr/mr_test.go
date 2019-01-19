@@ -90,7 +90,7 @@ var mockAPIClientFactory = &lab.MockAPIClientFactory{
 func TestMergeRequestCommandRun_List(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:              mockUI,
+		UI:              mockUI,
 		RemoteCollecter: &gitutil.MockCollecter{},
 		ClientFactory:   mockAPIClientFactory,
 	}
@@ -110,7 +110,7 @@ func TestMergeRequestCommandRun_List(t *testing.T) {
 func TestMergeRequestCommandRun_ListAll(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:              mockUI,
+		UI:              mockUI,
 		RemoteCollecter: &gitutil.MockCollecter{},
 		ClientFactory:   mockAPIClientFactory,
 	}
@@ -130,7 +130,7 @@ func TestMergeRequestCommandRun_ListAll(t *testing.T) {
 func TestMergeRequestCommandRun_Create(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:              mockUI,
+		UI:              mockUI,
 		RemoteCollecter: &gitutil.MockCollecter{},
 		ClientFactory:   mockAPIClientFactory,
 	}
@@ -150,7 +150,7 @@ func TestMergeRequestCommandRun_Create(t *testing.T) {
 func TestMergeRequestCommandRun_CreateOnEditor(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:              mockUI,
+		UI:              mockUI,
 		RemoteCollecter: &gitutil.MockCollecter{},
 		ClientFactory:   mockAPIClientFactory,
 		EditFunc: func(program, file string) error {
@@ -173,7 +173,7 @@ func TestMergeRequestCommandRun_CreateOnEditor(t *testing.T) {
 func TestMergeRequestCommandRun_Update(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:              mockUI,
+		UI:              mockUI,
 		RemoteCollecter: &gitutil.MockCollecter{},
 		ClientFactory:   mockAPIClientFactory,
 	}
@@ -193,7 +193,7 @@ func TestMergeRequestCommandRun_Update(t *testing.T) {
 func TestMergeRequestCommandRun_UpdateOnEditor(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:              mockUI,
+		UI:              mockUI,
 		RemoteCollecter: &gitutil.MockCollecter{},
 		ClientFactory:   mockAPIClientFactory,
 		EditFunc: func(program, file string) error {
@@ -216,7 +216,7 @@ func TestMergeRequestCommandRun_UpdateOnEditor(t *testing.T) {
 func TestMergeRequestCommandRun_Show(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := MergeRequestCommand{
-		Ui:              mockUI,
+		UI:              mockUI,
 		RemoteCollecter: &gitutil.MockCollecter{},
 		ClientFactory:   mockAPIClientFactory,
 	}

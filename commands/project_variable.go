@@ -76,7 +76,7 @@ func newAddProjectVaribleOption() *CreateUpdateProjectVaribleOption {
 }
 
 type ProjectVariableCommand struct {
-	UI              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	ClientFactory   lab.APIClientFactory
 }

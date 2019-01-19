@@ -129,7 +129,7 @@ Synopsis:
 }
 
 type IssueCommand struct {
-	Ui              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	MethodFactory   MethodFactory
 }
@@ -151,13 +151,13 @@ func (c *IssueCommand) Run(args []string) int {
 	parser := newOptionParser(&opt)
 	parseArgs, err := parser.ParseArgs(args)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	iid, err := validIssueIID(parseArgs)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
@@ -166,25 +166,25 @@ func (c *IssueCommand) Run(args []string) int {
 		opt.ProjectProfileOption.Profile,
 	)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	clientFacotry, err := lab.NewGitlabClientFactory(pInfo.ApiUrl(), pInfo.Token)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	method := c.MethodFactory.CreateMethod(opt, pInfo, iid, clientFacotry)
 	res, err := method.Process()
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	if res != "" {
-		c.Ui.Message(res)
+		c.UI.Message(res)
 	}
 
 	return ExitCodeOK

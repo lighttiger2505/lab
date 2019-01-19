@@ -45,7 +45,7 @@ func newListJobOption() *ListJobOption {
 }
 
 type JobCommand struct {
-	UI              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	ClientFactory   lab.APIClientFactory
 }

@@ -32,7 +32,7 @@ Synopsis:
 }
 
 type ConfigCommand struct {
-	UI     ui.Ui
+	UI     ui.UI
 	Config *config.Config
 }
 

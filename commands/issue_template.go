@@ -25,7 +25,7 @@ func newIssueTemplateCommandParser(opt *IssueTemplateCommnadOption) *flags.Parse
 }
 
 type IssueTemplateCommand struct {
-	UI              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	ClientFactory   lab.APIClientFactory
 }

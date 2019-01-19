@@ -85,7 +85,7 @@ func TestIssueCommand_Run(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUI := ui.NewMockUi()
 			c := &IssueCommand{
-				Ui:              mockUI,
+				UI:              mockUI,
 				RemoteCollecter: tt.fields.RemoteCollecter,
 				MethodFactory:   tt.fields.MethodFactory,
 			}

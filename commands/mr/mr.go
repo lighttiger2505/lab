@@ -114,7 +114,7 @@ Synopsis:
 }
 
 type MergeRequestCommand struct {
-	Ui              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	GitClient       git.Client
 	ClientFactory   lab.APIClientFactory
@@ -138,7 +138,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	mergeRequestCommandParser := newOptionParser(&opt)
 	parseArgs, err := mergeRequestCommandParser.ParseArgs(args)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
@@ -147,29 +147,29 @@ func (c *MergeRequestCommand) Run(args []string) int {
 		opt.ProjectProfileOption.Profile,
 	)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	method, err := c.getMethod(opt, parseArgs, pInfo, c.ClientFactory)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	res, err := method.Process()
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	if res != "" {
-		c.Ui.Message(res)
+		c.UI.Message(res)
 	}
 
 	return ExitCodeOK

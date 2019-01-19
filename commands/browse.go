@@ -49,7 +49,7 @@ Synopsis:
 }
 
 type BrowseCommand struct {
-	Ui              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	GitClient       git.Client
 	Opener          browse.URLOpener
@@ -72,7 +72,7 @@ func (c *BrowseCommand) Run(args []string) int {
 	browseOptionParser := newBrowseOptionParser(&opt)
 	parseArgs, err := browseOptionParser.ParseArgs(args)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
@@ -81,20 +81,20 @@ func (c *BrowseCommand) Run(args []string) int {
 		opt.ProjectProfileOption.Profile,
 	)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	var branch = "master"
 	isGitDir, err := git.IsGitDirReverseTop()
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 	if isGitDir {
 		branch, err = c.GitClient.CurrentRemoteBranch()
 		if err != nil {
-			c.Ui.Error(err.Error())
+			c.UI.Error(err.Error())
 			return ExitCodeError
 		}
 	}
@@ -102,24 +102,24 @@ func (c *BrowseCommand) Run(args []string) int {
 	browseOption := opt.BrowseOption
 	url, err := c.getURL(parseArgs, pInfo, branch, browseOption)
 	if err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 
 	if browseOption.URL {
-		c.Ui.Message(url)
+		c.UI.Message(url)
 		return ExitCodeOK
 	}
 
 	if browseOption.Copy {
 		if err := clipboard.WriteAll(url); err != nil {
-			c.Ui.Error(fmt.Sprintf("Error copying %s to clipboard:\n%s\n", url, err))
+			c.UI.Error(fmt.Sprintf("Error copying %s to clipboard:\n%s\n", url, err))
 		}
 		return ExitCodeOK
 	}
 
 	if err := c.Opener.Open(url); err != nil {
-		c.Ui.Error(err.Error())
+		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
 	return ExitCodeOK

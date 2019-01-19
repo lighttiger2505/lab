@@ -40,7 +40,7 @@ func newListProjectOption() *ListProjectOption {
 }
 
 type ProjectCommand struct {
-	UI              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	ClientFactory   lab.APIClientFactory
 }

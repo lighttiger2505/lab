@@ -56,7 +56,7 @@ var opt Option
 var parser = newOptionParser(&opt)
 
 type PipelineCommand struct {
-	UI              ui.Ui
+	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	MethodFactory   MethodFactory
 }

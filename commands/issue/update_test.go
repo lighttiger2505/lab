@@ -16,11 +16,11 @@ func Test_updateMethod_Process(t *testing.T) {
 		State: "state",
 		Assignee: struct {
 			ID        int    `json:"id"`
-			Name      string `json:"name"`
-			Username  string `json:"username"`
 			State     string `json:"state"`
-			AvatarURL string `json:"avatar_url"`
 			WebURL    string `json:"web_url"`
+			Name      string `json:"name"`
+			AvatarURL string `json:"avatar_url"`
+			Username  string `json:"username"`
 		}{
 			ID: 24,
 		},
@@ -215,11 +215,11 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		State: "state",
 		Assignee: struct {
 			ID        int    `json:"id"`
-			Name      string `json:"name"`
-			Username  string `json:"username"`
 			State     string `json:"state"`
-			AvatarURL string `json:"avatar_url"`
 			WebURL    string `json:"web_url"`
+			Name      string `json:"name"`
+			AvatarURL string `json:"avatar_url"`
+			Username  string `json:"username"`
 		}{
 			ID: 24,
 		},

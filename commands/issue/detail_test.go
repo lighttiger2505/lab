@@ -17,21 +17,21 @@ func Test_detailMethod_Process(t *testing.T) {
 		State: "State12",
 		Assignee: struct {
 			ID        int    `json:"id"`
-			Name      string `json:"name"`
-			Username  string `json:"username"`
 			State     string `json:"state"`
-			AvatarURL string `json:"avatar_url"`
 			WebURL    string `json:"web_url"`
+			Name      string `json:"name"`
+			AvatarURL string `json:"avatar_url"`
+			Username  string `json:"username"`
 		}{
 			Name: "AssigneeName",
 		},
 		Author: struct {
-			ID        int        `json:"id"`
-			Username  string     `json:"username"`
-			Email     string     `json:"email"`
-			Name      string     `json:"name"`
-			State     string     `json:"state"`
-			CreatedAt *time.Time `json:"created_at"`
+			ID        int    `json:"id"`
+			State     string `json:"state"`
+			WebURL    string `json:"web_url"`
+			Name      string `json:"name"`
+			AvatarURL string `json:"avatar_url"`
+			Username  string `json:"username"`
 		}{
 			Name: "AuthorName",
 		},
@@ -45,14 +45,13 @@ func Test_detailMethod_Process(t *testing.T) {
 			Body:  "body",
 			Title: "title",
 			Author: struct {
-				ID        int        `json:"id"`
-				Username  string     `json:"username"`
-				Email     string     `json:"email"`
-				Name      string     `json:"name"`
-				State     string     `json:"state"`
-				CreatedAt *time.Time `json:"created_at"`
-				AvatarURL string     `json:"avatar_url"`
-				WebURL    string     `json:"web_url"`
+				ID        int    `json:"id"`
+				Username  string `json:"username"`
+				Email     string `json:"email"`
+				Name      string `json:"name"`
+				State     string `json:"state"`
+				AvatarURL string `json:"avatar_url"`
+				WebURL    string `json:"web_url"`
 			}{
 				Name: "author1",
 			},
@@ -64,14 +63,13 @@ func Test_detailMethod_Process(t *testing.T) {
 			Body:  "body",
 			Title: "title",
 			Author: struct {
-				ID        int        `json:"id"`
-				Username  string     `json:"username"`
-				Email     string     `json:"email"`
-				Name      string     `json:"name"`
-				State     string     `json:"state"`
-				CreatedAt *time.Time `json:"created_at"`
-				AvatarURL string     `json:"avatar_url"`
-				WebURL    string     `json:"web_url"`
+				ID        int    `json:"id"`
+				Username  string `json:"username"`
+				Email     string `json:"email"`
+				Name      string `json:"name"`
+				State     string `json:"state"`
+				AvatarURL string `json:"avatar_url"`
+				WebURL    string `json:"web_url"`
 			}{
 				Name: "author2",
 			},

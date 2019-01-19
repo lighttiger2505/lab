@@ -57,6 +57,7 @@ func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssu
 		OrderBy:     gitlab.String(issueListOption.OrderBy),
 		Sort:        gitlab.String(issueListOption.Sort),
 		Search:      gitlab.String(issueListOption.Search),
+		Milestone:   gitlab.String(issueListOption.Milestone),
 		ListOptions: *listOption,
 	}
 	return listProjectIssuesOptions
@@ -73,6 +74,7 @@ func makeAllProjectIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOp
 		OrderBy:     gitlab.String(issueListOption.OrderBy),
 		Sort:        gitlab.String(issueListOption.Sort),
 		Search:      gitlab.String(issueListOption.Search),
+		Milestone:   gitlab.String(issueListOption.Milestone),
 		ListOptions: *listOption,
 	}
 	return listIssuesOptions

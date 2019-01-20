@@ -63,6 +63,9 @@ func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssu
 	if issueListOption.AuthorID != 0 {
 		listProjectIssuesOptions.AuthorID = gitlab.Int(issueListOption.AuthorID)
 	}
+	if issueListOption.AssigneeID != 0 {
+		listProjectIssuesOptions.AssigneeID = gitlab.Int(issueListOption.AssigneeID)
+	}
 	return listProjectIssuesOptions
 }
 
@@ -82,6 +85,9 @@ func makeAllProjectIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOp
 	}
 	if issueListOption.AuthorID != 0 {
 		listIssuesOptions.AuthorID = gitlab.Int(issueListOption.AuthorID)
+	}
+	if issueListOption.AssigneeID != 0 {
+		listIssuesOptions.AssigneeID = gitlab.Int(issueListOption.AssigneeID)
 	}
 	return listIssuesOptions
 }

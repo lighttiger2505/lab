@@ -57,8 +57,11 @@ func makeProjectIssueOption(issueListOption *ListOption) *gitlab.ListProjectIssu
 		OrderBy:     gitlab.String(issueListOption.OrderBy),
 		Sort:        gitlab.String(issueListOption.Sort),
 		Search:      gitlab.String(issueListOption.Search),
-		Milestone:   gitlab.String(issueListOption.Milestone),
 		ListOptions: *listOption,
+	}
+
+	if issueListOption.Milestone != "" {
+		listProjectIssuesOptions.Milestone = gitlab.String(issueListOption.Milestone)
 	}
 	if issueListOption.AuthorID != 0 {
 		listProjectIssuesOptions.AuthorID = gitlab.Int(issueListOption.AuthorID)
@@ -80,8 +83,11 @@ func makeAllProjectIssueOption(issueListOption *ListOption) *gitlab.ListIssuesOp
 		OrderBy:     gitlab.String(issueListOption.OrderBy),
 		Sort:        gitlab.String(issueListOption.Sort),
 		Search:      gitlab.String(issueListOption.Search),
-		Milestone:   gitlab.String(issueListOption.Milestone),
 		ListOptions: *listOption,
+	}
+
+	if issueListOption.Milestone != "" {
+		listIssuesOptions.Milestone = gitlab.String(issueListOption.Milestone)
 	}
 	if issueListOption.AuthorID != 0 {
 		listIssuesOptions.AuthorID = gitlab.Int(issueListOption.AuthorID)

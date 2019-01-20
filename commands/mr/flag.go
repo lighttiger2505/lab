@@ -17,12 +17,12 @@ type CreateUpdateOption struct {
 	Edit         bool   `short:"e" long:"edit" description:"Edit the merge request on editor. Start the editor with the contents in the given title and message options."`
 	Title        string `short:"i" long:"title" value-name:"<title>" description:"The title of an merge request"`
 	Message      string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
-	Template     string `short:"p" long:"template" value-name:"<merge request template>" description:"The template of an merge request"`
+	Template     string `short:"p" long:"template" value-name:"<merge request template>" description:"Start the editor with file using merge request template"`
 	SourceBranch string `long:"source" value-name:"<source branch>" description:"The source branch"`
 	TargetBranch string `long:"target" value-name:"<target branch>" default:"master" default-mask:"master" description:"The target branch"`
 	StateEvent   string `long:"state-event" value-name:"<state>" description:"Change the status. \"opened\", \"closed\""`
-	AssigneeID   int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of assignee."`
-	MilestoneID  int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The ID of milestone."`
+	AssigneeID   int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of the user to assign the merge request to."`
+	MilestoneID  int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The global ID of a milestone to assign the merge request to. "`
 }
 
 func (o *CreateUpdateOption) hasEdit() bool {
@@ -59,9 +59,9 @@ type ListOption struct {
 	OrderBy    string `long:"orderby" value-name:"<orderby>" default:"updated_at" default-mask:"updated_at" description:"Print merge request ordered by \"created_at\" or \"updated_at\" fields."`
 	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print merge request ordered in \"asc\" or \"desc\" order."`
 	Search     string `short:"s" long:"search"  value-name:"<search word>" description:"Search merge request against their title and description."`
-	Milestone  string `long:"milestone"  value-name:"<milestone>" description:"lists merge request that have an assigned milestone."`
-	AuthorID   int    `long:"author-id"  value-name:"<auther id>" description:"lists merge request that have an author id."`
-	AssigneeID int    `long:"assignee-id"  value-name:"<assignee id>" description:"lists merge request that have an assignee id."`
+	Milestone  string `long:"milestone"  value-name:"<milestone>" description:"Print merge requests for a specific milestone. "`
+	AuthorID   int    `long:"author-id"  value-name:"<auther id>" description:"Print merge requests created by the given user id"`
+	AssigneeID int    `long:"assignee-id"  value-name:"<assignee id>" description:"Print merge requests assigned to the given user id."`
 	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
 	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	Merged     bool   `short:"g" long:"merged" description:"Shorthand of the state option for \"--state=merged\"."`
@@ -107,25 +107,28 @@ func newOptionParser(opt *Option) *flags.Parser {
 	opt.ListOption = &ListOption{}
 	opt.BrowseOption = &BrowseOption{}
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
-	parser.Usage = `merge-request - Create and Edit, list a merge request
+	parser.Usage = `merge-request - Create and Edit, List, Browse a merge request
 
 Synopsis:
   # List merge request
-  lab merge-request [-n <num>] -l [--state <state>] [--scope <scope>]
-                    [--orderby <orderby>] [--sort <sort>] -o -c -g
-                    -r -a -A
+  lab merge-request [-n <num>] [--state=<state> | -o | -c] [--scope=<scope> | -r | -a] [-s <search word>]
+                    [--milestone=<milestone>] [--author-id=<author id>] [--assignee-id=<assignee id>]
+                    [--orderby <orderby>] [--sort <sort>] [-A]
 
   # Create merge request
-  lab merge-request [-e] [-i <title>] [-d <message>] [--assignee-id=<assignee id>]
+  lab merge-request -e | -i <title> [-m <message>] 
+                    [--cu-assignee-id=<assignee id>] [--cu-milestone-id=<milestone id>]
 
   # Update merge request
-  lab merge-request <merge request iid> [-t <title>] [-d <description>] [--state-event=<state>] [--assignee-id=<assignee id>]
+  lab merge-request <merge request id> [-e] [-i <title>] [-m <message>] 
+                                       [--state-event=<state>]
+                                       [--cu-assignee-id=<assignee id>] [--cu-milestone-id=<milestone id>]
 
   # Show merge request
-  lab merge-request <mergerequest iid>
-  
+  lab merge-request <merge request id> [--no-comment]
+
   # Browse merge request
-  lab merge-request -b [<mergerequest iid>]`
+  lab merge-request -b [<merge request id>]`
 
 	return parser
 }

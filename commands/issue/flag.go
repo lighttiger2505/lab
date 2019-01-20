@@ -17,10 +17,10 @@ type CreateUpdateOption struct {
 	Edit        bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
 	Title       string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
 	Message     string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
-	Template    string `short:"p" long:"template" value-name:"<issue template>" description:"The template of an issue"`
+	Template    string `short:"p" long:"template" value-name:"<issue template>" description:"Start the editor with file using issue template"`
 	StateEvent  string `long:"state-event" value-name:"<state>" description:"Change the status. \"close\", \"reopen\""`
-	AssigneeID  int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of assignee."`
-	MilestoneID int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The ID of milestone."`
+	AssigneeID  int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of the user to assign the issue to."`
+	MilestoneID int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The global ID of a milestone to assign the issue to. "`
 }
 
 func (o *CreateUpdateOption) hasEdit() bool {
@@ -57,9 +57,9 @@ type ListOption struct {
 	OrderBy    string `long:"orderby" value-name:"<orderby>" default:"updated_at" default-mask:"updated_at" description:"Print issue ordered by \"created_at\" or \"updated_at\" fields."`
 	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print issue ordered in \"asc\" or \"desc\" order."`
 	Search     string `short:"s" long:"search"  value-name:"<search word>" description:"Search issues against their title and description."`
-	Milestone  string `long:"milestone"  value-name:"<milestone>" description:"lists issues that have an assigned milestone."`
-	AuthorID   int    `long:"author-id"  value-name:"<auther id>" description:"lists issues that have an author id."`
-	AssigneeID int    `long:"assignee-id"  value-name:"<assignee id>" description:"lists issues that have an assignee id."`
+	Milestone  string `long:"milestone"  value-name:"<milestone>" description:"Print issues for a specific milestone. "`
+	AuthorID   int    `long:"author-id"  value-name:"<auther id>" description:"Print issues created by the given user id"`
+	AssigneeID int    `long:"assignee-id"  value-name:"<assignee id>" description:"Print issues assigned to the given user id."`
 	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
 	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`
@@ -102,24 +102,28 @@ func newOptionParser(opt *Option) *flags.Parser {
 	opt.ShowOption = &ShowOption{}
 	opt.BrowseOption = &BrowseOption{}
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
-	parser.Usage = `issue - Create and Edit, list a issue
+	parser.Usage = `issue - Create and Edit, List, Browse a issue
 
 Synopsis:
   # List issue
-  lab issue [-n <num>] [--state=<state> | -o | -c] [--scope=<scope> | -r | -a] [-s]
+  lab issue [-n <num>] [--state=<state> | -o | -c] [--scope=<scope> | -r | -a] [-s <search word>]
+            [--milestone=<milestone>] [--author-id=<author id>] [--assignee-id=<assignee id>]
             [--orderby=<orderby>] [--sort=<sort>] [-A]
 
   # Create issue
-  lab issue [-e] [-i <title>] [-m <message>] [--assignee-id=<assignee id>]
+  lab issue -e | -i <title> [-m <message>]
+            [--cu-assignee-id=<assignee id>] [--cu-milestone-id=<milestone id>]
 
   # Update issue
-  lab issue <issue iid> [-e] [-i <title>] [-m <message>] [--state-event=<state>] [--assignee-id=<assignee id>]
+  lab issue <issue id> [-e] [-i <title>] [-m <message>]
+                       [--state-event=<state>]
+                       [--cu-assignee-id=<assignee id>] [--cu-milestone-id=<milestone id>]
 
   # Show issue
-  lab issue <issue iid> [--no-comment]
-  
+  lab issue <issue id> [--no-comment]
+
   # Browse issue
-  lab issue -b [<issue iid>]`
+  lab issue -b [<issue id>]`
 
 	return parser
 }

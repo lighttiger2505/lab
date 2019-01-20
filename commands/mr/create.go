@@ -114,6 +114,9 @@ func makeCreateMergeRequestOption(opt *CreateUpdateOption, title, description, b
 	if opt.AssigneeID != 0 {
 		createMergeRequestOption.AssigneeID = gitlab.Int(opt.AssigneeID)
 	}
+	if opt.MilestoneID != 0 {
+		createMergeRequestOption.MilestoneID = gitlab.Int(opt.MilestoneID)
+	}
 	return createMergeRequestOption
 }
 

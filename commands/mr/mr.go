@@ -28,7 +28,35 @@ type CreateUpdateOption struct {
 	SourceBranch string `long:"source" value-name:"<source branch>" description:"The source branch"`
 	TargetBranch string `long:"target" value-name:"<target branch>" default:"master" default-mask:"master" description:"The target branch"`
 	StateEvent   string `long:"state-event" value-name:"<state>" description:"Change the status. \"opened\", \"closed\""`
-	AssigneeID   int    `long:"assignee-id" value-name:"<assignee id>" description:"The ID of assignee."`
+	AssigneeID   int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of assignee."`
+	MilestoneID  int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The ID of milestone."`
+}
+
+func (o *CreateUpdateOption) hasEdit() bool {
+	if o.Edit {
+		return true
+	}
+	return false
+}
+
+func (o *CreateUpdateOption) hasCreate() bool {
+	if o.Title != "" ||
+		o.AssigneeID != 0 ||
+		o.MilestoneID != 0 {
+		return true
+	}
+	return false
+}
+
+func (o *CreateUpdateOption) hasUpdate() bool {
+	if o.Title != "" ||
+		o.Message != "" ||
+		o.StateEvent != "" ||
+		o.AssigneeID != 0 ||
+		o.MilestoneID != 0 {
+		return true
+	}
+	return false
 }
 
 type ListOption struct {
@@ -204,7 +232,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 
 	// Case of getting Merge Request IID
 	if len(args) > 0 {
-		if createUpdateOption.Edit {
+		if createUpdateOption.hasEdit() {
 			return &updateOnEditorMethod{
 				client:   mrClient,
 				opt:      createUpdateOption,
@@ -213,7 +241,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 				editFunc: c.EditFunc,
 			}, nil
 		}
-		if hasCreateUpdateOption(createUpdateOption) {
+		if createUpdateOption.hasUpdate() {
 			return &updateMethod{
 				client:  mrClient,
 				opt:     createUpdateOption,
@@ -232,7 +260,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 	}
 
 	// Case of nothing MergeRequest IID
-	if createUpdateOption.Edit {
+	if createUpdateOption.hasEdit() {
 		return &createOnEditorMethod{
 			client:           mrClient,
 			repositoryClient: repositoryClient,
@@ -242,7 +270,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 		}, nil
 
 	}
-	if createUpdateOption.Title != "" {
+	if createUpdateOption.hasCreate() {
 		return &createMethod{
 			client:  mrClient,
 			opt:     createUpdateOption,
@@ -262,13 +290,6 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 		opt:     listOption,
 		project: pInfo.Project,
 	}, nil
-}
-
-func hasCreateUpdateOption(opt *CreateUpdateOption) bool {
-	if opt.Title != "" || opt.Message != "" || opt.StateEvent != "" || opt.AssigneeID != 0 {
-		return true
-	}
-	return false
 }
 
 func validMergeRequestIID(args []string) (int, error) {

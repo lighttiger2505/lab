@@ -54,6 +54,7 @@ func makeMergeRequestOption(listMergeRequestsOption *ListOption) *gitlab.ListMer
 		Page:    1,
 		PerPage: listMergeRequestsOption.Num,
 	}
+
 	listRequestsOptions := &gitlab.ListMergeRequestsOptions{
 		State:       gitlab.String(listMergeRequestsOption.getState()),
 		Scope:       gitlab.String(listMergeRequestsOption.getScope()),
@@ -61,6 +62,16 @@ func makeMergeRequestOption(listMergeRequestsOption *ListOption) *gitlab.ListMer
 		Sort:        gitlab.String(listMergeRequestsOption.Sort),
 		Search:      gitlab.String(listMergeRequestsOption.Search),
 		ListOptions: *listOption,
+	}
+
+	if listMergeRequestsOption.Milestone != "" {
+		listRequestsOptions.Milestone = gitlab.String(listMergeRequestsOption.Milestone)
+	}
+	if listMergeRequestsOption.AuthorID != 0 {
+		listRequestsOptions.AuthorID = gitlab.Int(listMergeRequestsOption.AuthorID)
+	}
+	if listMergeRequestsOption.AssigneeID != 0 {
+		listRequestsOptions.AssigneeID = gitlab.Int(listMergeRequestsOption.AssigneeID)
 	}
 	return listRequestsOptions
 }
@@ -77,6 +88,16 @@ func makeProjectMergeRequestOption(listMergeRequestsOption *ListOption) *gitlab.
 		Sort:        gitlab.String(listMergeRequestsOption.Sort),
 		Search:      gitlab.String(listMergeRequestsOption.Search),
 		ListOptions: *listOption,
+	}
+
+	if listMergeRequestsOption.Milestone != "" {
+		listMergeRequestsOptions.Milestone = gitlab.String(listMergeRequestsOption.Milestone)
+	}
+	if listMergeRequestsOption.AuthorID != 0 {
+		listMergeRequestsOptions.AuthorID = gitlab.Int(listMergeRequestsOption.AuthorID)
+	}
+	if listMergeRequestsOption.AssigneeID != 0 {
+		listMergeRequestsOptions.AssigneeID = gitlab.Int(listMergeRequestsOption.AssigneeID)
 	}
 	return listMergeRequestsOptions
 }

@@ -38,6 +38,9 @@ type ListOption struct {
 	OrderBy    string `long:"orderby" value-name:"<orderby>" default:"updated_at" default-mask:"updated_at" description:"Print merge request ordered by \"created_at\" or \"updated_at\" fields."`
 	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print merge request ordered in \"asc\" or \"desc\" order."`
 	Search     string `short:"s" long:"search"  value-name:"<search word>" description:"Search merge request against their title and description."`
+	Milestone  string `long:"milestone"  value-name:"<milestone>" description:"lists merge request that have an assigned milestone."`
+	AuthorID   int    `long:"author-id"  value-name:"<auther id>" description:"lists merge request that have an author id."`
+	AssigneeID int    `long:"assignee-id"  value-name:"<assignee id>" description:"lists merge request that have an assignee id."`
 	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
 	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	Merged     bool   `short:"g" long:"merged" description:"Shorthand of the state option for \"--state=merged\"."`

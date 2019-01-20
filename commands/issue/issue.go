@@ -8,7 +8,7 @@ import (
 	"github.com/lighttiger2505/lab/git"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
-	"github.com/lighttiger2505/lab/ui"
+	"github.com/lighttiger2505/lab/internal/ui"
 )
 
 const (

@@ -19,7 +19,7 @@ import (
 	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/config"
 	"github.com/lighttiger2505/lab/internal/gitutil"
-	"github.com/lighttiger2505/lab/ui"
+	"github.com/lighttiger2505/lab/internal/ui"
 	"github.com/mitchellh/cli"
 )
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/internal/config"
-	"github.com/lighttiger2505/lab/ui"
+	"github.com/lighttiger2505/lab/internal/ui"
 )
 
 type Collecter interface {

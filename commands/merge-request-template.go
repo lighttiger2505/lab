@@ -8,7 +8,7 @@ import (
 	"github.com/lighttiger2505/lab/commands/internal"
 	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
-	"github.com/lighttiger2505/lab/ui"
+	"github.com/lighttiger2505/lab/internal/ui"
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
 )

@@ -6,7 +6,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/internal/config"
 	"github.com/lighttiger2505/lab/internal/editor"
-	"github.com/lighttiger2505/lab/ui"
+	"github.com/lighttiger2505/lab/internal/ui"
 )
 
 const (

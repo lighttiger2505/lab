@@ -15,6 +15,9 @@ func makeCreateIssueOptions(opt *CreateUpdateOption, title, description string) 
 	if opt.AssigneeID != 0 {
 		createIssueOption.AssigneeIDs = []int{opt.AssigneeID}
 	}
+	if opt.MilestoneID != 0 {
+		createIssueOption.MilestoneID = gitlab.Int(opt.MilestoneID)
+	}
 	return createIssueOption
 }
 

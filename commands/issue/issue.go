@@ -20,12 +20,13 @@ const (
 )
 
 type CreateUpdateOption struct {
-	Edit       bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
-	Title      string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
-	Message    string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
-	Template   string `short:"p" long:"template" value-name:"<issue template>" description:"The template of an issue"`
-	StateEvent string `long:"state-event" value-name:"<state>" description:"Change the status. \"close\", \"reopen\""`
-	AssigneeID int    `long:"assignee-id" value-name:"<assignee id>" description:"The ID of assignee."`
+	Edit        bool   `short:"e" long:"edit" description:"Edit the issue on editor. Start the editor with the contents in the given title and message options."`
+	Title       string `short:"i" long:"title" value-name:"<title>" description:"The title of an issue"`
+	Message     string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
+	Template    string `short:"p" long:"template" value-name:"<issue template>" description:"The template of an issue"`
+	StateEvent  string `long:"state-event" value-name:"<state>" description:"Change the status. \"close\", \"reopen\""`
+	AssigneeID  int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of assignee."`
+	MilestoneID int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The ID of milestone."`
 }
 
 func (o *CreateUpdateOption) hasEdit() bool {
@@ -36,14 +37,20 @@ func (o *CreateUpdateOption) hasEdit() bool {
 }
 
 func (o *CreateUpdateOption) hasCreate() bool {
-	if o.Title != "" {
+	if o.Title != "" ||
+		o.AssigneeID != 0 ||
+		o.MilestoneID != 0 {
 		return true
 	}
 	return false
 }
 
 func (o *CreateUpdateOption) hasUpdate() bool {
-	if o.Title != "" || o.Message != "" || o.StateEvent != "" || o.AssigneeID != 0 {
+	if o.Title != "" ||
+		o.Message != "" ||
+		o.StateEvent != "" ||
+		o.AssigneeID != 0 ||
+		o.MilestoneID != 0 {
 		return true
 	}
 	return false

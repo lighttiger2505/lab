@@ -57,6 +57,7 @@ type ListOption struct {
 	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print issue ordered in \"asc\" or \"desc\" order."`
 	Search     string `short:"s" long:"search"  value-name:"<search word>" description:"Search issues against their title and description."`
 	Milestone  string `long:"milestone"  value-name:"<milestone>" description:"lists issues that have an assigned milestone."`
+	AuthorID   int    `long:"author-id"  value-name:"<auther id>" description:"lists issues that have an author id."`
 	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
 	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`

@@ -68,6 +68,16 @@ var newRemoteTests = []newGitRemoteTest{
 			Repository: "repository",
 		},
 	},
+	{
+		url: "https://gitlab.ssl.domain.jp/group/subgroup1/subgroup2/subgroup3/repository",
+		remoteInfo: &RemoteInfo{
+			Remote:     "origin",
+			Domain:     "gitlab.ssl.domain.jp",
+			Group:      "group",
+			SubGroup:   "subgroup1/subgroup2/subgroup3",
+			Repository: "repository",
+		},
+	},
 }
 
 func TestNewGitRemote(t *testing.T) {

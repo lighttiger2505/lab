@@ -24,9 +24,9 @@ func NewRemoteInfo(remote, url string) *RemoteInfo {
 		return &RemoteInfo{
 			Remote:     remote,
 			Repository: strings.TrimSuffix(splitUrl[len(splitUrl)-1], ".git"),
-			SubGroup:   splitUrl[len(splitUrl)-2],
-			Group:      splitUrl[len(splitUrl)-3],
-			Domain:     splitUrl[len(splitUrl)-4],
+			SubGroup:   strings.Join(splitUrl[2:len(splitUrl)-1], "/"),
+			Group:      splitUrl[1],
+			Domain:     splitUrl[0],
 		}
 	}
 	return &RemoteInfo{

@@ -10,7 +10,7 @@ type Option struct {
 	CreateUpdateOption   *CreateUpdateOption            `group:"Create, Update Options"`
 	ListOption           *ListOption                    `group:"List Options"`
 	ShowOption           *ShowOption                    `group:"Show Options"`
-	BrowseOption         *BrowseOption                  `group:"Browse Options"`
+	BrowseOption         *internal.BrowseOption         `group:"Browse Options"`
 }
 
 type CreateUpdateOption struct {
@@ -60,8 +60,8 @@ type ListOption struct {
 	Milestone  string `long:"milestone"  value-name:"<milestone>" description:"Print issues for a specific milestone. "`
 	AuthorID   int    `long:"author-id"  value-name:"<auther id>" description:"Print issues created by the given user id"`
 	AssigneeID int    `long:"assignee-id"  value-name:"<assignee id>" description:"Print issues assigned to the given user id."`
-	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
-	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
+	Opened     bool   `short:"O" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
+	Closed     bool   `short:"C" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`
 	AssignedMe bool   `short:"a" long:"assigned-me" description:"Shorthand of the scope option for \"--scope=assigned-by-me\"."`
 	AllProject bool   `short:"A" long:"all-project" description:"Print the issue of all projects"`
@@ -91,16 +91,12 @@ type ShowOption struct {
 	NoComment bool `long:"no-comment" description:"Not print a list of comments for a spcific issue."`
 }
 
-type BrowseOption struct {
-	Browse bool `short:"b" long:"browse" description:"Browse issue."`
-}
-
 func newOptionParser(opt *Option) *flags.Parser {
 	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
 	opt.ShowOption = &ShowOption{}
-	opt.BrowseOption = &BrowseOption{}
+	opt.BrowseOption = &internal.BrowseOption{}
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `issue - Create and Edit, List, Browse a issue
 

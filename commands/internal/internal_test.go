@@ -1,4 +1,4 @@
-package issue
+package internal
 
 import (
 	"testing"
@@ -6,9 +6,10 @@ import (
 	"github.com/lighttiger2505/lab/internal/browse"
 )
 
-func Test_browseMethod_Process(t *testing.T) {
+func Test_BrowseMethod_Process(t *testing.T) {
 	type fields struct {
 		opener browse.URLOpener
+		opt    *BrowseOption
 		url    string
 		id     int
 	}
@@ -32,6 +33,11 @@ func Test_browseMethod_Process(t *testing.T) {
 						return nil
 					},
 				},
+				opt: &BrowseOption{
+					Browse: true,
+					URL:    false,
+					Copy:   false,
+				},
 				url: "https://domain/group/repository/issues",
 				id:  0,
 			},
@@ -52,6 +58,41 @@ func Test_browseMethod_Process(t *testing.T) {
 						return nil
 					},
 				},
+				opt: &BrowseOption{
+					Browse: true,
+					URL:    false,
+					Copy:   false,
+				},
+				url: "https://domain/group/repository/issues",
+				id:  12,
+			},
+			want:    "",
+			wantErr: false,
+		},
+		{
+			name: "show issue detail page url",
+			fields: fields{
+				opener: &browse.MockOpener{},
+				opt: &BrowseOption{
+					Browse: false,
+					URL:    true,
+					Copy:   false,
+				},
+				url: "https://domain/group/repository/issues",
+				id:  12,
+			},
+			want:    "https://domain/group/repository/issues/12",
+			wantErr: false,
+		},
+		{
+			name: "copy issue detail page url",
+			fields: fields{
+				opener: &browse.MockOpener{},
+				opt: &BrowseOption{
+					Browse: false,
+					URL:    false,
+					Copy:   true,
+				},
 				url: "https://domain/group/repository/issues",
 				id:  12,
 			},
@@ -61,18 +102,19 @@ func Test_browseMethod_Process(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &browseMethod{
-				opener: tt.fields.opener,
-				url:    tt.fields.url,
-				id:     tt.fields.id,
+			m := &BrowseMethod{
+				Opener: tt.fields.opener,
+				Opt:    tt.fields.opt,
+				URL:    tt.fields.url,
+				ID:     tt.fields.id,
 			}
 			got, err := m.Process()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("browseMethod.Process() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("BrowseOption.Process() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("browseMethod.Process() = %v, want %v", got, tt.want)
+				t.Errorf("BrowseOption.Process() = %v, want %v", got, tt.want)
 			}
 		})
 	}

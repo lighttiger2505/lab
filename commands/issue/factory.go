@@ -14,11 +14,12 @@ type MethodFactory interface {
 type IssueMethodFactory struct{}
 
 func (c *IssueMethodFactory) CreateMethod(opt Option, pInfo *gitutil.GitLabProjectInfo, iid int, factory lab.APIClientFactory) internal.Method {
-	if opt.BrowseOption.Browse {
-		return &browseMethod{
-			opener: &browse.Browser{},
-			url:    pInfo.SubpageUrl("issues"),
-			id:     iid,
+	if opt.BrowseOption.HasBrowse() {
+		return &internal.BrowseMethod{
+			Opener: &browse.Browser{},
+			Opt:    opt.BrowseOption,
+			URL:    pInfo.SubpageUrl("issues"),
+			ID:     iid,
 		}
 	}
 

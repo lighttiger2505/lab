@@ -19,7 +19,6 @@ ensure: dep
 
 .PHONY: test
 test:
-	go clean -cache
 	go test github.com/lighttiger2505/lab/...
 
 .PHONY: lint

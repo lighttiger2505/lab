@@ -10,7 +10,7 @@ type Option struct {
 	CreateUpdateOption   *CreateUpdateOption            `group:"Create, Update Options"`
 	ListOption           *ListOption                    `group:"List Options"`
 	ShowOption           *ShowOption                    `group:"Show Options"`
-	BrowseOption         *BrowseOption                  `group:"Browse Options"`
+	BrowseOption         *internal.BrowseOption         `group:"Browse Options"`
 }
 
 type CreateUpdateOption struct {
@@ -62,8 +62,8 @@ type ListOption struct {
 	Milestone  string `long:"milestone"  value-name:"<milestone>" description:"Print merge requests for a specific milestone. "`
 	AuthorID   int    `long:"author-id"  value-name:"<auther id>" description:"Print merge requests created by the given user id"`
 	AssigneeID int    `long:"assignee-id"  value-name:"<assignee id>" description:"Print merge requests assigned to the given user id."`
-	Opened     bool   `short:"o" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
-	Closed     bool   `short:"c" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
+	Opened     bool   `short:"O" long:"opened" description:"Shorthand of the state option for \"--state=opened\"."`
+	Closed     bool   `short:"C" long:"closed" description:"Shorthand of the state option for \"--state=closed\"."`
 	Merged     bool   `short:"g" long:"merged" description:"Shorthand of the state option for \"--state=merged\"."`
 	CreatedMe  bool   `short:"r" long:"created-me" description:"Shorthand of the scope option for \"--scope=created-by-me\"."`
 	AssignedMe bool   `short:"a" long:"assigned-me" description:"Shorthand of the scope option for \"--scope=assigned-by-me\"."`
@@ -105,7 +105,7 @@ func newOptionParser(opt *Option) *flags.Parser {
 	opt.ProjectProfileOption = &internal.ProjectProfileOption{}
 	opt.CreateUpdateOption = &CreateUpdateOption{}
 	opt.ListOption = &ListOption{}
-	opt.BrowseOption = &BrowseOption{}
+	opt.BrowseOption = &internal.BrowseOption{}
 	parser := flags.NewParser(opt, flags.HelpFlag|flags.PassDoubleDash)
 	parser.Usage = `merge-request - Create and Edit, List, Browse a merge request
 

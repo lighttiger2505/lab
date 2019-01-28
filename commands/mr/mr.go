@@ -96,11 +96,12 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 		return nil, err
 	}
 
-	if browseOption.Browse {
-		return &browseMethod{
-			opener: &browse.Browser{},
-			url:    pInfo.SubpageUrl("merge_requests"),
-			id:     iid,
+	if browseOption.HasBrowse() {
+		return &internal.BrowseMethod{
+			Opener: &browse.Browser{},
+			Opt:    browseOption,
+			URL:    pInfo.SubpageUrl("merge_requests"),
+			ID:     iid,
 		}, nil
 	}
 

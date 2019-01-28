@@ -78,7 +78,7 @@ func TestPipelineCommand_Run(t *testing.T) {
 			args:     []string{"aa"},
 			wantCode: 1,
 			wantOut:  "",
-			wantErr:  "Invalid args, please intput pipeline IID.\n",
+			wantErr:  "Invalid args, please intput pipeline id.\n",
 		},
 	}
 	for _, tt := range tests {

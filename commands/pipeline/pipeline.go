@@ -35,7 +35,7 @@ Synopsis:
   lab pipeline 
 
   # Show pipeline
-  lab pipeline <Pipeline IID>
+  lab pipeline <Pipeline ID>
 `
 	return parser
 }
@@ -120,7 +120,7 @@ func validIID(args []string) (int, error) {
 
 	iid, err := strconv.Atoi(args[0])
 	if err != nil {
-		return 0, fmt.Errorf("Invalid args, please intput pipeline IID.")
+		return 0, fmt.Errorf("Invalid args, please intput pipeline id.")
 	}
 	return iid, nil
 }

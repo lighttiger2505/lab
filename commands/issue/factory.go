@@ -49,7 +49,7 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, pInfo *gitutil.GitLabProje
 		}
 	}
 
-	// Case of nothing Issue IID
+	// Case of nothing Issue id
 	if opt.CreateUpdateOption.hasEdit() {
 		return &createOnEditorMethod{
 			issueClient:      factory.GetIssueClient(),

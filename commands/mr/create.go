@@ -36,7 +36,7 @@ func (m *createMethod) Process() (string, error) {
 		return "", err
 	}
 
-	// Print created merge request IID
+	// Print created merge request id
 	return fmt.Sprintf("%d", mergeRequest.IID), nil
 }
 
@@ -99,7 +99,7 @@ func (m *createOnEditorMethod) Process() (string, error) {
 		return "", err
 	}
 
-	// Print created merge request IID
+	// Print created merge request id
 	return fmt.Sprintf("%d", mergeRequest.IID), nil
 }
 

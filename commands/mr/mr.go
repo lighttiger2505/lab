@@ -104,7 +104,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 		}, nil
 	}
 
-	// Case of getting Merge Request IID
+	// Case of getting Merge Request id
 	if len(args) > 0 {
 		if createUpdateOption.hasEdit() {
 			return &updateOnEditorMethod{
@@ -133,7 +133,7 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 		}, nil
 	}
 
-	// Case of nothing MergeRequest IID
+	// Case of nothing MergeRequest id
 	if createUpdateOption.hasEdit() {
 		return &createOnEditorMethod{
 			client:           mrClient,
@@ -173,7 +173,7 @@ func validMergeRequestIID(args []string) (int, error) {
 
 	iid, err := strconv.Atoi(args[0])
 	if err != nil {
-		return 0, fmt.Errorf("Invalid Issue IID. IID: %s", args[0])
+		return 0, fmt.Errorf("Invalid args, please input merge request id")
 	}
 	return iid, nil
 }

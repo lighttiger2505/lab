@@ -86,7 +86,7 @@ func validIssueIID(args []string) (int, error) {
 
 	iid, err := strconv.Atoi(args[0])
 	if err != nil {
-		return 0, fmt.Errorf("Invalid args, please intput issue IID.")
+		return 0, fmt.Errorf("Invalid args, please input issue id.")
 	}
 	return iid, nil
 }

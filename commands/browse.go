@@ -11,6 +11,7 @@ import (
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	gitpath "github.com/lighttiger2505/lab/git/path"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
@@ -53,6 +54,7 @@ type BrowseCommand struct {
 	RemoteCollecter gitutil.Collecter
 	GitClient       git.Client
 	Opener          browse.URLOpener
+	ClientFactory   lab.APIClientFactory
 }
 
 func (c *BrowseCommand) Synopsis() string {
@@ -85,14 +87,20 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	var branch = "master"
+	if err := c.ClientFactory.Init(pInfo.ApiUrl(), pInfo.Token); err != nil {
+		c.UI.Error(err.Error())
+		return ExitCodeError
+	}
+
 	isGitDir, err := git.IsGitDirReverseTop()
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError
 	}
+
+	var branch string
 	if isGitDir {
-		branch, err = c.GitClient.CurrentRemoteBranch()
+		branch, err = c.getBranch(pInfo)
 		if err != nil {
 			c.UI.Error(err.Error())
 			return ExitCodeError
@@ -123,6 +131,21 @@ func (c *BrowseCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 	return ExitCodeOK
+}
+
+func (c *BrowseCommand) getBranch(pInfo *gitutil.GitLabProjectInfo) (string, error) {
+	localBranch, err := c.GitClient.CurrentRemoteBranch()
+	if err != nil {
+		return "", err
+	}
+
+	branchClient := c.ClientFactory.GetBranchClient()
+	remoteBranch, _ := branchClient.GetBranch(pInfo.Project, localBranch)
+	if remoteBranch == nil {
+		return "master", nil
+	}
+
+	return localBranch, nil
 }
 
 func (c *BrowseCommand) getURL(args []string, pInfo *gitutil.GitLabProjectInfo, branch string, opt *BrowseOption) (string, error) {

@@ -69,6 +69,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 				RemoteCollecter: remoteCollecter,
 				GitClient:       &git.GitClient{},
 				Opener:          &browse.Browser{},
+				ClientFactory:   &lab.GitlabClientFactory{},
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {

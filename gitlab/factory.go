@@ -20,6 +20,7 @@ type APIClientFactory interface {
 	GetLintClient() Lint
 	GetRunnerClient() Runner
 	GetMilestoneClient() Milestone
+	GetBranchClient() Branch
 }
 
 type GitlabClientFactory struct {
@@ -90,6 +91,10 @@ func (f *GitlabClientFactory) GetRunnerClient() Runner {
 
 func (f *GitlabClientFactory) GetMilestoneClient() Milestone {
 	return NewMilestoneClient(f.gitlabClient)
+}
+
+func (f *GitlabClientFactory) GetBranchClient() Branch {
+	return NewBranchClient(f.gitlabClient)
 }
 
 func getGitlabClient(url, token string) (*gitlab.Client, error) {

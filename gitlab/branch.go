@@ -36,9 +36,14 @@ func (c *BranchClient) ListBranches(project string, opt *gitlab.ListBranchesOpti
 }
 
 type MockBranchClient struct {
-	MockBranchs func(project string, opt *gitlab.ListBranchesOptions) ([]*gitlab.Branch, error)
+	MockGetBranch    func(project string, branch string) (*gitlab.Branch, error)
+	MockListBranches func(project string, opt *gitlab.ListBranchesOptions) ([]*gitlab.Branch, error)
+}
+
+func (m *MockBranchClient) GetBranch(project string, branch string) (*gitlab.Branch, error) {
+	return m.MockGetBranch(project, branch)
 }
 
 func (m *MockBranchClient) ListBranches(project string, opt *gitlab.ListBranchesOptions) ([]*gitlab.Branch, error) {
-	return m.MockBranchs(project, opt)
+	return m.MockListBranches(project, opt)
 }

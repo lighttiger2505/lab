@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/git"
+	lab "github.com/lighttiger2505/lab/gitlab"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
+	gitlab "github.com/xanzy/go-gitlab"
 )
 
 var mockGitClient = &git.MockClient{
@@ -29,6 +31,16 @@ func (m *MockURLOpener) Open(url string) error {
 	return nil
 }
 
+var mockAPIClientFactory = &lab.MockAPIClientFactory{
+	MockGetBranchClient: func() lab.Branch {
+		return &lab.MockBranchClient{
+			MockGetBranch: func(project string, branch string) (*gitlab.Branch, error) {
+				return &gitlab.Branch{}, nil
+			},
+		}
+	},
+}
+
 func TestBrowseCommandRun(t *testing.T) {
 	mockUI := ui.NewMockUi()
 	c := BrowseCommand{
@@ -36,6 +48,7 @@ func TestBrowseCommandRun(t *testing.T) {
 		RemoteCollecter: &gitutil.MockCollecter{},
 		GitClient:       mockGitClient,
 		Opener:          &MockURLOpener{},
+		ClientFactory:   mockAPIClientFactory,
 	}
 	args := []string{}
 	if code := c.Run(args); code != 0 {

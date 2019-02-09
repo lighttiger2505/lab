@@ -118,6 +118,7 @@ type MockAPIClientFactory struct {
 	MockGetLintClient            func() Lint
 	MockGetRunnerClient          func() Runner
 	MockGetMilestoneClient       func() Milestone
+	MockGetBranchClient          func() Branch
 }
 
 func (m *MockAPIClientFactory) Init(url, token string) error {
@@ -170,4 +171,8 @@ func (m *MockAPIClientFactory) GetRunnerClient() Runner {
 
 func (m *MockAPIClientFactory) GetMilestoneClient() Milestone {
 	return m.MockGetMilestoneClient()
+}
+
+func (m *MockAPIClientFactory) GetBranchClient() Branch {
+	return m.MockGetBranchClient()
 }

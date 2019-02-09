@@ -2,7 +2,7 @@ package issue
 
 import (
 	"github.com/lighttiger2505/lab/commands/internal"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -24,7 +24,7 @@ func makeUpdateIssueOption(opt *CreateUpdateOption, title, description string) *
 }
 
 type updateMethod struct {
-	client  lab.Issue
+	client  api.Issue
 	opt     *CreateUpdateOption
 	project string
 	id      int
@@ -56,7 +56,7 @@ func (m *updateMethod) Process() (string, error) {
 
 type updateOnEditorMethod struct {
 	internal.Method
-	client   lab.Issue
+	client   api.Issue
 	opt      *CreateUpdateOption
 	project  string
 	id       int

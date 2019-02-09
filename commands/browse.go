@@ -11,7 +11,7 @@ import (
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	gitpath "github.com/lighttiger2505/lab/git/path"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
@@ -54,7 +54,7 @@ type BrowseCommand struct {
 	RemoteCollecter gitutil.Collecter
 	GitClient       git.Client
 	Opener          browse.URLOpener
-	ClientFactory   lab.APIClientFactory
+	ClientFactory   api.APIClientFactory
 }
 
 func (c *BrowseCommand) Synopsis() string {

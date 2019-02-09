@@ -15,7 +15,7 @@ import (
 	"github.com/lighttiger2505/lab/commands/pipeline"
 	"github.com/lighttiger2505/lab/commands/runner"
 	"github.com/lighttiger2505/lab/git"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/config"
 	"github.com/lighttiger2505/lab/internal/gitutil"
@@ -69,7 +69,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 				RemoteCollecter: remoteCollecter,
 				GitClient:       &git.GitClient{},
 				Opener:          &browse.Browser{},
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"issue": func() (cli.Command, error) {
@@ -83,21 +83,21 @@ func realMain(writer io.Writer, ver, rev string) int {
 			return &mr.MergeRequestCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"mr": func() (cli.Command, error) {
 			return &mr.MergeRequestCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"project": func() (cli.Command, error) {
 			return &commands.ProjectCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"pipeline": func() (cli.Command, error) {
@@ -111,49 +111,49 @@ func realMain(writer io.Writer, ver, rev string) int {
 			return &commands.JobCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"lint": func() (cli.Command, error) {
 			return &commands.LintCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"user": func() (cli.Command, error) {
 			return &commands.UserCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"project-variable": func() (cli.Command, error) {
 			return &commands.ProjectVariableCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"issue-template": func() (cli.Command, error) {
 			return &commands.IssueTemplateCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"merge-request-template": func() (cli.Command, error) {
 			return &commands.MergeRequestTemplateCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"runner": func() (cli.Command, error) {
 			return &runner.RunnerCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 		"config": func() (cli.Command, error) {
@@ -166,7 +166,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 			return &milestone.MilestoneCommand{
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
-				ClientFactory:   &lab.GitlabClientFactory{},
+				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil
 		},
 	}

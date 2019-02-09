@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/lighttiger2505/lab/commands/internal"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -36,7 +36,7 @@ func Test_updateMethod_Process(t *testing.T) {
 		{
 			name: "update all",
 			method: &updateMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
@@ -69,7 +69,7 @@ func Test_updateMethod_Process(t *testing.T) {
 		{
 			name: "update title only",
 			method: &updateMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
@@ -100,7 +100,7 @@ func Test_updateMethod_Process(t *testing.T) {
 		{
 			name: "update message only",
 			method: &updateMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
@@ -131,7 +131,7 @@ func Test_updateMethod_Process(t *testing.T) {
 		{
 			name: "update state only",
 			method: &updateMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
@@ -163,7 +163,7 @@ func Test_updateMethod_Process(t *testing.T) {
 		{
 			name: "update assignee only",
 			method: &updateMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
@@ -235,7 +235,7 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "update all",
 			method: &updateOnEditorMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
@@ -269,7 +269,7 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "change title only",
 			method: &updateOnEditorMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
@@ -301,7 +301,7 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "change message only",
 			method: &updateOnEditorMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
@@ -333,7 +333,7 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "change state only",
 			method: &updateOnEditorMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
@@ -366,7 +366,7 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "change assignee only",
 			method: &updateOnEditorMethod{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 )
 
 type detailMethod struct {
-	runnerClient lab.Runner
+	runnerClient api.Runner
 	id           int
 }
 

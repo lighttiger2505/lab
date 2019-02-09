@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -42,7 +42,7 @@ var issue = &gitlab.Issue{
 
 func Test_createMethod_Process(t *testing.T) {
 	type fields struct {
-		client  lab.Issue
+		client  api.Issue
 		opt     *CreateUpdateOption
 		project string
 	}
@@ -55,7 +55,7 @@ func Test_createMethod_Process(t *testing.T) {
 		{
 			name: "create input all issue value",
 			fields: fields{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockCreateIssue: func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
 						got := opt
 						want := &gitlab.CreateIssueOptions{
@@ -101,8 +101,8 @@ func Test_createMethod_Process(t *testing.T) {
 
 func Test_createOnEditorMethod_Process(t *testing.T) {
 	type fields struct {
-		issueClient      lab.Issue
-		repositoryClient lab.Repository
+		issueClient      api.Issue
+		repositoryClient api.Repository
 		opt              *CreateUpdateOption
 		editFunc         func(program, file string) error
 		project          string
@@ -116,7 +116,7 @@ func Test_createOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "create input all issue value",
 			fields: fields{
-				issueClient: &lab.MockLabIssueClient{
+				issueClient: &api.MockLabIssueClient{
 					MockCreateIssue: func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
 						got := opt
 						want := &gitlab.CreateIssueOptions{
@@ -130,7 +130,7 @@ func Test_createOnEditorMethod_Process(t *testing.T) {
 						return issue, nil
 					},
 				},
-				repositoryClient: &lab.MockRepositoryClient{
+				repositoryClient: &api.MockRepositoryClient{
 					MockGetFile: func(repositoryName string, filename string, opt *gitlab.GetRawFileOptions) (string, error) {
 						return "template", nil
 					},
@@ -149,7 +149,7 @@ func Test_createOnEditorMethod_Process(t *testing.T) {
 		{
 			name: "use template",
 			fields: fields{
-				issueClient: &lab.MockLabIssueClient{
+				issueClient: &api.MockLabIssueClient{
 					MockCreateIssue: func(opt *gitlab.CreateIssueOptions, repositoryName string) (*gitlab.Issue, error) {
 						got := opt
 						want := &gitlab.CreateIssueOptions{
@@ -163,7 +163,7 @@ func Test_createOnEditorMethod_Process(t *testing.T) {
 						return issue, nil
 					},
 				},
-				repositoryClient: &lab.MockRepositoryClient{
+				repositoryClient: &api.MockRepositoryClient{
 					MockGetFile: func(repositoryName string, filename string, opt *gitlab.GetRawFileOptions) (string, error) {
 						return "template", nil
 					},

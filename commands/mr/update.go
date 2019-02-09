@@ -2,13 +2,13 @@ package mr
 
 import (
 	"github.com/lighttiger2505/lab/commands/internal"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type updateMethod struct {
 	internal.Method
-	client  lab.MergeRequest
+	client  api.MergeRequest
 	opt     *CreateUpdateOption
 	project string
 	id      int
@@ -47,7 +47,7 @@ func (m *updateMethod) Process() (string, error) {
 
 type updateOnEditorMethod struct {
 	internal.Method
-	client   lab.MergeRequest
+	client   api.MergeRequest
 	opt      *CreateUpdateOption
 	project  string
 	id       int

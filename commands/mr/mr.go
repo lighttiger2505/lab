@@ -7,7 +7,7 @@ import (
 
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
@@ -23,7 +23,7 @@ type MergeRequestCommand struct {
 	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	GitClient       git.Client
-	ClientFactory   lab.APIClientFactory
+	ClientFactory   api.APIClientFactory
 	EditFunc        func(program, file string) error
 }
 
@@ -81,7 +81,7 @@ func (c *MergeRequestCommand) Run(args []string) int {
 	return ExitCodeOK
 }
 
-func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gitutil.GitLabProjectInfo, clientFactory lab.APIClientFactory) (internal.Method, error) {
+func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gitutil.GitLabProjectInfo, clientFactory api.APIClientFactory) (internal.Method, error) {
 	createUpdateOption := opt.CreateUpdateOption
 	listOption := opt.ListOption
 	browseOption := opt.BrowseOption

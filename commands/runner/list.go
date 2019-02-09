@@ -4,13 +4,13 @@ import (
 	"strconv"
 	"strings"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type listMethod struct {
-	runnerClient lab.Runner
+	runnerClient api.Runner
 	opt          *ListOption
 	project      string
 }

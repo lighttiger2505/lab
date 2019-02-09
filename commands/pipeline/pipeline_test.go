@@ -3,13 +3,13 @@ package pipeline
 import (
 	"testing"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 )
 
 var mockCollecter = &gitutil.MockCollecter{}
-var mockAPIClientFactory = &lab.MockAPIClientFactory{}
+var mockAPIClientFactory = &api.MockAPIClientFactory{}
 var mockMethodFactory = &MockMethodFactory{}
 
 func TestPipelineCommand_Run(t *testing.T) {

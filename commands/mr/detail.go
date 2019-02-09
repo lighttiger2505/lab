@@ -6,14 +6,14 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/lighttiger2505/lab/commands/internal"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type detailMethod struct {
 	internal.Method
-	mrClient   lab.MergeRequest
-	noteClient lab.Note
+	mrClient   api.MergeRequest
+	noteClient api.Note
 	opt        *ShowOption
 	project    string
 	id         int

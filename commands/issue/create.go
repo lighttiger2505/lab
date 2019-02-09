@@ -3,7 +3,7 @@ package issue
 import (
 	"fmt"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -29,7 +29,7 @@ func makeIssueTemplateOption() *gitlab.GetRawFileOptions {
 }
 
 type createMethod struct {
-	client  lab.Issue
+	client  api.Issue
 	opt     *CreateUpdateOption
 	project string
 }
@@ -46,8 +46,8 @@ func (m *createMethod) Process() (string, error) {
 }
 
 type createOnEditorMethod struct {
-	issueClient      lab.Issue
-	repositoryClient lab.Repository
+	issueClient      api.Issue
+	repositoryClient api.Repository
 	opt              *CreateUpdateOption
 	editFunc         func(program, file string) error
 	project          string

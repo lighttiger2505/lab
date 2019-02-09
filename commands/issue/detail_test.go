@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -80,8 +80,8 @@ func Test_detailMethod_Process(t *testing.T) {
 
 	// Define sub tests
 	type fields struct {
-		issueClient lab.Issue
-		noteClient  lab.Note
+		issueClient api.Issue
+		noteClient  api.Note
 		id          int
 		project     string
 		opt         *ShowOption
@@ -95,12 +95,12 @@ func Test_detailMethod_Process(t *testing.T) {
 		{
 			name: "show issue",
 			fields: fields{
-				issueClient: &lab.MockLabIssueClient{
+				issueClient: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
 				},
-				noteClient: &lab.MockNoteClient{
+				noteClient: &api.MockNoteClient{
 					MockGetIssueNotes: func(repositoryName string, iid int, opt *gitlab.ListIssueNotesOptions) ([]*gitlab.Note, error) {
 						return notes, nil
 					},
@@ -122,12 +122,12 @@ Description`,
 		{
 			name: "show issue with note",
 			fields: fields{
-				issueClient: &lab.MockLabIssueClient{
+				issueClient: &api.MockLabIssueClient{
 					MockGetIssue: func(pid int, repositoryName string) (*gitlab.Issue, error) {
 						return issue, nil
 					},
 				},
-				noteClient: &lab.MockNoteClient{
+				noteClient: &api.MockNoteClient{
 					MockGetIssueNotes: func(repositoryName string, iid int, opt *gitlab.ListIssueNotesOptions) ([]*gitlab.Note, error) {
 						return notes, nil
 					},

@@ -3,7 +3,7 @@ package commands
 import (
 	"testing"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -26,15 +26,15 @@ var testProjects = []*gitlab.Project{
 	},
 }
 
-var mockProjectClient = &lab.MockProjectClient{
+var mockProjectClient = &api.MockProjectClient{
 	MockProjects: func(opt *gitlab.ListProjectsOptions) ([]*gitlab.Project, error) {
 		return testProjects, nil
 	},
 }
 
 func TestProjectCommandRun(t *testing.T) {
-	mockClientFactory := &lab.MockAPIClientFactory{
-		MockGetProjectClient: func() lab.Project {
+	mockClientFactory := &api.MockAPIClientFactory{
+		MockGetProjectClient: func() api.Project {
 			return mockProjectClient
 		},
 	}

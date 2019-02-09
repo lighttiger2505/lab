@@ -3,7 +3,7 @@ package issue
 import (
 	"testing"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -14,7 +14,7 @@ func Test_listMethod_Process(t *testing.T) {
 	}
 
 	type fields struct {
-		client  lab.Issue
+		client  api.Issue
 		opt     *ListOption
 		project string
 	}
@@ -27,7 +27,7 @@ func Test_listMethod_Process(t *testing.T) {
 		{
 			name: "nomal",
 			fields: fields{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetProjectIssues: func(opt *gitlab.ListProjectIssuesOptions, repositoryName string) ([]*gitlab.Issue, error) {
 						return issues, nil
 					},
@@ -65,7 +65,7 @@ func Test_listAllMethod_Process(t *testing.T) {
 	}
 
 	type fields struct {
-		client lab.Issue
+		client api.Issue
 		opt    *ListOption
 	}
 	tests := []struct {
@@ -77,7 +77,7 @@ func Test_listAllMethod_Process(t *testing.T) {
 		{
 			name: "nomal",
 			fields: fields{
-				client: &lab.MockLabIssueClient{
+				client: &api.MockLabIssueClient{
 					MockGetAllProjectIssues: func(opt *gitlab.ListIssuesOptions) ([]*gitlab.Issue, error) {
 						return issues, nil
 					},

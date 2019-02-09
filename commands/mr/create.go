@@ -5,13 +5,13 @@ import (
 
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type createMethod struct {
 	internal.Method
-	client  lab.MergeRequest
+	client  api.MergeRequest
 	opt     *CreateUpdateOption
 	project string
 }
@@ -42,8 +42,8 @@ func (m *createMethod) Process() (string, error) {
 
 type createOnEditorMethod struct {
 	internal.Method
-	client           lab.MergeRequest
-	repositoryClient lab.Repository
+	client           api.MergeRequest
+	repositoryClient api.Repository
 	opt              *CreateUpdateOption
 	project          string
 	editFunc         func(program, file string) error

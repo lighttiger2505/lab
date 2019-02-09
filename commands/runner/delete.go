@@ -1,11 +1,9 @@
 package runner
 
-import (
-	lab "github.com/lighttiger2505/lab/gitlab"
-)
+import "github.com/lighttiger2505/lab/internal/api"
 
 type deleteMethod struct {
-	runnerClient lab.Runner
+	runnerClient api.Runner
 	project      string
 	id           int
 }

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -45,7 +45,7 @@ var mergeRequests []*gitlab.MergeRequest = []*gitlab.MergeRequest{
 	&gitlab.MergeRequest{IID: 13, Title: "Title13", WebURL: "http://gitlab.jp/namespace/repo/merge_requests/13"},
 }
 
-var mockGitlabMergeRequestClient = &lab.MockLabMergeRequestClient{
+var mockGitlabMergeRequestClient = &api.MockLabMergeRequestClient{
 	MockGetMergeRequest: func(pid int, repositoryName string) (*gitlab.MergeRequest, error) {
 		return mergeRequest, nil
 	},
@@ -63,26 +63,26 @@ var mockGitlabMergeRequestClient = &lab.MockLabMergeRequestClient{
 	},
 }
 
-var mockRepositoryClient = &lab.MockRepositoryClient{
+var mockRepositoryClient = &api.MockRepositoryClient{
 	MockGetFile: func(repositoryName string, filename string, opt *gitlab.GetRawFileOptions) (string, error) {
 		return "hogehoge", nil
 	},
 }
 
-var mockNoteClient = &lab.MockNoteClient{
+var mockNoteClient = &api.MockNoteClient{
 	MockGetMergeRequestNotes: func(repositoryName string, iid int, opt *gitlab.ListMergeRequestNotesOptions) ([]*gitlab.Note, error) {
 		return []*gitlab.Note{}, nil
 	},
 }
 
-var mockAPIClientFactory = &lab.MockAPIClientFactory{
-	MockGetMergeRequestClient: func() lab.MergeRequest {
+var mockAPIClientFactory = &api.MockAPIClientFactory{
+	MockGetMergeRequestClient: func() api.MergeRequest {
 		return mockGitlabMergeRequestClient
 	},
-	MockGetRepositoryClient: func() lab.Repository {
+	MockGetRepositoryClient: func() api.Repository {
 		return mockRepositoryClient
 	},
-	MockGetNoteClient: func() lab.Note {
+	MockGetNoteClient: func() api.Note {
 		return mockNoteClient
 	},
 }

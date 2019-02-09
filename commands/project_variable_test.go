@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/git"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -28,13 +28,13 @@ func TestProjectVariableCommand_Run_List(t *testing.T) {
 		&gitlab.ProjectVariable{Key: "foo", Value: "bar"},
 		&gitlab.ProjectVariable{Key: "hoge", Value: "soge"},
 	}
-	mockClient := &lab.MockProjectVariableClient{
+	mockClient := &api.MockProjectVariableClient{
 		MockGetVariables: func(repositoryName string) ([]*gitlab.ProjectVariable, error) {
 			return sampleProjectVariables, nil
 		},
 	}
-	mockClientFactory := &lab.MockAPIClientFactory{
-		MockGetProjectVariableClient: func() lab.ProjectVariable {
+	mockClientFactory := &api.MockAPIClientFactory{
+		MockGetProjectVariableClient: func() api.ProjectVariable {
 			return mockClient
 		},
 	}
@@ -63,13 +63,13 @@ func TestProjectVariableCommand_Run_List(t *testing.T) {
 func TestProjectVariableCommand_Run_Create(t *testing.T) {
 	// Mocking interfaceis
 	sampleProjectVariable := &gitlab.ProjectVariable{Key: "foo", Value: "bar"}
-	mockClient := &lab.MockProjectVariableClient{
+	mockClient := &api.MockProjectVariableClient{
 		MockCreateVariable: func(repositoryName string, opt *gitlab.CreateVariableOptions) (*gitlab.ProjectVariable, error) {
 			return sampleProjectVariable, nil
 		},
 	}
-	mockClientFactory := &lab.MockAPIClientFactory{
-		MockGetProjectVariableClient: func() lab.ProjectVariable {
+	mockClientFactory := &api.MockAPIClientFactory{
+		MockGetProjectVariableClient: func() api.ProjectVariable {
 			return mockClient
 		},
 	}
@@ -98,13 +98,13 @@ func TestProjectVariableCommand_Run_Create(t *testing.T) {
 func TestProjectVariableCommand_Run_Update(t *testing.T) {
 	// Mocking interfaceis
 	sampleProjectVariable := &gitlab.ProjectVariable{Key: "foo", Value: "bar"}
-	mockClient := &lab.MockProjectVariableClient{
+	mockClient := &api.MockProjectVariableClient{
 		MockUpdateVariable: func(repositoryName string, key string, opt *gitlab.UpdateVariableOptions) (*gitlab.ProjectVariable, error) {
 			return sampleProjectVariable, nil
 		},
 	}
-	mockClientFactory := &lab.MockAPIClientFactory{
-		MockGetProjectVariableClient: func() lab.ProjectVariable {
+	mockClientFactory := &api.MockAPIClientFactory{
+		MockGetProjectVariableClient: func() api.ProjectVariable {
 			return mockClient
 		},
 	}
@@ -132,13 +132,13 @@ func TestProjectVariableCommand_Run_Update(t *testing.T) {
 
 func TestProjectVariableCommand_Run_Remove(t *testing.T) {
 	// Mocking interfaceis
-	mockClient := &lab.MockProjectVariableClient{
+	mockClient := &api.MockProjectVariableClient{
 		MockRemoveVariable: func(repositoryName string, key string) error {
 			return nil
 		},
 	}
-	mockClientFactory := &lab.MockAPIClientFactory{
-		MockGetProjectVariableClient: func() lab.ProjectVariable {
+	mockClientFactory := &api.MockAPIClientFactory{
+		MockGetProjectVariableClient: func() api.ProjectVariable {
 			return mockClient
 		},
 	}

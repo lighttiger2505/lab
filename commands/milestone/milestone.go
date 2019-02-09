@@ -7,7 +7,7 @@ import (
 	"github.com/fatih/color"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/commands/internal"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 	"github.com/ryanuber/columnize"
@@ -46,7 +46,7 @@ Synopsis:
 type MilestoneCommand struct {
 	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
-	ClientFactory   lab.APIClientFactory
+	ClientFactory   api.APIClientFactory
 }
 
 func (c *MilestoneCommand) Synopsis() string {

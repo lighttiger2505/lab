@@ -3,7 +3,7 @@ package pipeline
 import (
 	"testing"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -34,7 +34,7 @@ func Test_listMethod_Process(t *testing.T) {
 		},
 	}
 	type fields struct {
-		client  lab.Pipeline
+		client  api.Pipeline
 		opt     *ListOption
 		project string
 	}
@@ -47,7 +47,7 @@ func Test_listMethod_Process(t *testing.T) {
 		{
 			name: "nomal",
 			fields: fields{
-				client: &lab.MockPipelineClient{
+				client: &api.MockPipelineClient{
 					MockProjectPipelines: func(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error) {
 						return pipelines, nil
 					},
@@ -100,7 +100,7 @@ func Test_listJobMethod_Process(t *testing.T) {
 		},
 	}
 	type fields struct {
-		client  lab.Pipeline
+		client  api.Pipeline
 		opt     *ListOption
 		project string
 		id      int
@@ -114,7 +114,7 @@ func Test_listJobMethod_Process(t *testing.T) {
 		{
 			name: "nomal",
 			fields: fields{
-				client: &lab.MockPipelineClient{
+				client: &api.MockPipelineClient{
 					MockProjectPipelineJobs: func(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]*gitlab.Job, error) {
 						return jobs, nil
 					},

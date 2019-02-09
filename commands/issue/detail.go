@@ -6,13 +6,13 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/lighttiger2505/lab/commands/internal"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type detailMethod struct {
-	issueClient lab.Issue
-	noteClient  lab.Note
+	issueClient api.Issue
+	noteClient  api.Note
 	id          int
 	project     string
 	opt         *ShowOption

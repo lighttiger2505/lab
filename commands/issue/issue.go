@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/lighttiger2505/lab/git"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 )
@@ -59,7 +59,7 @@ func (c *IssueCommand) Run(args []string) int {
 		return ExitCodeError
 	}
 
-	clientFacotry, err := lab.NewGitlabClientFactory(pInfo.ApiUrl(), pInfo.Token)
+	clientFacotry, err := api.NewGitlabClientFactory(pInfo.ApiUrl(), pInfo.Token)
 	if err != nil {
 		c.UI.Error(err.Error())
 		return ExitCodeError

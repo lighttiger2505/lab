@@ -3,7 +3,7 @@ package commands
 import (
 	"testing"
 
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -35,7 +35,7 @@ var testProjectUsers = []*gitlab.ProjectUser{
 	},
 }
 
-var mockGitlabUserClinet = &lab.MockUserClient{
+var mockGitlabUserClinet = &api.MockUserClient{
 	MockProjectUsers: func(repositoryName string, opt *gitlab.ListProjectUserOptions) ([]*gitlab.ProjectUser, error) {
 		return testProjectUsers, nil
 	},
@@ -45,8 +45,8 @@ var mockGitlabUserClinet = &lab.MockUserClient{
 }
 
 func TestUserCommandRun(t *testing.T) {
-	mockClientFactory := &lab.MockAPIClientFactory{
-		MockGetUserClient: func() lab.User {
+	mockClientFactory := &api.MockAPIClientFactory{
+		MockGetUserClient: func() api.User {
 			return mockGitlabUserClinet
 		},
 	}
@@ -71,8 +71,8 @@ func TestUserCommandRun(t *testing.T) {
 }
 
 func TestUserCommandRun_AllProject(t *testing.T) {
-	mockClientFactory := &lab.MockAPIClientFactory{
-		MockGetUserClient: func() lab.User {
+	mockClientFactory := &api.MockAPIClientFactory{
+		MockGetUserClient: func() api.User {
 			return mockGitlabUserClinet
 		},
 	}

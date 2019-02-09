@@ -5,13 +5,13 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/lighttiger2505/lab/commands/internal"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type listMethod struct {
-	client  lab.Issue
+	client  api.Issue
 	opt     *ListOption
 	project string
 }
@@ -31,7 +31,7 @@ func (m *listMethod) Process() (string, error) {
 }
 
 type listAllMethod struct {
-	client lab.Issue
+	client api.Issue
 	opt    *ListOption
 }
 

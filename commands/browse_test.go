@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/git"
-	lab "github.com/lighttiger2505/lab/gitlab"
+	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -31,9 +31,9 @@ func (m *MockURLOpener) Open(url string) error {
 	return nil
 }
 
-var mockAPIClientFactory = &lab.MockAPIClientFactory{
-	MockGetBranchClient: func() lab.Branch {
-		return &lab.MockBranchClient{
+var mockAPIClientFactory = &api.MockAPIClientFactory{
+	MockGetBranchClient: func() api.Branch {
+		return &api.MockBranchClient{
 			MockGetBranch: func(project string, branch string) (*gitlab.Branch, error) {
 				return &gitlab.Branch{}, nil
 			},

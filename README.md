@@ -110,7 +110,7 @@ auto create configuration file `~/.config/lab/config.yml` when launch lab comman
 ### Sample
 
 ```yml
-default_profile: gitlab.com: 
+default_profile: gitlab.com
 profiles:
   gitlab.com:
     token: ********************

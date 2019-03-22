@@ -1,13 +1,12 @@
 package internal
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/atotto/clipboard"
 	"github.com/lighttiger2505/lab/internal/browse"
+	"github.com/lighttiger2505/lab/internal/clipboard"
 )
 
 type Method interface {
@@ -15,10 +14,11 @@ type Method interface {
 }
 
 type BrowseMethod struct {
-	Opener browse.URLOpener
-	Opt    *BrowseOption
-	URL    string
-	ID     int
+	Opener    browse.URLOpener
+	Clipboard clipboard.Clipboard
+	Opt       *BrowseOption
+	URL       string
+	ID        int
 }
 
 func (m *BrowseMethod) Process() (string, error) {
@@ -34,8 +34,8 @@ func (m *BrowseMethod) Process() (string, error) {
 	}
 
 	if m.Opt.Copy {
-		if err := clipboard.WriteAll(url); err != nil {
-			return "", fmt.Errorf(fmt.Sprintf("Error copying %s to clipboard:\n%s\n", url, err))
+		if err := m.Clipboard.Write(url); err != nil {
+			return "", err
 		}
 	}
 

@@ -4,6 +4,7 @@ import (
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/browse"
+	"github.com/lighttiger2505/lab/internal/clipboard"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 )
 
@@ -16,10 +17,11 @@ type IssueMethodFactory struct{}
 func (c *IssueMethodFactory) CreateMethod(opt Option, pInfo *gitutil.GitLabProjectInfo, iid int, factory api.APIClientFactory) internal.Method {
 	if opt.BrowseOption.HasBrowse() {
 		return &internal.BrowseMethod{
-			Opener: &browse.Browser{},
-			Opt:    opt.BrowseOption,
-			URL:    pInfo.SubpageUrl("issues"),
-			ID:     iid,
+			Opener:    &browse.Browser{},
+			Clipboard: &clipboard.ClipboardRW{},
+			Opt:       opt.BrowseOption,
+			URL:       pInfo.SubpageUrl("issues"),
+			ID:        iid,
 		}
 	}
 

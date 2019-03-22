@@ -5,6 +5,7 @@ import (
 
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/internal/api"
+	"github.com/lighttiger2505/lab/internal/clipboard"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 	gitlab "github.com/xanzy/go-gitlab"
@@ -47,6 +48,7 @@ func TestBrowseCommandRun(t *testing.T) {
 		UI:              mockUI,
 		RemoteCollecter: &gitutil.MockCollecter{},
 		GitClient:       mockGitClient,
+		Clipboard:       &clipboard.MockClipboardRW{},
 		Opener:          &MockURLOpener{},
 		ClientFactory:   mockAPIClientFactory,
 	}

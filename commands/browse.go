@@ -6,13 +6,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/atotto/clipboard"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	gitpath "github.com/lighttiger2505/lab/git/path"
 	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/browse"
+	"github.com/lighttiger2505/lab/internal/clipboard"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 )
@@ -53,6 +53,7 @@ type BrowseCommand struct {
 	UI              ui.UI
 	RemoteCollecter gitutil.Collecter
 	GitClient       git.Client
+	Clipboard       clipboard.Clipboard
 	Opener          browse.URLOpener
 	ClientFactory   api.APIClientFactory
 }
@@ -120,8 +121,9 @@ func (c *BrowseCommand) Run(args []string) int {
 	}
 
 	if browseOption.Copy {
-		if err := clipboard.WriteAll(url); err != nil {
-			c.UI.Error(fmt.Sprintf("Error copying %s to clipboard:\n%s\n", url, err))
+		if err := c.Clipboard.Write(url); err != nil {
+			c.UI.Error(err.Error())
+			return ExitCodeError
 		}
 		return ExitCodeOK
 	}

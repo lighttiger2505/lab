@@ -4,11 +4,13 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/internal/browse"
+	"github.com/lighttiger2505/lab/internal/clipboard"
 )
 
 func Test_BrowseMethod_Process(t *testing.T) {
 	type fields struct {
 		opener browse.URLOpener
+		cb     clipboard.Clipboard
 		opt    *BrowseOption
 		url    string
 		id     int
@@ -33,6 +35,7 @@ func Test_BrowseMethod_Process(t *testing.T) {
 						return nil
 					},
 				},
+				cb: &clipboard.MockClipboardRW{},
 				opt: &BrowseOption{
 					Browse: true,
 					URL:    false,
@@ -58,6 +61,7 @@ func Test_BrowseMethod_Process(t *testing.T) {
 						return nil
 					},
 				},
+				cb: &clipboard.MockClipboardRW{},
 				opt: &BrowseOption{
 					Browse: true,
 					URL:    false,
@@ -78,6 +82,7 @@ func Test_BrowseMethod_Process(t *testing.T) {
 					URL:    true,
 					Copy:   false,
 				},
+				cb:  &clipboard.MockClipboardRW{},
 				url: "https://domain/group/repository/issues",
 				id:  12,
 			},
@@ -88,6 +93,7 @@ func Test_BrowseMethod_Process(t *testing.T) {
 			name: "copy issue detail page url",
 			fields: fields{
 				opener: &browse.MockOpener{},
+				cb:     &clipboard.MockClipboardRW{},
 				opt: &BrowseOption{
 					Browse: false,
 					URL:    false,
@@ -103,10 +109,11 @@ func Test_BrowseMethod_Process(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &BrowseMethod{
-				Opener: tt.fields.opener,
-				Opt:    tt.fields.opt,
-				URL:    tt.fields.url,
-				ID:     tt.fields.id,
+				Opener:    tt.fields.opener,
+				Clipboard: tt.fields.cb,
+				Opt:       tt.fields.opt,
+				URL:       tt.fields.url,
+				ID:        tt.fields.id,
 			}
 			got, err := m.Process()
 			if (err != nil) != tt.wantErr {

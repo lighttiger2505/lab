@@ -17,6 +17,7 @@ import (
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/browse"
+	"github.com/lighttiger2505/lab/internal/clipboard"
 	"github.com/lighttiger2505/lab/internal/config"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
@@ -68,6 +69,7 @@ func realMain(writer io.Writer, ver, rev string) int {
 				UI:              ui,
 				RemoteCollecter: remoteCollecter,
 				GitClient:       &git.GitClient{},
+				Clipboard:       &clipboard.ClipboardRW{},
 				Opener:          &browse.Browser{},
 				ClientFactory:   &api.GitlabClientFactory{},
 			}, nil

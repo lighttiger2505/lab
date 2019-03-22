@@ -55,7 +55,7 @@ Available commands are:
 	```sh
 	$ cd {gitlab repository}
 	```
-1. laucn lab command
+1. launch lab command
 	```sh
 	$ lab issue
 	```

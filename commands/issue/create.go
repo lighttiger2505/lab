@@ -5,16 +5,18 @@ import (
 
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/internal/api"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
-func makeCreateIssueOptions(opt *CreateUpdateOption, title, description string) *gitlab.CreateIssueOptions {
+func makeCreateIssueOptions(opt *CreateUpdateOption, title, description string, pInfo *gitutil.GitLabProjectInfo) *gitlab.CreateIssueOptions {
 	createIssueOption := &gitlab.CreateIssueOptions{
 		Title:       gitlab.String(title),
 		Description: gitlab.String(description),
 	}
-	if opt.AssigneeID != 0 {
-		createIssueOption.AssigneeIDs = []int{opt.AssigneeID}
+	assigneeID := opt.getAssigneeID(pInfo.Profile)
+	if assigneeID != 0 {
+		createIssueOption.AssigneeIDs = []int{assigneeID}
 	}
 	if opt.MilestoneID != 0 {
 		createIssueOption.MilestoneID = gitlab.Int(opt.MilestoneID)
@@ -33,11 +35,12 @@ type createMethod struct {
 	client  api.Issue
 	opt     *CreateUpdateOption
 	project string
+	pInfo   *gitutil.GitLabProjectInfo
 }
 
 func (m *createMethod) Process() (string, error) {
 	issue, err := m.client.CreateIssue(
-		makeCreateIssueOptions(m.opt, m.opt.Title, m.opt.Message),
+		makeCreateIssueOptions(m.opt, m.opt.Title, m.opt.Message, m.pInfo),
 		m.project,
 	)
 	if err != nil {
@@ -51,7 +54,7 @@ type createOnEditorMethod struct {
 	repositoryClient api.Repository
 	opt              *CreateUpdateOption
 	editFunc         func(program, file string) error
-	project          string
+	pInfo            *gitutil.GitLabProjectInfo
 }
 
 const templateDir = ".gitlab/issue_templates"
@@ -62,7 +65,7 @@ func (m *createOnEditorMethod) Process() (string, error) {
 	if templateFilename != "" {
 		filename := templateDir + "/" + templateFilename
 		res, err := m.repositoryClient.GetFile(
-			m.project,
+			m.pInfo.Project,
 			filename,
 			makeIssueTemplateOption(),
 		)
@@ -88,8 +91,8 @@ func (m *createOnEditorMethod) Process() (string, error) {
 		return "", err
 	}
 	issue, err := m.issueClient.CreateIssue(
-		makeCreateIssueOptions(m.opt, title, message),
-		m.project,
+		makeCreateIssueOptions(m.opt, title, message, m.pInfo),
+		m.pInfo.Project,
 	)
 	if err != nil {
 		return "", err

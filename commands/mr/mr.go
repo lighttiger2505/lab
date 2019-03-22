@@ -140,16 +140,16 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 			client:           mrClient,
 			repositoryClient: repositoryClient,
 			opt:              createUpdateOption,
-			project:          pInfo.Project,
+			pInfo:            pInfo,
 			editFunc:         c.EditFunc,
 		}, nil
 
 	}
 	if createUpdateOption.hasCreate() {
 		return &createMethod{
-			client:  mrClient,
-			opt:     createUpdateOption,
-			project: pInfo.Project,
+			client: mrClient,
+			opt:    createUpdateOption,
+			pInfo:  pInfo,
 		}, nil
 	}
 

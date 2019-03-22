@@ -58,26 +58,32 @@ func TestConfigV2_Load(t *testing.T) {
     token: token1
     default_group: default_group1
     default_project: default_project1
+    default_assignee_id: 1
   hoge2.com:
     token: token2
     default_group: default_group2
     default_project: default_project2
+    default_assignee_id: 2
 default_profile: default_profile
+version: 1
 `,
 			want: &Config{
 				Profiles: map[string]Profile{
 					"hoge1.com": Profile{
-						Token:          "token1",
-						DefaultGroup:   "default_group1",
-						DefaultProject: "default_project1",
+						Token:             "token1",
+						DefaultGroup:      "default_group1",
+						DefaultProject:    "default_project1",
+						DefaultAssigneeID: 1,
 					},
 					"hoge2.com": Profile{
-						Token:          "token2",
-						DefaultGroup:   "default_group2",
-						DefaultProject: "default_project2",
+						Token:             "token2",
+						DefaultGroup:      "default_group2",
+						DefaultProject:    "default_project2",
+						DefaultAssigneeID: 2,
 					},
 				},
 				DefalutProfile: "default_profile",
+				Version:        1,
 			},
 			wantErr: false,
 		},
@@ -103,6 +109,7 @@ func TestConfigV2_Save(t *testing.T) {
 	type fields struct {
 		Profiles       map[string]Profile
 		DefalutProfile string
+		Version        int
 	}
 	tests := []struct {
 		name    string
@@ -113,10 +120,10 @@ func TestConfigV2_Save(t *testing.T) {
 		{
 			name: "empty",
 			fields: fields{
-				Profiles:       map[string]Profile{},
-				DefalutProfile: "",
+				Profiles: map[string]Profile{},
 			},
-			want: `profiles: {}
+			want: `version: 0
+profiles: {}
 default_profile: ""
 `,
 			wantErr: false,
@@ -126,27 +133,33 @@ default_profile: ""
 			fields: fields{
 				Profiles: map[string]Profile{
 					"hoge1.com": Profile{
-						Token:          "token1",
-						DefaultGroup:   "default_group1",
-						DefaultProject: "default_project1",
+						Token:             "token1",
+						DefaultGroup:      "default_group1",
+						DefaultProject:    "default_project1",
+						DefaultAssigneeID: 1,
 					},
 					"hoge2.com": Profile{
-						Token:          "token2",
-						DefaultGroup:   "default_group2",
-						DefaultProject: "default_project2",
+						Token:             "token2",
+						DefaultGroup:      "default_group2",
+						DefaultProject:    "default_project2",
+						DefaultAssigneeID: 2,
 					},
 				},
 				DefalutProfile: "default_profile",
+				Version:        1,
 			},
-			want: `profiles:
+			want: `version: 1
+profiles:
   hoge1.com:
     token: token1
     default_group: default_group1
     default_project: default_project1
+    default_assignee_id: 1
   hoge2.com:
     token: token2
     default_group: default_group2
     default_project: default_project2
+    default_assignee_id: 2
 default_profile: default_profile
 `,
 			wantErr: false,
@@ -160,14 +173,15 @@ default_profile: default_profile
 			c := &Config{
 				Profiles:       tt.fields.Profiles,
 				DefalutProfile: tt.fields.DefalutProfile,
+				Version:        tt.fields.Version,
 			}
 
 			if err := c.Save(); (err != nil) != tt.wantErr {
-				t.Errorf("ConfigV2.Save() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Case:%s ConfigV2.Save() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 			}
 			got := getTestConfigContent(configFilePath)
 			if diff := cmp.Diff(got, tt.want); diff != "" {
-				t.Errorf("ConfigV2.Save() differs: (-got +want)\n%s", diff)
+				t.Errorf("Case:%s ConfigV2.Save() differs: (-got +want)\n%s", tt.name, diff)
 			}
 		})
 	}

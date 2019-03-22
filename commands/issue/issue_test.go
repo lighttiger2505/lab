@@ -78,7 +78,7 @@ func TestIssueCommand_Run(t *testing.T) {
 			args:     []string{"aa"},
 			wantCode: 1,
 			wantOut:  "",
-			wantErr:  "Invalid args, please input issue id.\n",
+			wantErr:  "Invalid args, please input issue id\n",
 		},
 	}
 	for _, tt := range tests {

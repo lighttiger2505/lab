@@ -23,6 +23,7 @@ type GitLabProjectInfo struct {
 	Domain  string
 	Project string
 	Token   string
+	Profile *config.Profile
 }
 
 func (r *GitLabProjectInfo) BaseUrl() string {
@@ -99,6 +100,7 @@ func (c *RemoteCollecter) collectTargetByDefaultConfig(pInfo *GitLabProjectInfo)
 		return pInfo
 	}
 	profile := c.Cfg.GetDefaultProfile()
+	pInfo.Profile = profile
 	pInfo.Domain = c.Cfg.DefalutProfile
 	pInfo.Token = profile.Token
 
@@ -150,6 +152,12 @@ func (c *RemoteCollecter) collectTargetByLocalRepository(pInfo *GitLabProjectInf
 		c.UI.Message("Saved private Token.")
 	}
 
+	profile, err := c.Cfg.GetProfile(domain)
+	if err != nil {
+		return nil, err
+	}
+
+	pInfo.Profile = profile
 	pInfo.Domain = domain
 	pInfo.Token = token
 	pInfo.Project = targetRepo.RepositoryFullName()
@@ -163,6 +171,7 @@ func (c *RemoteCollecter) collectTargetByArgs(pInfo *GitLabProjectInfo, project,
 		if err != nil {
 			return nil, err
 		}
+		pInfo.Profile = p
 		pInfo.Domain = profile
 		pInfo.Token = p.Token
 	}
@@ -212,5 +221,6 @@ func (m *MockCollecter) CollectTarget(project, profile string) (*GitLabProjectIn
 		Domain:  "domain",
 		Project: "project",
 		Token:   "token",
+		Profile: &config.Profile{},
 	}, nil
 }

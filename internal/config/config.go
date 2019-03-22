@@ -15,14 +15,16 @@ import (
 var configFilePath = getXDGConfigPath(runtime.GOOS)
 
 type Config struct {
+	Version        int                `yaml:"version"`
 	Profiles       map[string]Profile `yaml:"profiles"`
 	DefalutProfile string             `yaml:"default_profile"`
 }
 
 type Profile struct {
-	Token          string `yaml:"token"`
-	DefaultGroup   string `yaml:"default_group"`
-	DefaultProject string `yaml:"default_project"`
+	Token             string `yaml:"token"`
+	DefaultGroup      string `yaml:"default_group"`
+	DefaultProject    string `yaml:"default_project"`
+	DefaultAssigneeID int    `yaml:"default_assignee_id"`
 }
 
 func NewConfig() *Config {

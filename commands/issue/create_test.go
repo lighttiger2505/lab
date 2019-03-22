@@ -6,6 +6,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/lighttiger2505/lab/internal/api"
+	"github.com/lighttiger2505/lab/internal/config"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -42,9 +44,9 @@ var issue = &gitlab.Issue{
 
 func Test_createMethod_Process(t *testing.T) {
 	type fields struct {
-		client  api.Issue
-		opt     *CreateUpdateOption
-		project string
+		client api.Issue
+		opt    *CreateUpdateOption
+		pInfo  *gitutil.GitLabProjectInfo
 	}
 	tests := []struct {
 		name    string
@@ -74,7 +76,10 @@ func Test_createMethod_Process(t *testing.T) {
 					Message:    "desc",
 					AssigneeID: 13,
 				},
-				project: "group/project",
+				pInfo: &gitutil.GitLabProjectInfo{
+					Project: "group/project",
+					Profile: &config.Profile{},
+				},
 			},
 			want:    "12",
 			wantErr: false,
@@ -83,9 +88,9 @@ func Test_createMethod_Process(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &createMethod{
-				client:  tt.fields.client,
-				opt:     tt.fields.opt,
-				project: tt.fields.project,
+				client: tt.fields.client,
+				opt:    tt.fields.opt,
+				pInfo:  tt.fields.pInfo,
 			}
 			got, err := m.Process()
 			if (err != nil) != tt.wantErr {
@@ -105,7 +110,7 @@ func Test_createOnEditorMethod_Process(t *testing.T) {
 		repositoryClient api.Repository
 		opt              *CreateUpdateOption
 		editFunc         func(program, file string) error
-		project          string
+		pInfo            *gitutil.GitLabProjectInfo
 	}
 	tests := []struct {
 		name    string
@@ -140,7 +145,10 @@ func Test_createOnEditorMethod_Process(t *testing.T) {
 					Message:    "desc",
 					AssigneeID: 13,
 				},
-				project:  "group/project",
+				pInfo: &gitutil.GitLabProjectInfo{
+					Project: "group/project",
+					Profile: &config.Profile{},
+				},
 				editFunc: func(program, file string) error { return nil },
 			},
 			want:    "12",
@@ -174,7 +182,10 @@ func Test_createOnEditorMethod_Process(t *testing.T) {
 					Template:   "template",
 					AssigneeID: 13,
 				},
-				project:  "group/project",
+				pInfo: &gitutil.GitLabProjectInfo{
+					Project: "group/project",
+					Profile: &config.Profile{},
+				},
 				editFunc: func(program, file string) error { return nil },
 			},
 			want:    "12",
@@ -188,7 +199,7 @@ func Test_createOnEditorMethod_Process(t *testing.T) {
 				repositoryClient: tt.fields.repositoryClient,
 				opt:              tt.fields.opt,
 				editFunc:         tt.fields.editFunc,
-				project:          tt.fields.project,
+				pInfo:            tt.fields.pInfo,
 			}
 			got, err := m.Process()
 			if (err != nil) != tt.wantErr {

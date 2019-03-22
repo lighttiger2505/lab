@@ -3,6 +3,7 @@ package issue
 import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/commands/internal"
+	"github.com/lighttiger2505/lab/internal/config"
 )
 
 type Option struct {
@@ -48,6 +49,16 @@ func (o *CreateUpdateOption) hasUpdate() bool {
 		return true
 	}
 	return false
+}
+
+func (o *CreateUpdateOption) getAssigneeID(profile *config.Profile) int {
+	if o.AssigneeID != 0 {
+		return o.AssigneeID
+	}
+	if profile.DefaultAssigneeID != 0 {
+		return profile.DefaultAssigneeID
+	}
+	return 0
 }
 
 type ListOption struct {

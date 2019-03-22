@@ -58,15 +58,15 @@ func (c *IssueMethodFactory) CreateMethod(opt Option, pInfo *gitutil.GitLabProje
 			issueClient:      factory.GetIssueClient(),
 			repositoryClient: factory.GetRepositoryClient(),
 			opt:              opt.CreateUpdateOption,
-			project:          pInfo.Project,
+			pInfo:            pInfo,
 			editFunc:         nil,
 		}
 	}
 	if opt.CreateUpdateOption.hasCreate() {
 		return &createMethod{
-			client:  factory.GetIssueClient(),
-			opt:     opt.CreateUpdateOption,
-			project: pInfo.Project,
+			client: factory.GetIssueClient(),
+			opt:    opt.CreateUpdateOption,
+			pInfo:  pInfo,
 		}
 	}
 	if opt.ListOption.AllProject {

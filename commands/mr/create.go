@@ -6,14 +6,15 @@ import (
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/internal/api"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type createMethod struct {
 	internal.Method
-	client  api.MergeRequest
-	opt     *CreateUpdateOption
-	project string
+	client api.MergeRequest
+	opt    *CreateUpdateOption
+	pInfo  *gitutil.GitLabProjectInfo
 }
 
 func (m *createMethod) Process() (string, error) {
@@ -29,8 +30,8 @@ func (m *createMethod) Process() (string, error) {
 
 	// Do create merge request
 	mergeRequest, err := m.client.CreateMergeRequest(
-		makeCreateMergeRequestOption(m.opt, m.opt.Title, m.opt.Message, currentBranch),
-		m.project,
+		makeCreateMergeRequestOption(m.opt, m.opt.Title, m.opt.Message, currentBranch, m.pInfo),
+		m.pInfo.Project,
 	)
 	if err != nil {
 		return "", err
@@ -45,7 +46,7 @@ type createOnEditorMethod struct {
 	client           api.MergeRequest
 	repositoryClient api.Repository
 	opt              *CreateUpdateOption
-	project          string
+	pInfo            *gitutil.GitLabProjectInfo
 	editFunc         func(program, file string) error
 }
 
@@ -57,7 +58,7 @@ func (m *createOnEditorMethod) Process() (string, error) {
 	if templateFilename != "" {
 		filename := templateDir + "/" + templateFilename
 		res, err := m.repositoryClient.GetFile(
-			m.project,
+			m.pInfo.Project,
 			filename,
 			makeMergeRequestTemplateOption(),
 		)
@@ -95,8 +96,8 @@ func (m *createOnEditorMethod) Process() (string, error) {
 
 	// Do create merge request
 	mergeRequest, err := m.client.CreateMergeRequest(
-		makeCreateMergeRequestOption(m.opt, title, message, currentBranch),
-		m.project,
+		makeCreateMergeRequestOption(m.opt, title, message, currentBranch, m.pInfo),
+		m.pInfo.Project,
 	)
 	if err != nil {
 		return "", err
@@ -106,7 +107,7 @@ func (m *createOnEditorMethod) Process() (string, error) {
 	return fmt.Sprintf("%d", mergeRequest.IID), nil
 }
 
-func makeCreateMergeRequestOption(opt *CreateUpdateOption, title, description, branch string) *gitlab.CreateMergeRequestOptions {
+func makeCreateMergeRequestOption(opt *CreateUpdateOption, title, description, branch string, pInfo *gitutil.GitLabProjectInfo) *gitlab.CreateMergeRequestOptions {
 	createMergeRequestOption := &gitlab.CreateMergeRequestOptions{
 		Title:           gitlab.String(title),
 		Description:     gitlab.String(description),
@@ -114,8 +115,9 @@ func makeCreateMergeRequestOption(opt *CreateUpdateOption, title, description, b
 		TargetBranch:    gitlab.String(opt.TargetBranch),
 		TargetProjectID: nil,
 	}
-	if opt.AssigneeID != 0 {
-		createMergeRequestOption.AssigneeID = gitlab.Int(opt.AssigneeID)
+	assigneeID := opt.getAssigneeID(pInfo.Profile)
+	if assigneeID != 0 {
+		createMergeRequestOption.AssigneeID = gitlab.Int(assigneeID)
 	}
 	if opt.MilestoneID != 0 {
 		createMergeRequestOption.MilestoneID = gitlab.Int(opt.MilestoneID)

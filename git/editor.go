@@ -16,14 +16,13 @@ import (
 
 type Editor struct {
 	Program    string
-	Topic      string
 	File       string
 	Message    string
 	CS         string
 	openEditor func(program, file string) error
 }
 
-func NewEditor(filePrefix, topic, message string, editFunc func(program, file string) error) (editor *Editor, err error) {
+func NewEditor(filePrefix, message string, editFunc func(program, file string) error) (editor *Editor, err error) {
 	messageFile, err := getMessageFile(filePrefix)
 	if err != nil {
 		return
@@ -42,7 +41,6 @@ func NewEditor(filePrefix, topic, message string, editFunc func(program, file st
 
 	editor = &Editor{
 		Program:    program,
-		Topic:      topic,
 		File:       messageFile,
 		Message:    message,
 		CS:         cs,
@@ -81,7 +79,7 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 
 	err = e.openEditor(e.Program, e.File)
 	if err != nil {
-		err = fmt.Errorf("error using text editor for %s message", e.Topic)
+		err = fmt.Errorf("error using text editor")
 		defer e.DeleteFile()
 		return
 	}

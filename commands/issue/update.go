@@ -74,8 +74,11 @@ func (m *updateOnEditorMethod) Process() (string, error) {
 	updatedTitle, updatedMessage := getUpdatedTitleAndMessage(issue, m.opt.Title, m.opt.Message)
 
 	// Starting editor for edit title and description
-	content := editIssueMessage(updatedTitle, updatedMessage)
-	title, message, err := editIssueTitleAndDesc(content, m.editFunc)
+	title, message, err := internal.EditTitleAndDesc(
+		"ISSUE",
+		internal.EditContents(updatedTitle, updatedMessage),
+		m.editFunc,
+	)
 	if err != nil {
 		return "", err
 	}

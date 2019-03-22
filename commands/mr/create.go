@@ -74,8 +74,11 @@ func (m *createOnEditorMethod) Process() (string, error) {
 		message = m.opt.Message
 	}
 
-	content := editMergeRequestTemplate(title, message)
-	title, message, err := editIssueTitleAndDesc(content, m.editFunc)
+	title, message, err := internal.EditTitleAndDesc(
+		"MERGE_REQUEST",
+		internal.EditContents(title, message),
+		m.editFunc,
+	)
 	if err != nil {
 		return "", err
 	}

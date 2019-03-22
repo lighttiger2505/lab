@@ -178,30 +178,3 @@ func validMergeRequestIID(args []string) (int, error) {
 	}
 	return iid, nil
 }
-
-func editMergeRequestTemplate(title, description string) string {
-	message := `%s
-
-%s
-`
-	message = fmt.Sprintf(message, title, description)
-	return message
-}
-
-func editIssueTitleAndDesc(template string, editFunc func(program, file string) error) (string, string, error) {
-	editor, err := git.NewEditor("ISSUE", "issue", template, editFunc)
-	if err != nil {
-		return "", "", err
-	}
-
-	title, description, err := editor.EditTitleAndDescription()
-	if err != nil {
-		return "", "", err
-	}
-
-	if editor != nil {
-		defer editor.DeleteFile()
-	}
-
-	return title, description, nil
-}

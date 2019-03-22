@@ -1,10 +1,12 @@
 package internal
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/internal/browse"
 	"github.com/lighttiger2505/lab/internal/clipboard"
 )
@@ -75,4 +77,31 @@ func ParceRepositoryFullName(webURL string) string {
 	}
 
 	return strings.Join(splitURL[:subPageIndex], "/")
+}
+
+func EditContents(title, description string) string {
+	message := `%s
+
+%s
+`
+	message = fmt.Sprintf(message, title, description)
+	return message
+}
+
+func EditTitleAndDesc(prefix, template string, editFunc func(program, file string) error) (string, string, error) {
+	editor, err := git.NewEditor(prefix, template, editFunc)
+	if err != nil {
+		return "", "", err
+	}
+
+	title, description, err := editor.EditTitleAndDescription()
+	if err != nil {
+		return "", "", err
+	}
+
+	if editor != nil {
+		defer editor.DeleteFile()
+	}
+
+	return title, description, nil
 }

@@ -62,8 +62,11 @@ func (m *updateOnEditorMethod) Process() (string, error) {
 	}
 
 	// Starting editor for edit title and description
-	template := editMergeRequestTemplate(mergeRequest.Title, mergeRequest.Description)
-	title, message, err := editIssueTitleAndDesc(template, m.editFunc)
+	title, message, err := internal.EditTitleAndDesc(
+		"MERGE_REQUEST",
+		internal.EditContents(mergeRequest.Title, mergeRequest.Description),
+		m.editFunc,
+	)
 	if err != nil {
 		return "", nil
 	}

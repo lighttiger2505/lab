@@ -3,6 +3,7 @@ package issue
 import (
 	"fmt"
 
+	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/internal/api"
 	gitlab "github.com/xanzy/go-gitlab"
 )
@@ -78,8 +79,11 @@ func (m *createOnEditorMethod) Process() (string, error) {
 		message = m.opt.Message
 	}
 
-	content := editIssueMessage(title, message)
-	title, message, err := editIssueTitleAndDesc(content, m.editFunc)
+	title, message, err := internal.EditTitleAndDesc(
+		"ISSUE",
+		internal.EditContents(title, message),
+		m.editFunc,
+	)
 	if err != nil {
 		return "", err
 	}

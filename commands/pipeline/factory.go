@@ -32,9 +32,9 @@ func (c *PipelineMethodFacotry) CreateMethod(opt Option, pInfo *gitutil.GitLabPr
 	}
 
 	return &listMethod{
-		client:  factory.GetPipelineClient(),
-		opt:     opt.ListOption,
-		project: pInfo.Project,
+		client: factory.GetPipelineClient(),
+		opt:    opt.ListOption,
+		pInfo:  pInfo,
 	}
 }
 

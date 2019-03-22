@@ -5,20 +5,21 @@ import (
 	"strings"
 
 	"github.com/lighttiger2505/lab/internal/api"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/ryanuber/columnize"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
 type listMethod struct {
-	client  api.Pipeline
-	opt     *ListOption
-	project string
+	client api.Pipeline
+	opt    *ListOption
+	pInfo  *gitutil.GitLabProjectInfo
 }
 
 func (m *listMethod) Process() (string, error) {
 	pipelines, err := m.client.ProjectPipelines(
-		m.project,
-		makeListPipelineOptions(m.opt),
+		m.pInfo.Project,
+		makeListPipelineOptions(m.opt, m.pInfo),
 	)
 	if err != nil {
 		return "", err
@@ -48,7 +49,7 @@ func (m *listJobMethod) Process() (string, error) {
 	return result, nil
 }
 
-func makeListPipelineOptions(listPipelineOption *ListOption) *gitlab.ListProjectPipelinesOptions {
+func makeListPipelineOptions(listPipelineOption *ListOption, pInfo *gitutil.GitLabProjectInfo) *gitlab.ListProjectPipelinesOptions {
 	var scope *string
 	if listPipelineOption.Scope != "" {
 		scope = gitlab.String(listPipelineOption.Scope)
@@ -65,7 +66,7 @@ func makeListPipelineOptions(listPipelineOption *ListOption) *gitlab.ListProject
 	listPipelinesOptions := &gitlab.ListProjectPipelinesOptions{
 		Scope:       scope,
 		Status:      status,
-		Ref:         gitlab.String(""),
+		Ref:         gitlab.String(listPipelineOption.getRef(pInfo.CurrentBranch)),
 		YamlErrors:  gitlab.Bool(false),
 		Name:        gitlab.String(""),
 		Username:    gitlab.String(""),

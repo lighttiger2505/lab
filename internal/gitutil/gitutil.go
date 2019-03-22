@@ -20,10 +20,11 @@ type RemoteCollecter struct {
 }
 
 type GitLabProjectInfo struct {
-	Domain  string
-	Project string
-	Token   string
-	Profile *config.Profile
+	Domain        string
+	Project       string
+	Token         string
+	CurrentBranch string
+	Profile       *config.Profile
 }
 
 func (r *GitLabProjectInfo) BaseUrl() string {
@@ -161,6 +162,12 @@ func (c *RemoteCollecter) collectTargetByLocalRepository(pInfo *GitLabProjectInf
 	pInfo.Domain = domain
 	pInfo.Token = token
 	pInfo.Project = targetRepo.RepositoryFullName()
+
+	currentBranch, err := c.GitClient.CurrentRemoteBranch()
+	if err != nil {
+		return nil, err
+	}
+	pInfo.CurrentBranch = currentBranch
 
 	return pInfo, nil
 }

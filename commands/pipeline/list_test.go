@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/lighttiger2505/lab/internal/api"
+	"github.com/lighttiger2505/lab/internal/config"
+	"github.com/lighttiger2505/lab/internal/gitutil"
 	gitlab "github.com/xanzy/go-gitlab"
 )
 
@@ -34,9 +36,9 @@ func Test_listMethod_Process(t *testing.T) {
 		},
 	}
 	type fields struct {
-		client  api.Pipeline
-		opt     *ListOption
-		project string
+		client api.Pipeline
+		opt    *ListOption
+		pInfo  *gitutil.GitLabProjectInfo
 	}
 	tests := []struct {
 		name    string
@@ -52,8 +54,11 @@ func Test_listMethod_Process(t *testing.T) {
 						return pipelines, nil
 					},
 				},
-				opt:     &ListOption{},
-				project: "group/project",
+				opt: &ListOption{},
+				pInfo: &gitutil.GitLabProjectInfo{
+					Project: "group/project",
+					Profile: &config.Profile{},
+				},
 			},
 			want:    "1  status1  ref1  sha1\n2  status2  ref2  sha2",
 			wantErr: false,
@@ -62,9 +67,12 @@ func Test_listMethod_Process(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &listMethod{
-				client:  tt.fields.client,
-				opt:     tt.fields.opt,
-				project: tt.fields.project,
+				client: tt.fields.client,
+				opt:    tt.fields.opt,
+				pInfo: &gitutil.GitLabProjectInfo{
+					Project: "group/project",
+					Profile: &config.Profile{},
+				},
 			}
 			got, err := m.Process()
 			if (err != nil) != tt.wantErr {

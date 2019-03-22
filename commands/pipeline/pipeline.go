@@ -35,17 +35,28 @@ Synopsis:
   lab pipeline 
 
   # Show pipeline
-  lab pipeline <Pipeline ID>
-`
+  lab pipeline <Pipeline ID>`
 	return parser
 }
 
 type ListOption struct {
-	Num     int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of pipeline to output."`
-	Sort    string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print pipeline ordered in \"asc\" or \"desc\" order."`
-	Scope   string `short:"c" long:"scope" description:"The scope of pipelines, one of: running, pending, finished, branches, tags"`
-	States  string `short:"t" long:"states" description:" The status of pipelines, one of: running, pending, success, failed, canceled, skipped"`
-	OrderBy string `short:"o" long:"orderby" default:"id" default-mask:"id" description:"Order pipelines by id, status, ref, or user_id"`
+	Num        int    `short:"n" long:"num" value-name:"<num>" default:"20" default-mask:"20" description:"Limit the number of pipeline to output."`
+	Sort       string `long:"sort"  value-name:"<sort>" default:"desc" default-mask:"desc" description:"Print pipeline ordered in \"asc\" or \"desc\" order."`
+	Scope      string `short:"c" long:"scope" description:"The scope of pipelines, one of: running, pending, finished, branches, tags"`
+	States     string `short:"t" long:"states" description:" The status of pipelines, one of: running, pending, success, failed, canceled, skipped"`
+	OrderBy    string `short:"o" long:"orderby" default:"id" default-mask:"id" description:"Order pipelines by id, status, ref, or user_id"`
+	Ref        string `short:"s" long:"ref" description:"The ref of pipelines, Show only pipelines for specified branch, tag"`
+	CurrentRef bool   `short:"r" long:"current-ref" description:"Shorthand of the ref option for current branch"`
+}
+
+func (o *ListOption) getRef(currentBranch string) string {
+	if o.Ref != "" {
+		return o.Ref
+	}
+	if o.CurrentRef && currentBranch != "" {
+		return currentBranch
+	}
+	return ""
 }
 
 type BrowseOption struct {

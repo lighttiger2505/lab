@@ -116,10 +116,12 @@ profiles:
     token: ********************
     default_group: hoge
     default_project: hoge/soge
+    default_assignee_id: 123
   gitlab.ssl.foo.jp:
     token: ******************** 
     default_group: foo
     default_project: foo/bar
+    default_assignee_id: 456
 ```
 
 ## ToDos

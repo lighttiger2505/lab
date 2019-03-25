@@ -20,7 +20,7 @@ type CreateUpdateOption struct {
 	Message     string `short:"m" long:"message" value-name:"<message>" description:"The message of an issue"`
 	Template    string `short:"p" long:"template" value-name:"<issue template>" description:"Start the editor with file using issue template"`
 	StateEvent  string `long:"state-event" value-name:"<state>" description:"Change the status. \"close\", \"reopen\""`
-	AssigneeID  int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of the user to assign the issue to."`
+	AssigneeID  int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of the user to assign the issue to. If default_assignee_id is set in config, it is automatically entered"`
 	MilestoneID int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The global ID of a milestone to assign the issue to. "`
 }
 

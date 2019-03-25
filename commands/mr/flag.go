@@ -22,7 +22,7 @@ type CreateUpdateOption struct {
 	SourceBranch string `long:"source" value-name:"<source branch>" description:"The source branch"`
 	TargetBranch string `long:"target" value-name:"<target branch>" default:"master" default-mask:"master" description:"The target branch"`
 	StateEvent   string `long:"state-event" value-name:"<state>" description:"Change the status. \"opened\", \"closed\""`
-	AssigneeID   int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of the user to assign the merge request to."`
+	AssigneeID   int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of the user to assign the merge request to. If default_assignee_id is set in config, it is automatically entered"`
 	MilestoneID  int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The global ID of a milestone to assign the merge request to. "`
 }
 

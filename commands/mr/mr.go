@@ -9,6 +9,7 @@ import (
 	"github.com/lighttiger2505/lab/git"
 	"github.com/lighttiger2505/lab/internal/api"
 	"github.com/lighttiger2505/lab/internal/browse"
+	"github.com/lighttiger2505/lab/internal/clipboard"
 	"github.com/lighttiger2505/lab/internal/gitutil"
 	"github.com/lighttiger2505/lab/internal/ui"
 )
@@ -98,10 +99,11 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 
 	if browseOption.HasBrowse() {
 		return &internal.BrowseMethod{
-			Opener: &browse.Browser{},
-			Opt:    browseOption,
-			URL:    pInfo.SubpageUrl("merge_requests"),
-			ID:     iid,
+			Opener:    &browse.Browser{},
+			Clipboard: &clipboard.ClipboardRW{},
+			Opt:       browseOption,
+			URL:       pInfo.SubpageUrl("merge_requests"),
+			ID:        iid,
 		}, nil
 	}
 

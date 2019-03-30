@@ -15,24 +15,10 @@ func Test_detailMethod_Process(t *testing.T) {
 		IID:   12,
 		Title: "Title12",
 		State: "State12",
-		Assignee: struct {
-			ID        int    `json:"id"`
-			State     string `json:"state"`
-			WebURL    string `json:"web_url"`
-			Name      string `json:"name"`
-			AvatarURL string `json:"avatar_url"`
-			Username  string `json:"username"`
-		}{
+		Assignee: &gitlab.IssueAssignee{
 			Name: "AssigneeName",
 		},
-		Author: struct {
-			ID        int    `json:"id"`
-			State     string `json:"state"`
-			WebURL    string `json:"web_url"`
-			Name      string `json:"name"`
-			AvatarURL string `json:"avatar_url"`
-			Username  string `json:"username"`
-		}{
+		Author: &gitlab.IssueAuthor{
 			Name: "AuthorName",
 		},
 		CreatedAt:   &createdAt,
@@ -168,11 +154,11 @@ body`,
 			}
 			got, err := m.Process()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("detailMethod.Process() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("%s: detailMethod.Process() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("detailMethod.Process() = \ngot: %#v\nwant:%#v", got, tt.want)
+				t.Errorf("%s: detailMethod.Process() = \ngot: %#v\nwant:%#v", tt.name, got, tt.want)
 			}
 		})
 	}

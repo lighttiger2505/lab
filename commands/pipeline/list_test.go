@@ -16,23 +16,23 @@ func Test_listMethod_Process(t *testing.T) {
 			ID     int    `json:"id"`
 			Status string `json:"status"`
 			Ref    string `json:"ref"`
-			Sha    string `json:"sha"`
+			SHA    string `json:"sha"`
 		}{
 			ID:     1,
 			Status: "status1",
 			Ref:    "ref1",
-			Sha:    "sha1",
+			SHA:    "sha1",
 		},
 		struct {
 			ID     int    `json:"id"`
 			Status string `json:"status"`
 			Ref    string `json:"ref"`
-			Sha    string `json:"sha"`
+			SHA    string `json:"sha"`
 		}{
 			ID:     2,
 			Status: "status2",
 			Ref:    "ref2",
-			Sha:    "sha2",
+			SHA:    "sha2",
 		},
 	}
 	type fields struct {

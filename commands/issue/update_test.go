@@ -14,14 +14,7 @@ func Test_updateMethod_Process(t *testing.T) {
 		IID:   12,
 		Title: "title",
 		State: "state",
-		Assignee: struct {
-			ID        int    `json:"id"`
-			State     string `json:"state"`
-			WebURL    string `json:"web_url"`
-			Name      string `json:"name"`
-			AvatarURL string `json:"avatar_url"`
-			Username  string `json:"username"`
-		}{
+		Assignee: &gitlab.IssueAssignee{
 			ID: 24,
 		},
 		Description: "desc",
@@ -213,14 +206,7 @@ func Test_updateOnEditorMethod_Process(t *testing.T) {
 		IID:   12,
 		Title: "title",
 		State: "state",
-		Assignee: struct {
-			ID        int    `json:"id"`
-			State     string `json:"state"`
-			WebURL    string `json:"web_url"`
-			Name      string `json:"name"`
-			AvatarURL string `json:"avatar_url"`
-			Username  string `json:"username"`
-		}{
+		Assignee: &gitlab.IssueAssignee{
 			ID: 24,
 		},
 		Description: "desc",

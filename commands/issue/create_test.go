@@ -17,24 +17,10 @@ var issue = &gitlab.Issue{
 	IID:   12,
 	Title: "Title12",
 	State: "State12",
-	Assignee: struct {
-		ID        int    `json:"id"`
-		State     string `json:"state"`
-		WebURL    string `json:"web_url"`
-		Name      string `json:"name"`
-		AvatarURL string `json:"avatar_url"`
-		Username  string `json:"username"`
-	}{
-		Name: "AssigneeName",
+	Assignee: &gitlab.IssueAssignee{
+		Username: "AssigneeName",
 	},
-	Author: struct {
-		ID        int    `json:"id"`
-		State     string `json:"state"`
-		WebURL    string `json:"web_url"`
-		Name      string `json:"name"`
-		AvatarURL string `json:"avatar_url"`
-		Username  string `json:"username"`
-	}{
+	Author: &gitlab.IssueAuthor {
 		Name: "AuthorName",
 	},
 	CreatedAt:   &createdAt,

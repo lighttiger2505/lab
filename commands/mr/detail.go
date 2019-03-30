@@ -45,9 +45,12 @@ func (m *detailMethod) Process() (string, error) {
 }
 
 func makeListMergeRequestNotesOptions() *gitlab.ListMergeRequestNotesOptions {
-	return &gitlab.ListMergeRequestNotesOptions{
+	listOption := gitlab.ListOptions{
 		Page:    1,
 		PerPage: 20,
+	}
+	return &gitlab.ListMergeRequestNotesOptions{
+		ListOptions: listOption,
 	}
 }
 

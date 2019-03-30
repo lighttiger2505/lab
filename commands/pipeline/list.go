@@ -88,7 +88,7 @@ func pipelineListOutput(pipelines gitlab.PipelineList) []string {
 			strconv.Itoa(pipeline.ID),
 			pipeline.Status,
 			pipeline.Ref,
-			pipeline.Sha,
+			pipeline.SHA,
 		}, "|")
 		outputs = append(outputs, output)
 	}

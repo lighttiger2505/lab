@@ -191,7 +191,7 @@ func makeCreateProjectVariableOption(key, value string) *gitlab.CreateVariableOp
 
 func makeUpdateProjectVariableOption(key, value string) *gitlab.UpdateVariableOptions {
 	opt := &gitlab.UpdateVariableOptions{
-		Key:   gitlab.String(key),
+		// Key:   gitlab.String(key),
 		Value: gitlab.String(value),
 	}
 	return opt

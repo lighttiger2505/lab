@@ -2,142 +2,183 @@
 
 
 [[projects]]
+  digest = "1:5680f8c40e48f07cb77aece3165a866aaf8276305258b3b70db8ec7ad6ddb78d"
   name = "github.com/armon/go-radix"
   packages = ["."]
+  pruneopts = ""
   revision = "1a2de0c21c94309923825da3df33a4381872c795"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:6de2bdb946608862b32316d0d93c035329792e101f6e85fc3fda5ad1236a43a8"
   name = "github.com/atotto/clipboard"
   packages = ["."]
-  revision = "5e2c7bddca04488284428a201e4a15615f7a5074"
-  version = "v0.1.0"
+  pruneopts = ""
+  revision = "579379fa8ff8a6d3fa979cec107f8f6d7f8fde90"
+  version = "v0.1.2"
 
 [[projects]]
+  digest = "1:15ceb8ca7a71db4c426d8aef1909ea074f6840efa163490bb2798f475624e4ae"
   name = "github.com/bgentry/speakeasy"
   packages = ["."]
+  pruneopts = ""
   revision = "4aabc24848ce5fd31929f7d1e4ea74d3709c14cd"
   version = "v0.1.0"
 
 [[projects]]
+  digest = "1:e988ed0ca0d81f4d28772760c02ee95084961311291bdfefc1b04617c178b722"
   name = "github.com/fatih/color"
   packages = ["."]
+  pruneopts = ""
   revision = "5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4"
   version = "v1.7.0"
 
 [[projects]]
+  digest = "1:529d738b7976c3848cae5cf3a8036440166835e389c1f617af701eeb12a0518d"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
-  version = "v1.2.0"
+  pruneopts = ""
+  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
+  version = "v1.3.1"
 
 [[projects]]
+  digest = "1:f9f45f75f332e03fc7e9fe9188ea4e1ce4d14779ef34fa1b023da67518e36327"
   name = "github.com/google/go-cmp"
   packages = [
     "cmp",
     "cmp/internal/diff",
     "cmp/internal/function",
-    "cmp/internal/value"
+    "cmp/internal/value",
   ]
+  pruneopts = ""
   revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
   version = "v0.2.0"
 
 [[projects]]
-  branch = "master"
+  digest = "1:cea4aa2038169ee558bf507d5ea02c94ca85bcca28a4c7bb99fd59b31e43a686"
   name = "github.com/google/go-querystring"
   packages = ["query"]
-  revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
+  pruneopts = ""
+  revision = "44c6ddd0a2342c386950e880b658017258da92fc"
+  version = "v1.0.0"
 
 [[projects]]
+  digest = "1:8e3bd93036b4a925fe2250d3e4f38f21cadb8ef623561cd80c3c50c114b13201"
   name = "github.com/hashicorp/errwrap"
   packages = ["."]
+  pruneopts = ""
   revision = "8a6fb523712970c966eefc6b39ed2c5e74880354"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:72308fdd6d5ef61106a95be7ca72349a5565809042b6426a3cfb61d99483b824"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
+  pruneopts = ""
   revision = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:ca5c90960520407749b98c49650f54f5f90a667796e85c5ee1597478f702fb91"
   name = "github.com/jessevdk/go-flags"
   packages = ["."]
+  pruneopts = ""
   revision = "c6ca198ec95c841fdb89fc0de7496fed11ab854e"
   version = "v1.4.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:63e7368fcf6b54804076eaec26fd9cf0c4466166b272393db4b93102e1e962df"
   name = "github.com/kballard/go-shellquote"
   packages = ["."]
+  pruneopts = ""
   revision = "95032a82bc518f77982ea72343cc1ade730072f0"
 
 [[projects]]
+  digest = "1:9ea83adf8e96d6304f394d40436f2eb44c1dc3250d223b74088cc253a6cd0a1c"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
+  pruneopts = ""
   revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
   version = "v0.0.9"
 
 [[projects]]
+  digest = "1:d0600e4cf07697303f37130791b2ce4577367931416bea8ec4f601bde3f7c5bf"
   name = "github.com/mattn/go-isatty"
   packages = ["."]
-  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
-  version = "v0.0.3"
+  pruneopts = ""
+  revision = "c2a7a6ca930a4cd0bc33a3f298eb71960732a3a7"
+  version = "v0.0.7"
 
 [[projects]]
+  branch = "master"
+  digest = "1:bb7613fa9de3f211f6f09630e6c0a493285c1d2a162abf0d617bd522c3dd622a"
   name = "github.com/mitchellh/cli"
   packages = ["."]
+  pruneopts = ""
   revision = "3d22a244be8aa6fb16ac24af0e195c08b7d973aa"
-  version = "v1.0.0"
 
 [[projects]]
+  digest = "1:1302e261c39c982bc47d6c1802f8a2ec88327da1fb5be8aec08b877028a5240e"
   name = "github.com/posener/complete"
   packages = [
     ".",
     "cmd",
     "cmd/install",
-    "match"
+    "match",
   ]
-  revision = "dcda3199365ca2a5f24aea4c42aa56f6a197d117"
-  version = "v1.1.2"
+  pruneopts = ""
+  revision = "3ef9b31a6a0613ae832e7ecf208374027c3b2343"
+  version = "v1.2.1"
 
 [[projects]]
+  digest = "1:b5996f5be7c55bd6104f65a9809083dbddeaa4ba0a167aa540a1740f03e533e0"
   name = "github.com/ryanuber/columnize"
   packages = ["."]
-  revision = "983d3a5fab1bf04d1b412465d2d9f8430e2e917e"
-  version = "v2.1.0"
+  pruneopts = ""
+  revision = "9e6335e58db3b4cfe3c3c5c881f51ffbc1091b34"
+  version = "v2.1.1"
 
 [[projects]]
+  digest = "1:9e0446b86e11cb3e483eaf46cd534386da799502d403f9d06143b27231e4ec69"
   name = "github.com/xanzy/go-gitlab"
   packages = ["."]
-  revision = "954568c5d9242be1fb907039d769952fa4f6bc70"
-  version = "v0.11.7"
+  pruneopts = ""
+  revision = "be70cf752294cc5c6ee89a18d6ba0caca08aa5c7"
+  version = "v0.16.1"
 
 [[projects]]
   branch = "master"
+  digest = "1:adcb9e84ce154ef1d45851b57c40f8a211db3e36373a65b7c4f10c79b7428718"
   name = "golang.org/x/net"
   packages = [
     "context",
-    "context/ctxhttp"
+    "context/ctxhttp",
   ]
-  revision = "4bcd98cce591d8c7061bf313d7a3cbad05b58549"
+  pruneopts = ""
+  revision = "74de082e2cca95839e88aa0aeee5aadf6ce7710f"
 
 [[projects]]
   branch = "master"
+  digest = "1:1b92aed6ef88203e39b9d95be415a26bb249ba2afb24ec766127cd74b61287d0"
   name = "golang.org/x/oauth2"
   packages = [
     ".",
-    "internal"
+    "internal",
   ]
-  revision = "d2e6202438beef2727060aa7cabdd924d92ebfd9"
+  pruneopts = ""
+  revision = "c85d3e98c914e3a33234ad863dcbff5dbc425bb8"
 
 [[projects]]
   branch = "master"
+  digest = "1:1b0de777d8ddd63356d5a4d76799ea8f47e811aa9dda85ddc72b2a061c799cc9"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
+  pruneopts = ""
+  revision = "9eb1bfa1ce65ae8a6ff3114b0aaf9a41a6cf3560"
 
 [[projects]]
+  digest = "1:0a6cbf5be24f00105d33c9f6d2f40b8149e0316537a92be1b0d4c761b7ae39fb"
   name = "google.golang.org/appengine"
   packages = [
     "internal",
@@ -146,20 +187,33 @@
     "internal/log",
     "internal/remote_api",
     "internal/urlfetch",
-    "urlfetch"
+    "urlfetch",
   ]
-  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
-  version = "v1.1.0"
+  pruneopts = ""
+  revision = "54a98f90d1c46b7731eb8fb305d2a321c30ef610"
+  version = "v1.5.0"
 
 [[projects]]
+  digest = "1:cedccf16b71e86db87a24f8d4c70b0a855872eb967cb906a66b95de56aefbd0d"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
-  version = "v2.2.1"
+  pruneopts = ""
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "86af1d4bbebaadef23ef90e9ae4b42447cf0b1ae674caa82f5c145392113001b"
+  input-imports = [
+    "github.com/atotto/clipboard",
+    "github.com/fatih/color",
+    "github.com/google/go-cmp/cmp",
+    "github.com/jessevdk/go-flags",
+    "github.com/kballard/go-shellquote",
+    "github.com/mitchellh/cli",
+    "github.com/ryanuber/columnize",
+    "github.com/xanzy/go-gitlab",
+    "gopkg.in/yaml.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

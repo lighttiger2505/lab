@@ -24,7 +24,7 @@ func NewMergeRequestClient(client *gitlab.Client) *MergeRequestClient {
 }
 
 func (l *MergeRequestClient) GetMergeRequest(pid int, repositoryName string) (*gitlab.MergeRequest, error) {
-	mergeRequest, _, err := l.Client.MergeRequests.GetMergeRequest(repositoryName, pid)
+	mergeRequest, _, err := l.Client.MergeRequests.GetMergeRequest(repositoryName, pid, &gitlab.GetMergeRequestsOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("Failed get merge request. %s", err.Error())
 	}

@@ -119,7 +119,7 @@ func (c *RemoteCollecter) collectTargetByLocalRepository(pInfo *GitLabProjectInf
 		return nil, err
 	}
 
-	gitlabRemotes := filterHasGitlabDomain(gitRemotes)
+	gitlabRemotes := filterHasGitlabDomain(gitRemotes, c.Cfg)
 	if len(gitlabRemotes) == 0 {
 		return nil, fmt.Errorf("Not found gitlab remote repository")
 	}
@@ -190,10 +190,12 @@ func (c *RemoteCollecter) collectTargetByArgs(pInfo *GitLabProjectInfo, project,
 	return pInfo, nil
 }
 
-func filterHasGitlabDomain(remoteInfos []*git.RemoteInfo) []*git.RemoteInfo {
-	var gitlabRemotes []*git.RemoteInfo
+func filterHasGitlabDomain(remoteInfos []*git.RemoteInfo, cfg *config.Config) []*git.RemoteInfo {
+	gitlabRemotes := []*git.RemoteInfo{}
 	for _, remoteInfo := range remoteInfos {
 		if strings.HasPrefix(remoteInfo.Domain, "gitlab") {
+			gitlabRemotes = append(gitlabRemotes, remoteInfo)
+		} else if cfg.HasDomain(remoteInfo.Domain) {
 			gitlabRemotes = append(gitlabRemotes, remoteInfo)
 		}
 	}

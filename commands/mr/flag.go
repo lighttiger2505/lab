@@ -1,6 +1,8 @@
 package mr
 
 import (
+	"fmt"
+
 	flags "github.com/jessevdk/go-flags"
 	"github.com/lighttiger2505/lab/commands/internal"
 	"github.com/lighttiger2505/lab/internal/config"
@@ -15,15 +17,17 @@ type Option struct {
 }
 
 type CreateUpdateOption struct {
-	Edit         bool   `short:"e" long:"edit" description:"Edit the merge request on editor. Start the editor with the contents in the given title and message options."`
-	Title        string `short:"i" long:"title" value-name:"<title>" description:"The title of an merge request"`
-	Message      string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
-	Template     string `short:"p" long:"template" value-name:"<merge request template>" description:"Start the editor with file using merge request template"`
-	SourceBranch string `long:"source" value-name:"<source branch>" description:"The source branch"`
-	TargetBranch string `long:"target" value-name:"<target branch>" default:"master" default-mask:"master" description:"The target branch"`
-	StateEvent   string `long:"state-event" value-name:"<state>" description:"Change the status. \"opened\", \"closed\""`
-	AssigneeID   int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of the user to assign the merge request to. If default_assignee_id is set in config, it is automatically entered"`
-	MilestoneID  int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The global ID of a milestone to assign the merge request to. "`
+	Edit               bool   `short:"e" long:"edit" description:"Edit the merge request on editor. Start the editor with the contents in the given title and message options."`
+	Title              string `short:"i" long:"title" value-name:"<title>" description:"The title of an merge request"`
+	Message            string `short:"m" long:"message" value-name:"<message>" description:"The message of an merge request"`
+	Template           string `short:"p" long:"template" value-name:"<merge request template>" description:"Start the editor with file using merge request template"`
+	SourceBranch       string `long:"source" value-name:"<source branch>" description:"The source branch"`
+	TargetBranch       string `long:"target" value-name:"<target branch>" default:"master" default-mask:"master" description:"The target branch"`
+	StateEvent         string `long:"state-event" value-name:"<state>" description:"Change the status. \"opened\", \"closed\""`
+	AssigneeID         int    `long:"cu-assignee-id" value-name:"<assignee id>" description:"The ID of the user to assign the merge request to. If default_assignee_id is set in config, it is automatically entered"`
+	MilestoneID        int    `long:"cu-milestone-id" value-name:"<milestone id>" description:"The global ID of a milestone to assign the merge request to. "`
+	RemoveSourceBranch string `long:"remove-source-branch" value-name:"<true/false>" description:"Merge request should remove the source branch when merging"`
+	Squash             string `long:"squash" value-name:"<true/false>" description:"Squash commits into a single commit when merging"`
 }
 
 func (o *CreateUpdateOption) hasEdit() bool {
@@ -47,7 +51,9 @@ func (o *CreateUpdateOption) hasUpdate() bool {
 		o.Message != "" ||
 		o.StateEvent != "" ||
 		o.AssigneeID != 0 ||
-		o.MilestoneID != 0 {
+		o.MilestoneID != 0 ||
+		o.RemoveSourceBranch != "" ||
+		o.Squash != "" {
 		return true
 	}
 	return false
@@ -61,6 +67,43 @@ func (o *CreateUpdateOption) getAssigneeID(profile *config.Profile) int {
 		return profile.DefaultAssigneeID
 	}
 	return 0
+}
+
+func (o *CreateUpdateOption) isValid() error {
+	if o.Squash != "" {
+		if o.Squash != "true" && o.Squash != "false" {
+			return fmt.Errorf("Invalid option value, %v", o.Squash)
+		}
+	}
+
+	if o.RemoveSourceBranch != "" {
+		if o.RemoveSourceBranch != "true" && o.RemoveSourceBranch != "false" {
+			return fmt.Errorf("Invalid option value, %v", o.RemoveSourceBranch)
+		}
+	}
+	return nil
+}
+
+func (o *CreateUpdateOption) RemoveSourceBranchFlag() (bool, bool) {
+	switch o.RemoveSourceBranch {
+	case "true":
+		return true, true
+	case "false":
+		return true, false
+	default:
+		return false, false
+	}
+}
+
+func (o *CreateUpdateOption) SquashFlag() (bool, bool) {
+	switch o.Squash {
+	case "true":
+		return true, true
+	case "false":
+		return true, false
+	default:
+		return false, false
+	}
 }
 
 type ListOption struct {

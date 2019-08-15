@@ -100,5 +100,14 @@ func makeUpdateMergeRequestOption(opt *CreateUpdateOption, title, description st
 	if opt.MilestoneID != 0 {
 		updateMergeRequestOptions.MilestoneID = gitlab.Int(opt.MilestoneID)
 	}
+	ok, removeSourceBranchFlag := opt.RemoveSourceBranchFlag()
+	if ok {
+		updateMergeRequestOptions.RemoveSourceBranch = gitlab.Bool(removeSourceBranchFlag)
+	}
+	ok, squashFlag := opt.SquashFlag()
+	if ok {
+		updateMergeRequestOptions.Squash = gitlab.Bool(squashFlag)
+	}
+
 	return updateMergeRequestOptions
 }

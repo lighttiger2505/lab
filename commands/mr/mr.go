@@ -97,6 +97,10 @@ func (c *MergeRequestCommand) getMethod(opt Option, args []string, pInfo *gituti
 		return nil, err
 	}
 
+	if err := createUpdateOption.isValid(); err != nil {
+		return nil, err
+	}
+
 	if browseOption.HasBrowse() {
 		return &internal.BrowseMethod{
 			Opener:    &browse.Browser{},

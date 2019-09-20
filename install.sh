@@ -11,7 +11,7 @@ fi
 machine=""
 case $(uname -m) in
 x86_64) machine="amd64";;
-i386) machine="386";;
+i386|i686) machine="386";;
 esac
 
 os=""

@@ -41,7 +41,7 @@ type createMethod struct {
 func (m *createMethod) Process() (string, error) {
 	issue, err := m.client.CreateIssue(
 		makeCreateIssueOptions(m.opt, m.opt.Title, m.opt.Message, m.pInfo),
-		m.project,
+		m.pInfo.Project,
 	)
 	if err != nil {
 		return "", err

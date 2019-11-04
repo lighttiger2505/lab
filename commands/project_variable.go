@@ -151,6 +151,7 @@ func (c *ProjectVariableCommand) Run(args []string) int {
 	case ListProjectVariable:
 		variables, err := client.GetVariables(
 			pInfo.Project,
+			makeListProjectVariableOption(),
 		)
 		if err != nil {
 			c.UI.Error(err.Error())
@@ -181,16 +182,24 @@ func validProjectVariableArgs(op ProjectVariableOperation, args []string) error 
 	return nil
 }
 
-func makeCreateProjectVariableOption(key, value string) *gitlab.CreateVariableOptions {
-	opt := &gitlab.CreateVariableOptions{
+func makeListProjectVariableOption() *gitlab.ListProjectVariablesOptions {
+	opt := &gitlab.ListProjectVariablesOptions{
+		Page:    1,
+		PerPage: 100,
+	}
+	return opt
+}
+
+func makeCreateProjectVariableOption(key, value string) *gitlab.CreateProjectVariableOptions {
+	opt := &gitlab.CreateProjectVariableOptions{
 		Key:   gitlab.String(key),
 		Value: gitlab.String(value),
 	}
 	return opt
 }
 
-func makeUpdateProjectVariableOption(key, value string) *gitlab.UpdateVariableOptions {
-	opt := &gitlab.UpdateVariableOptions{
+func makeUpdateProjectVariableOption(key, value string) *gitlab.UpdateProjectVariableOptions {
+	opt := &gitlab.UpdateProjectVariableOptions{
 		// Key:   gitlab.String(key),
 		Value: gitlab.String(value),
 	}

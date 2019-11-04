@@ -7,7 +7,7 @@ import (
 )
 
 type Pipeline interface {
-	ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error)
+	ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) ([]*gitlab.PipelineInfo, error)
 	ProjectPipelineJobs(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]*gitlab.Job, error)
 }
 
@@ -19,7 +19,7 @@ func NewPipelineClient(client *gitlab.Client) Pipeline {
 	return &PipelineClient{Client: client}
 }
 
-func (c *PipelineClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error) {
+func (c *PipelineClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) ([]*gitlab.PipelineInfo, error) {
 	pipelines, _, err := c.Client.Pipelines.ListProjectPipelines(repositoryName, opt)
 	if err != nil {
 		return nil, fmt.Errorf("Failed list pipelines. Error: %s", err.Error())
@@ -36,11 +36,11 @@ func (c *PipelineClient) ProjectPipelineJobs(repositoryName string, opt *gitlab.
 }
 
 type MockPipelineClient struct {
-	MockProjectPipelines    func(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error)
+	MockProjectPipelines    func(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) ([]*gitlab.PipelineInfo, error)
 	MockProjectPipelineJobs func(repositoryName string, opt *gitlab.ListJobsOptions, pid int) ([]*gitlab.Job, error)
 }
 
-func (m *MockPipelineClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) (gitlab.PipelineList, error) {
+func (m *MockPipelineClient) ProjectPipelines(repositoryName string, opt *gitlab.ListProjectPipelinesOptions) ([]*gitlab.PipelineInfo, error) {
 	return m.MockProjectPipelines(repositoryName, opt)
 }
 

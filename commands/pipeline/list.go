@@ -81,7 +81,7 @@ func makeListPiplineJobOptions() *gitlab.ListJobsOptions {
 	return &gitlab.ListJobsOptions{}
 }
 
-func pipelineListOutput(pipelines gitlab.PipelineList) []string {
+func pipelineListOutput(pipelines []*gitlab.PipelineInfo) []string {
 	var outputs []string
 	for _, pipeline := range pipelines {
 		output := strings.Join([]string{

@@ -7,9 +7,9 @@ import (
 )
 
 type ProjectVariable interface {
-	GetVariables(repositoryName string) ([]*gitlab.ProjectVariable, error)
-	CreateVariable(repositoryName string, opt *gitlab.CreateVariableOptions) (*gitlab.ProjectVariable, error)
-	UpdateVariable(repositoryName string, key string, opt *gitlab.UpdateVariableOptions) (*gitlab.ProjectVariable, error)
+	GetVariables(repositoryName string, opt *gitlab.ListProjectVariablesOptions) ([]*gitlab.ProjectVariable, error)
+	CreateVariable(repositoryName string, opt *gitlab.CreateProjectVariableOptions) (*gitlab.ProjectVariable, error)
+	UpdateVariable(repositoryName string, key string, opt *gitlab.UpdateProjectVariableOptions) (*gitlab.ProjectVariable, error)
 	RemoveVariable(repositoryName string, key string) error
 }
 
@@ -22,15 +22,15 @@ func NewProjectVariableClient(client *gitlab.Client) ProjectVariable {
 	return &ProjectVariableClient{Client: client}
 }
 
-func (c *ProjectVariableClient) GetVariables(repositoryName string) ([]*gitlab.ProjectVariable, error) {
-	vals, _, err := c.Client.ProjectVariables.ListVariables(repositoryName)
+func (c *ProjectVariableClient) GetVariables(repositoryName string, opt *gitlab.ListProjectVariablesOptions) ([]*gitlab.ProjectVariable, error) {
+	vals, _, err := c.Client.ProjectVariables.ListVariables(repositoryName, opt)
 	if err != nil {
 		return nil, fmt.Errorf("failed list project variables. %s", err.Error())
 	}
 	return vals, nil
 }
 
-func (c *ProjectVariableClient) CreateVariable(repositoryName string, opt *gitlab.CreateVariableOptions) (*gitlab.ProjectVariable, error) {
+func (c *ProjectVariableClient) CreateVariable(repositoryName string, opt *gitlab.CreateProjectVariableOptions) (*gitlab.ProjectVariable, error) {
 	val, _, err := c.Client.ProjectVariables.CreateVariable(repositoryName, opt)
 	if err != nil {
 		return nil, fmt.Errorf("failed create project variables. %s", err.Error())
@@ -38,7 +38,7 @@ func (c *ProjectVariableClient) CreateVariable(repositoryName string, opt *gitla
 	return val, nil
 }
 
-func (c *ProjectVariableClient) UpdateVariable(repositoryName string, key string, opt *gitlab.UpdateVariableOptions) (*gitlab.ProjectVariable, error) {
+func (c *ProjectVariableClient) UpdateVariable(repositoryName string, key string, opt *gitlab.UpdateProjectVariableOptions) (*gitlab.ProjectVariable, error) {
 	val, _, err := c.Client.ProjectVariables.UpdateVariable(repositoryName, key, opt)
 	if err != nil {
 		return nil, fmt.Errorf("failed update project variables. %s", err.Error())
@@ -56,21 +56,21 @@ func (c *ProjectVariableClient) RemoveVariable(repositoryName string, key string
 
 type MockProjectVariableClient struct {
 	ProjectVariable
-	MockGetVariables   func(repositoryName string) ([]*gitlab.ProjectVariable, error)
-	MockCreateVariable func(repositoryName string, opt *gitlab.CreateVariableOptions) (*gitlab.ProjectVariable, error)
-	MockUpdateVariable func(repositoryName string, key string, opt *gitlab.UpdateVariableOptions) (*gitlab.ProjectVariable, error)
+	MockGetVariables   func(repositoryName string, opt *gitlab.ListProjectVariablesOptions) ([]*gitlab.ProjectVariable, error)
+	MockCreateVariable func(repositoryName string, opt *gitlab.CreateProjectVariableOptions) (*gitlab.ProjectVariable, error)
+	MockUpdateVariable func(repositoryName string, key string, opt *gitlab.UpdateProjectVariableOptions) (*gitlab.ProjectVariable, error)
 	MockRemoveVariable func(repositoryName string, key string) error
 }
 
-func (c *MockProjectVariableClient) GetVariables(repositoryName string) ([]*gitlab.ProjectVariable, error) {
-	return c.MockGetVariables(repositoryName)
+func (c *MockProjectVariableClient) GetVariables(repositoryName string, opt *gitlab.ListProjectVariablesOptions) ([]*gitlab.ProjectVariable, error) {
+	return c.MockGetVariables(repositoryName, opt)
 }
 
-func (c *MockProjectVariableClient) CreateVariable(repositoryName string, opt *gitlab.CreateVariableOptions) (*gitlab.ProjectVariable, error) {
+func (c *MockProjectVariableClient) CreateVariable(repositoryName string, opt *gitlab.CreateProjectVariableOptions) (*gitlab.ProjectVariable, error) {
 	return c.MockCreateVariable(repositoryName, opt)
 }
 
-func (c *MockProjectVariableClient) UpdateVariable(repositoryName string, key string, opt *gitlab.UpdateVariableOptions) (*gitlab.ProjectVariable, error) {
+func (c *MockProjectVariableClient) UpdateVariable(repositoryName string, key string, opt *gitlab.UpdateProjectVariableOptions) (*gitlab.ProjectVariable, error) {
 	return c.MockUpdateVariable(repositoryName, key, opt)
 }
 

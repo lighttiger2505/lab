@@ -71,6 +71,11 @@ Labels: %s
 		stateColor = color.New(color.FgRed).SprintFunc()
 	}
 
+	assignee := ""
+	if mergeRequest.Assignee != nil {
+		assignee = mergeRequest.Assignee.Name
+	}
+
 	milestone := ""
 	if mergeRequest.Milestone != nil {
 		milestone = mergeRequest.Milestone.Title
@@ -82,7 +87,7 @@ Labels: %s
 		stateColor(mergeRequest.State),
 		mergeRequest.Author.Name,
 		mergeRequest.CreatedAt.String(),
-		mergeRequest.Assignee.Name,
+		assignee,
 		milestone,
 		strings.Join(mergeRequest.Labels, ", "),
 		internal.SweepMarkdownComment(mergeRequest.Description),
